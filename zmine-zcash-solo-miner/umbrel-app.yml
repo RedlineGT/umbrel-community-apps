@@ -4,7 +4,7 @@ name: Zcash Solo Miner
 tagline: Mine ZEC on mainnet with your own Zebra full node
 icon: https://raw.githubusercontent.com/RedlineGT/umbrel-community-apps/main/zmine-zcash-solo-miner/icon.png
 category: Finance
-version: "1.0.0"
+version: "1.0.1"
 port: 3300
 description: >-
   A complete, self-contained Zcash solo mining stack that runs entirely on your
@@ -37,7 +37,7 @@ description: >-
 
   CPU solo mining on mainnet is statistically very unlikely to find blocks.
   For realistic results, point external GPU or ASIC miners at your Umbrel's
-  Stratum port (3333).
+  Stratum port (13333).
 
 developer: ZcashFoundation
 website: https://github.com/ZcashFoundation/zebra

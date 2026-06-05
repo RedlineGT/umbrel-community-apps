@@ -7,14 +7,14 @@
 #    REDIS_PASSWORD — change to a long random string.
 #
 #  OPTIONAL:
-#    STRATUM_PORT   — port external ASICs/GPUs connect to (default 3333)
+#    STRATUM_PORT   — port external ASICs/GPUs connect to (default 13333)
 #    CPU_THREADS    — threads for built-in CPU miner (set 0 to disable)
 #
 #  SYNC: Zebra takes 2–3 days to sync mainnet on first run.
 #        Mining only works after full sync.
 #
 #  DASHBOARD: available via your Umbrel UI (port 3300 internally).
-#  STRATUM:   point your miners to <umbrel-ip>:3333
+#  STRATUM:   point your miners to <umbrel-ip>:13333
 # ============================================================
 
 # ── Shared security baseline ──────────────────────────────────────────────
@@ -42,7 +42,7 @@ services:
   # RPC on 8232 (internal Docker network only)
   # P2P on 8233 (exposed — helps network health, safe to open)
   zebra:
-    image: ghcr.io/redlinegt/zmine-zebra:1.0.0
+    image: ghcr.io/redlinegt/zmine-zebra:1.0.1
     <<: *sec
     # cap_drop intentionally omitted: the official Zebra entrypoint uses
     # setpriv to drop from root→zebra user, which requires CAP_SETUID/SETGID.
@@ -113,10 +113,10 @@ services:
       start_period: 10s
 
   # ── s-nomp — Stratum server + OLED dashboard ─────────────────────────
-  # Stratum on 3333 (exposed — point your ASICs/GPUs here)
+  # Stratum on 13333 (exposed — point your ASICs/GPUs here)
   # Web dashboard on 3300 (internal — served via Umbrel proxy)
   nomp:
-    image: ghcr.io/redlinegt/zmine-nomp:1.0.0
+    image: ghcr.io/redlinegt/zmine-nomp:1.0.1
     <<: *sec
     user: "1000:1000"
     cap_drop:
@@ -133,14 +133,14 @@ services:
       ZEBRA_RPC_PORT: "8232"
       REDIS_HOST: redis
       REDIS_PASSWORD: ${REDIS_PASSWORD:-CHANGE_ME_use_a_long_random_string}
-      STRATUM_PORT: "3333"
+      STRATUM_PORT: "13333"
       NETWORK: Mainnet
       # POOL_ADDRESS is display-only; actual rewards go to Zebra miner_address.
       POOL_ADDRESS: ${MINER_ADDRESS:-t1fgGy3CBkKJax8EH1RquQdPGPXPnDH5ig6}
     volumes:
       - ${APP_DATA_DIR}/config:/config
     ports:
-      - "${STRATUM_PORT:-3333}:3333"
+      - "${STRATUM_PORT:-13333}:${STRATUM_PORT:-13333}"
     networks:
       - default
     mem_limit: 512m
@@ -155,7 +155,7 @@ services:
   # Very low hash-rate; useful for testing connectivity.
   # Set CPU_THREADS=0 in the env to disable entirely.
   miner:
-    image: ghcr.io/redlinegt/zmine-miner:1.0.0
+    image: ghcr.io/redlinegt/zmine-miner:1.0.1
     <<: *sec
     user: "1000:1000"
     cap_drop:
@@ -165,7 +165,7 @@ services:
         condition: service_healthy
     environment:
       STRATUM_HOST: nomp
-      STRATUM_PORT: "3333"
+      STRATUM_PORT: "13333"
       MINER_ADDRESS: ${MINER_ADDRESS:-t1fgGy3CBkKJax8EH1RquQdPGPXPnDH5ig6}
       CPU_THREADS: ${CPU_THREADS:-1}
     networks:
