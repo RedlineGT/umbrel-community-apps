@@ -322,25 +322,29 @@ const INJECT = `
             var d = ''; r.on('data', function(c){ d+=c; }); r.on('end', function(){
                 try {
                     var j = JSON.parse(d);
-                    Object.keys(j.algos||{}).forEach(function(a){
-                        var al = j.algos[a];
-                        poolHash += al.hashrate||0;
-                        workers  += al.workers||0;
-                        Object.keys(al.pools||{}).forEach(function(p){
-                            var b = (al.pools[p].blocks)||{};
-                            blocks += (b.confirmed||0);
-                        });
+                    Object.keys(j.pools||{}).forEach(function(p){
+                        var pl = j.pools[p];
+                        poolHash += parseFloat(pl.hashrate)||0;
+                        workers  += parseInt(pl.workerCount)||0;
+                        blocks   += parseInt((pl.blocks||{}).confirmed)||0;
                     });
                 } catch(e){}
                 done();
             });
         });
-        sr.setTimeout(4000, function(){ sr.destroy(); done(); });
+        sr.setTimeout(4000, function(){ sr.destroy(); });
         sr.on('error', function(){ done(); });
         // --- Network difficulty (5-min cache, Zebra RPC) ---
         var now = Date.now();
+        var diffDone = false;
+        function onceDiff() {
+            if (diffDone) return; diffDone = true;
+            if (!netDiff && _diffHistCache.points.length > 0)
+                netDiff = _diffHistCache.points[_diffHistCache.points.length-1].diff;
+            done();
+        }
         if (now - _netDiffCache.ts < 300000 && _netDiffCache.diff > 0) {
-            netDiff = _netDiffCache.diff; done();
+            netDiff = _netDiffCache.diff; onceDiff();
         } else {
             var body = JSON.stringify({"jsonrpc":"2.0","id":1,"method":"getblockchaininfo","params":[]});
             var opts = { host: process.env.ZEBRA_HOST||'zebra', port: parseInt(process.env.ZEBRA_RPC_PORT)||8232,
@@ -351,22 +355,11 @@ const INJECT = `
                         var diff = parseFloat((JSON.parse(d).result||{}).difficulty)||0;
                         if (diff > 0) { netDiff = diff; _netDiffCache = { ts: Date.now(), diff: diff }; }
                     } catch(e){}
-                    if (!netDiff && _diffHistCache.points.length > 0)
-                        netDiff = _diffHistCache.points[_diffHistCache.points.length-1].diff;
-                    done();
+                    onceDiff();
                 });
             });
-            rr.setTimeout(4000, function(){
-                rr.destroy();
-                if (!netDiff && _diffHistCache.points.length > 0)
-                    netDiff = _diffHistCache.points[_diffHistCache.points.length-1].diff;
-                done();
-            });
-            rr.on('error', function(){
-                if (!netDiff && _diffHistCache.points.length > 0)
-                    netDiff = _diffHistCache.points[_diffHistCache.points.length-1].diff;
-                done();
-            });
+            rr.setTimeout(4000, function(){ rr.destroy(); onceDiff(); });
+            rr.on('error', function(){ onceDiff(); });
             rr.write(body); rr.end();
         }
     });
