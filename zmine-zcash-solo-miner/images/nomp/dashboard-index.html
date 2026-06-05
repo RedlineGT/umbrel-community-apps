@@ -393,6 +393,36 @@ footer{
   .cards{grid-template-columns:repeat(2,1fr)}
   .hide-sm{display:none!important}
 }
+/* ── ZEC price & chart ─────────────────────────────────── */
+#priceSection{
+  background:var(--surf);border:1px solid var(--border);
+  border-radius:10px;padding:16px 20px;margin-bottom:18px;
+}
+.price-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:10px}
+.price-left{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.price-lbl{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--text3);margin-right:2px}
+.price-usd{font-size:24px;font-weight:900;color:var(--zec);letter-spacing:-0.5px;line-height:1}
+.price-chg{font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;line-height:1.6}
+.price-up{color:var(--green);background:var(--green-a)}
+.price-dn{color:var(--red);background:var(--red-a)}
+.price-meta{font-size:10px;color:var(--text2);display:flex;gap:16px;flex-wrap:wrap}
+.spark-wrap{width:100%;height:72px}
+.spark-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--text3);margin-top:3px}
+/* ── Block odds & closest share ────────────────────────── */
+#oddsSection{
+  background:var(--surf);border:1px solid var(--border);
+  border-radius:10px;padding:16px 20px;margin-bottom:18px;
+}
+.odds-title{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--text3);margin-bottom:12px}
+.odds-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px}
+.odds-card{background:var(--surf2);border-radius:8px;padding:12px 14px}
+.odds-lbl{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);margin-bottom:6px}
+.odds-val{font-size:18px;font-weight:900;color:var(--text);line-height:1}
+.odds-sub{font-size:10px;color:var(--text2);margin-top:4px;min-height:14px}
+.odds-bar{height:3px;background:var(--surf3);border-radius:2px;margin-top:8px;overflow:hidden}
+.odds-bar-fill{height:100%;background:var(--zec);border-radius:2px;transition:width .6s ease}
+.bsb-bar{height:4px;background:var(--surf3);border-radius:2px;margin-top:8px;overflow:hidden}
+.bsb-fill{height:100%;background:linear-gradient(90deg,var(--zec),var(--green));border-radius:2px;transition:width .6s ease}
 @media(max-width:480px){
   .card-val{font-size:17px}
   .logo span{display:none}
@@ -433,6 +463,7 @@ footer{
     <span id="nodePill" class="pill pill-sync"><span class="dot blink"></span>Connecting</span>
     <span id="hdrPeers">— peers</span>
     <span id="hdrTime" style="color:var(--text3)">—</span>
+    <span id="hdrZecPrice" style="color:var(--zec);font-weight:800;letter-spacing:.5px;display:none"></span>
     <div id="spinner" class="spin-ring"></div>
   </div>
 </header>
@@ -506,6 +537,59 @@ footer{
     </div>
     <div class="ctrl-warn" id="netWarn">
       <div class="ctrl-warn-txt">&#9888; Network change saved. Restart Zebra and Miner services to apply. Switching networks requires re-syncing the chain from scratch.</div>
+    </div>
+  </div>
+
+  <!-- ZEC price + 90-day chart -->
+  <div id="priceSection">
+    <div class="price-row">
+      <div class="price-left">
+        <span class="price-lbl">ZEC / USD</span>
+        <span class="price-usd" id="priceUsd">—</span>
+        <span class="price-chg" id="priceChg" style="display:none"></span>
+      </div>
+      <div class="price-meta">
+        <span>90d High: <strong id="price90Hi">—</strong></span>
+        <span>90d Low: <strong id="price90Lo">—</strong></span>
+        <span id="priceAge" style="color:var(--text3)"></span>
+      </div>
+    </div>
+    <div class="spark-wrap">
+      <svg id="sparkSvg" width="100%" height="72" viewBox="0 0 600 72" preserveAspectRatio="none"></svg>
+    </div>
+    <div class="spark-labels">
+      <span id="sparkDateStart">90 days ago</span>
+      <span>Today</span>
+    </div>
+  </div>
+
+  <!-- Block odds + closest share -->
+  <div id="oddsSection">
+    <div class="odds-title">Block Odds &amp; Mining Progress — pool hashrate vs network</div>
+    <div class="odds-grid">
+      <div class="odds-card">
+        <div class="odds-lbl">Chance Today</div>
+        <div class="odds-val" id="oddsDay">—</div>
+        <div class="odds-sub" id="oddsDaySub">connect a miner</div>
+        <div class="odds-bar"><div class="odds-bar-fill" id="oddsDayBar" style="width:0"></div></div>
+      </div>
+      <div class="odds-card">
+        <div class="odds-lbl">Chance This Month</div>
+        <div class="odds-val" id="oddsMonth">—</div>
+        <div class="odds-sub" id="oddsMonthSub">connect a miner</div>
+        <div class="odds-bar"><div class="odds-bar-fill" id="oddsMonthBar" style="width:0"></div></div>
+      </div>
+      <div class="odds-card">
+        <div class="odds-lbl">Closest Share Ever</div>
+        <div class="odds-val" id="oddsBest">—</div>
+        <div class="odds-sub" id="oddsBestSub">% of block difficulty</div>
+        <div class="bsb-bar"><div class="bsb-fill" id="oddsBestBar" style="width:0"></div></div>
+      </div>
+      <div class="odds-card">
+        <div class="odds-lbl">Your Hashrate</div>
+        <div class="odds-val" id="oddsHash">—</div>
+        <div class="odds-sub">vs <span id="oddsNetHash">—</span> net</div>
+      </div>
     </div>
   </div>
 
@@ -647,7 +731,7 @@ footer{
 </section>
 
 <footer>
-  ZEC Solo Miner <span style="color:var(--text3);opacity:.6">v1.0.5</span> &nbsp;·&nbsp; Zebra v5 (NU6.2) &nbsp;·&nbsp; <span id="footerNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp
+  ZEC Solo Miner <span style="color:var(--text3);opacity:.6">v1.0.6</span> &nbsp;·&nbsp; Zebra v5 (NU6.2) &nbsp;·&nbsp; <span id="footerNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp
 </footer>
 
 <script>
@@ -661,7 +745,9 @@ var filterAddr = localStorage.getItem('zmf.filter') || '';
 var sessBest   = {};        // { worker: maxDiff } — resets on page load
 var allBest    = {};        // { worker: maxDiff } — persisted
 var lastNetDiff = 0;
-var cachedNetPeers = 0; // best known peer count from Zebra direct RPC
+var cachedNetPeers = 0;    // best known peer count from Zebra direct RPC
+var cachedPoolHashrate = 0; // Sol/s — aggregate pool hashrate from s-nomp
+var cachedNetHashrate  = 0; // Sol/s — network hashrate from Zebra netinfo
 
 try { allBest = JSON.parse(localStorage.getItem('zmf.atb') || '{}'); }
 catch(e) { allBest = {}; }
@@ -1041,7 +1127,9 @@ function poll(){
         ?'~'+(+pool.luckHours).toFixed(1)+' hrs expected'
         :'at current hash rate');
 
+      cachedPoolHashrate = parseFloat(pool.hashrate) || 0;
       renderWorkers(pool.workers||{}, netDiff);
+      updateOdds();
       renderBlocks(pool);
     })
     .catch(function(){
@@ -1222,11 +1310,128 @@ function updateSync(data){
   }
 }
 
+/* ── ZEC price fetch ──────────────────────────────────────────────────── */
+var historyLastFetch = 0;
+function fetchZecPrice(){
+  fetch('https://api.coingecko.com/api/v3/simple/price?ids=zcash&vs_currencies=usd&include_24hr_change=true',{mode:'cors'})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(!d.zcash) return;
+      var price = d.zcash.usd;
+      var chg   = d.zcash.usd_24h_change;
+      var str   = '$' + price.toFixed(2);
+      s('priceUsd', str);
+      var hdr = g('hdrZecPrice');
+      if(hdr){ hdr.textContent = 'ZEC ' + str; hdr.style.display = ''; }
+      var chgEl = g('priceChg');
+      if(chgEl && chg != null){
+        var pos = chg >= 0;
+        chgEl.textContent = (pos ? '+' : '') + chg.toFixed(2) + '%';
+        chgEl.className   = 'price-chg ' + (pos ? 'price-up' : 'price-dn');
+        chgEl.style.display = '';
+      }
+      s('priceAge', 'Updated ' + new Date().toLocaleTimeString());
+    })
+    .catch(function(){});
+}
+function fetchZecHistory(){
+  var now = Date.now();
+  if(now - historyLastFetch < 60000) return;
+  historyLastFetch = now;
+  fetch('https://api.coingecko.com/api/v3/coins/zcash/market_chart?vs_currency=usd&days=90&interval=daily',{mode:'cors'})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(!d.prices || d.prices.length < 2) return;
+      var vals = d.prices.map(function(p){ return p[1]; });
+      var hi = Math.max.apply(null, vals);
+      var lo = Math.min.apply(null, vals);
+      s('price90Hi', '$' + hi.toFixed(2));
+      s('price90Lo', '$' + lo.toFixed(2));
+      var start = new Date(d.prices[0][0]);
+      s('sparkDateStart', start.toLocaleDateString(undefined,{month:'short',day:'numeric'}));
+      drawSparkline(d.prices);
+    })
+    .catch(function(){});
+}
+function drawSparkline(prices){
+  var svg = g('sparkSvg');
+  if(!svg || prices.length < 2) return;
+  var W = 600, H = 72;
+  var vals = prices.map(function(p){ return p[1]; });
+  var lo   = Math.min.apply(null, vals);
+  var hi   = Math.max.apply(null, vals);
+  var span = hi - lo || 1;
+  var n    = vals.length;
+  var pts  = vals.map(function(v, i){
+    var x = ((i / (n - 1)) * W).toFixed(1);
+    var y = (H - 4 - ((v - lo) / span) * (H - 12)).toFixed(1);
+    return x + ',' + y;
+  });
+  var line = 'M' + pts.join('L');
+  var fill = line + 'L' + W + ',' + H + ' L0,' + H + ' Z';
+  svg.innerHTML =
+    '<defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">'
+    + '<stop offset="0%" stop-color="#F4B728" stop-opacity="0.22"/>'
+    + '<stop offset="100%" stop-color="#F4B728" stop-opacity="0.01"/>'
+    + '</linearGradient></defs>'
+    + '<path d="' + fill + '" fill="url(#sg)"/>'
+    + '<path d="' + line + '" fill="none" stroke="#F4B728" stroke-width="1.5" stroke-linejoin="round"/>';
+}
+/* ── Block odds + closest share ───────────────────────────────────────── */
+function updateOdds(){
+  var ZEC_BPD = 1152;   /* 86400 / 75s block time  */
+  var ZEC_BPM = 34560;  /* × 30 days               */
+  var p = (cachedNetHashrate > 0 && cachedPoolHashrate > 0)
+    ? cachedPoolHashrate / cachedNetHashrate : 0;
+  var pDay   = p > 0 ? (1 - Math.pow(1 - p, ZEC_BPD)) * 100 : 0;
+  var pMonth = p > 0 ? (1 - Math.pow(1 - p, ZEC_BPM)) * 100 : 0;
+  function fmtOdds(v){
+    if(v <= 0)   return '—';
+    if(v >= 100) return '100%';
+    if(v >= 1)   return v.toFixed(2) + '%';
+    if(v >= 0.01)return v.toFixed(3) + '%';
+    return '<0.01%';
+  }
+  function fmtOneIn(v){
+    if(v <= 0)   return 'connect a miner';
+    if(v >= 100) return 'extremely likely!';
+    var x = Math.round(100 / v);
+    if(x >= 1000000) return '1 in ~' + (x/1000000).toFixed(1) + 'M';
+    if(x >= 10000)   return '1 in ~' + (x/1000).toFixed(0) + 'K';
+    return '1 in ' + x.toLocaleString();
+  }
+  s('oddsDay',      fmtOdds(pDay));
+  s('oddsMonth',    fmtOdds(pMonth));
+  s('oddsDaySub',   fmtOneIn(pDay));
+  s('oddsMonthSub', fmtOneIn(pMonth));
+  /* bars — 25% = full bar (excellent odds for solo mining) */
+  var db = g('oddsDayBar');   if(db)   db.style.width = Math.min(100, pDay   / 25 * 100).toFixed(1) + '%';
+  var mb = g('oddsMonthBar'); if(mb)   mb.style.width = Math.min(100, pMonth / 25 * 100).toFixed(1) + '%';
+  /* hashrate labels */
+  s('oddsHash',    cachedPoolHashrate > 0 ? fmtH(cachedPoolHashrate) : '—');
+  s('oddsNetHash', cachedNetHashrate  > 0 ? fmtH(cachedNetHashrate)  : '—');
+  /* closest share ever across all workers */
+  var best = 0;
+  Object.keys(allBest).forEach(function(w){ if(allBest[w] > best) best = allBest[w]; });
+  var bestPct = (lastNetDiff > 0 && best > 0) ? best / lastNetDiff * 100 : 0;
+  if(bestPct > 0){
+    s('oddsBest',    bestPct >= 100 ? '🎉 BLOCK!' : bestPct.toFixed(4) + '%');
+    s('oddsBestSub', bestPct >= 100 ? 'Block found!' : 'of block difficulty needed');
+    var bb = g('oddsBestBar'); if(bb) bb.style.width = Math.min(100, bestPct).toFixed(2) + '%';
+  } else {
+    s('oddsBest',    '—');
+    s('oddsBestSub', 'submit a share first');
+  }
+}
 initStratum();
 fetchNetwork();
 fetchAddress();
 poll();
-setInterval(poll,POLL);
+setInterval(poll, POLL);
+fetchZecPrice();
+fetchZecHistory();
+setInterval(fetchZecPrice,  60000);
+setInterval(fetchZecHistory, 300000);
 }();
 
 /* ── Donation QR codes ─────────────────────────────────── */

@@ -36,7 +36,7 @@ const INJECT = `
             "script-src 'self' 'unsafe-inline'",
             "style-src 'self' 'unsafe-inline' data:",
             "img-src 'self' data: https:",
-            "connect-src 'self'",
+            "connect-src 'self' https://api.coingecko.com",
             "frame-ancestors 'none'"
         ].join('; '));
         res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
