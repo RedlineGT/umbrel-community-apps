@@ -4,7 +4,7 @@ name: Zcash Solo Miner
 tagline: Mine ZEC on mainnet with your own Zebra full node
 icon: https://raw.githubusercontent.com/RedlineGT/umbrel-community-apps/main/zmine-zcash-solo-miner/icon.png
 category: Finance
-version: "1.0.9"
+version: "1.2.0"
 port: 3300
 description: >-
   A complete, self-contained Zcash solo mining stack that runs entirely on your
@@ -14,10 +14,10 @@ description: >-
   Stack components:
 
   • Zebra v5+ — ZcashFoundation's official Rust full node (NU5 / NU6 / NU6.2
-  compatible, mainnet)
+  compatible, mainnet & testnet)
 
   • s-nomp — ZcashFoundation's fork of the Solo/New Open Mining Portal
-  (zebra-mining branch), providing Stratum server + web dashboard
+  (zebra-mining branch), providing Stratum server + real-time dashboard
 
   • nheqminer — CPU Equihash solver (Tromp algorithm) for local hash
   contribution or testing
@@ -26,8 +26,13 @@ description: >-
 
 
   All block rewards go directly to your configured transparent Zcash address
-  (t1/t3 address). Payment processing is fully disabled — no pool operator
-  cut.
+  (t1/t3). Payment processing is fully disabled — no pool operator cut.
+
+
+  The dashboard gives you a full live view of your mining operation: real-time
+  hashrate, connected workers, network difficulty, ZEC price chart (90-day),
+  block odds calculator, and a complete block history — all in a clean sidebar
+  layout with OLED dark theme.
 
 
   IMPORTANT: You MUST set your Zcash mainnet transparent address by editing
@@ -49,7 +54,47 @@ gallery:
   - https://raw.githubusercontent.com/RedlineGT/umbrel-community-apps/main/zmine-zcash-solo-miner/screenshot1.png
   - https://raw.githubusercontent.com/RedlineGT/umbrel-community-apps/main/zmine-zcash-solo-miner/screenshot2.png
 releaseNotes: >-
-  Initial release. Zebra v5.0.0 (NU6.2), s-nomp zebra-mining branch,
+  v1.2.0 — Major dashboard redesign
+
+
+  • New sidebar navigation layout (Overview, Miners, Blocks Found, Donate)
+  with collapsible sidebar and hamburger toggle
+
+  • Switched to Inter font (Google Fonts) for a modern, clean UI
+
+  • OLED dark theme preserved (#000 background) with refined card system
+  and consistent color variables
+
+  • ZEC price ticker with live 90-day sparkline chart and high/low range
+
+  • Block odds calculator — daily/monthly chance, closest share ever,
+  pool vs network hashrate
+
+  • Improved stat cards grid with auto-fit layout
+
+  • Responsive design: sidebar collapses on tablet, slides in on mobile
+
+  • Zebra healthcheck tuned (start_period 300s, retries 30) for slow
+  hardware syncing large chains
+
+  • SVG favicon and donate section polish
+
+
+  Changelog:
+
+  v1.0.9 — Fix Edit address button (window.openAddrDialog), add SVG favicon
+
+  v1.0.8 — Zebra healthcheck: start_period 300s, retries 30
+
+  v1.0.7 — Donate section copy update
+
+  v1.0.6 — ZEC price ticker, 90-day chart, block odds panel, CSP fix
+
+  v1.0.5 — Fix hashrate card flash on zero pool hash
+
+  v1.0.4 — Inline QR code library (offline-safe), fix QR API
+
+  v1.0.0 — Initial release. Zebra v5+ (NU6.2), s-nomp zebra-mining branch,
   nheqminer CPU tromp solver. Mainnet only.
 dependencies: []
 path: ""
