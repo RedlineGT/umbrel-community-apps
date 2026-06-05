@@ -406,7 +406,7 @@ window.toggleSidebar=function(){
   <div class="sb-bottom">
     <span id="nodePill" class="pill pill-sync"><span class="dot blink"></span>Connecting</span>
     <div class="sb-net" id="footerNet">Mainnet</div>
-    <div class="sb-version">ZEC Solo Miner v1.2.4</div>
+    <div class="sb-version">ZEC Solo Miner v1.2.5</div>
   </div>
 </aside>
 
@@ -1343,6 +1343,7 @@ function drawDiffSparkline(points){
     + '<path d="' + fill + '" fill="url(#dg)"/>'
     + '<path d="' + line + '" fill="none" stroke="#4DA6FF" stroke-width="1.5" stroke-linejoin="round"/>';
 }
+function fetchZecPrice(){
   fetch('https://api.coingecko.com/api/v3/simple/price?ids=zcash&vs_currencies=usd&include_24hr_change=true',{mode:'cors'})
     .then(function(r){ return r.json(); })
     .then(function(d){
