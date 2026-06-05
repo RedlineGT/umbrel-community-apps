@@ -282,6 +282,94 @@ const INJECT = `
         r2.setTimeout(10000, function() { r2.destroy(); res.json({ points: _diffHistCache.points }); });
         r2.on('error', function() { res.json({ points: _diffHistCache.points }); });
     });
+    // Umbrel widget endpoint — four-stats for home screen
+    var _netDiffCache = { ts: 0, diff: 0 };
+    app.get('/api/umbrel/widget', function(req, res) {
+        var http = require('http');
+        var pending = 2;
+        var poolHash = 0, workers = 0, blocks = 0, netDiff = 0;
+        function fmtHash(h) {
+            if (!h) return { text: '0', subtext: 'Sol/s' };
+            if (h >= 1e9) return { text: (h/1e9).toFixed(2), subtext: 'GSol/s' };
+            if (h >= 1e6) return { text: (h/1e6).toFixed(2), subtext: 'MSol/s' };
+            if (h >= 1e3) return { text: (h/1e3).toFixed(1), subtext: 'kSol/s' };
+            return { text: h.toFixed(0), subtext: 'Sol/s' };
+        }
+        function fmtDiff(d) {
+            if (!d) return { text: '\u2014', subtext: 'difficulty' };
+            if (d >= 1e9) return { text: (d/1e9).toFixed(2)+'B', subtext: 'difficulty' };
+            if (d >= 1e6) return { text: (d/1e6).toFixed(1)+'M', subtext: 'difficulty' };
+            if (d >= 1e3) return { text: (d/1e3).toFixed(0)+'K', subtext: 'difficulty' };
+            return { text: String(Math.round(d)), subtext: 'difficulty' };
+        }
+        function done() {
+            if (--pending > 0) return;
+            var hFmt = fmtHash(poolHash);
+            var dFmt = fmtDiff(netDiff);
+            res.json({
+                type: 'four-stats',
+                link: '',
+                items: [
+                    { title: 'Pool Hashrate', text: hFmt.text,      subtext: hFmt.subtext },
+                    { title: 'Blocks Found',  text: String(blocks),  subtext: 'confirmed'  },
+                    { title: 'Net Difficulty',text: dFmt.text,       subtext: dFmt.subtext },
+                    { title: 'Workers',       text: String(workers), subtext: 'active'     }
+                ]
+            });
+        }
+        // --- Pool stats from s-nomp ---
+        var sr = http.get('http://127.0.0.1:3300/api/stats', function(r) {
+            var d = ''; r.on('data', function(c){ d+=c; }); r.on('end', function(){
+                try {
+                    var j = JSON.parse(d);
+                    Object.keys(j.algos||{}).forEach(function(a){
+                        var al = j.algos[a];
+                        poolHash += al.hashrate||0;
+                        workers  += al.workers||0;
+                        Object.keys(al.pools||{}).forEach(function(p){
+                            var b = (al.pools[p].blocks)||{};
+                            blocks += (b.confirmed||0);
+                        });
+                    });
+                } catch(e){}
+                done();
+            });
+        });
+        sr.setTimeout(4000, function(){ sr.destroy(); done(); });
+        sr.on('error', function(){ done(); });
+        // --- Network difficulty (5-min cache, Zebra RPC) ---
+        var now = Date.now();
+        if (now - _netDiffCache.ts < 300000 && _netDiffCache.diff > 0) {
+            netDiff = _netDiffCache.diff; done();
+        } else {
+            var body = JSON.stringify({"jsonrpc":"2.0","id":1,"method":"getblockchaininfo","params":[]});
+            var opts = { host: process.env.ZEBRA_HOST||'zebra', port: parseInt(process.env.ZEBRA_RPC_PORT)||8232,
+                path:'/', method:'POST', headers:{'Content-Type':'application/json','Content-Length':Buffer.byteLength(body)} };
+            var rr = http.request(opts, function(r2){
+                var d=''; r2.on('data',function(c){d+=c;}); r2.on('end',function(){
+                    try {
+                        var diff = parseFloat((JSON.parse(d).result||{}).difficulty)||0;
+                        if (diff > 0) { netDiff = diff; _netDiffCache = { ts: Date.now(), diff: diff }; }
+                    } catch(e){}
+                    if (!netDiff && _diffHistCache.points.length > 0)
+                        netDiff = _diffHistCache.points[_diffHistCache.points.length-1].diff;
+                    done();
+                });
+            });
+            rr.setTimeout(4000, function(){
+                rr.destroy();
+                if (!netDiff && _diffHistCache.points.length > 0)
+                    netDiff = _diffHistCache.points[_diffHistCache.points.length-1].diff;
+                done();
+            });
+            rr.on('error', function(){
+                if (!netDiff && _diffHistCache.points.length > 0)
+                    netDiff = _diffHistCache.points[_diffHistCache.points.length-1].diff;
+                done();
+            });
+            rr.write(body); rr.end();
+        }
+    });
     // end umbrel:patched
 `;
 

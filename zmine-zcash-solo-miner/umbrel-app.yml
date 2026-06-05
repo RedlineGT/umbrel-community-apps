@@ -1,10 +1,10 @@
-manifestVersion: 1
+manifestVersion: 1.1
 id: zmine-zcash-solo-miner
 name: Zcash Solo Miner
 tagline: Mine ZEC on mainnet with your own Zebra full node
 icon: https://raw.githubusercontent.com/RedlineGT/umbrel-community-apps/main/zmine-zcash-solo-miner/icon.png
 category: Finance
-version: "1.2.6"
+version: "1.2.7"
 port: 3300
 description: >-
   A complete, self-contained Zcash solo mining stack that runs entirely on your
@@ -100,3 +100,25 @@ dependencies: []
 path: ""
 defaultUsername: ""
 defaultPassword: ""
+widgets:
+  - id: "stats"
+    type: "four-stats"
+    refresh: "30s"
+    endpoint: "app:3300/api/umbrel/widget"
+    link: ""
+    example:
+      type: "four-stats"
+      link: ""
+      items:
+        - title: "Pool Hashrate"
+          text: "1.2"
+          subtext: "kSol/s"
+        - title: "Blocks Found"
+          text: "0"
+          subtext: "confirmed"
+        - title: "Net Difficulty"
+          text: "245.3M"
+          subtext: "difficulty"
+        - title: "Workers"
+          text: "2"
+          subtext: "active"
