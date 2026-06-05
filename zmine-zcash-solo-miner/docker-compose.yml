@@ -44,10 +44,8 @@ services:
   zebra:
     image: ghcr.io/redlinegt/zmine-zebra:1.0.0
     <<: *sec
-    cap_drop:
-      - ALL
-    cap_add:
-      - NET_BIND_SERVICE
+    # cap_drop intentionally omitted: the official Zebra entrypoint uses
+    # setpriv to drop from root→zebra user, which requires CAP_SETUID/SETGID.
     stop_grace_period: 2m
     volumes:
       - ${APP_DATA_DIR}/zebra:/data
@@ -81,9 +79,9 @@ services:
   redis:
     image: redis:7-alpine
     <<: *sec
-    user: "1000:1000"
-    cap_drop:
-      - ALL
+    # No user override: redis:alpine starts as root, chowns /data, then drops
+    # to the redis user (uid 999) via gosu. Needed because Umbrel creates the
+    # bind-mount directory as root and the redis process must chown it first.
     command: >
       redis-server
       --appendonly yes
