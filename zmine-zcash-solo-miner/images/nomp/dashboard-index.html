@@ -124,16 +124,24 @@ body{
 /* ── Top row: sync card + addr banner ───────────────────── */
 .top-row{display:flex;gap:12px;margin-bottom:14px;align-items:stretch}
 #syncCard{
-  flex:0 0 300px;
+  flex:0 0 260px;
   background:var(--surf);border:1px solid rgba(255,140,66,.4);
-  border-radius:12px;padding:16px 20px;
-  display:flex;align-items:center;gap:20px;flex-wrap:wrap;
+  border-radius:12px;padding:14px 16px;
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;
 }
 #addrBanner{
   flex:1;
   display:flex;align-items:center;justify-content:space-between;
   gap:12px;flex-wrap:wrap;
   background:var(--zec-a);border:1px solid var(--zec-b);
+  border-radius:12px;padding:14px 18px;
+}
+/* stratum inside top-row */
+#stratumBanner{
+  flex:1.2;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:12px;flex-wrap:wrap;
+  background:var(--blue-a);border:1px solid rgba(77,166,255,.28);
   border-radius:12px;padding:14px 18px;
 }
 .addr-lbl{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--zec);margin-bottom:4px}
@@ -407,7 +415,7 @@ window.toggleSidebar=function(){
   <div class="sb-bottom">
     <span id="nodePill" class="pill pill-sync"><span class="dot blink"></span>Connecting</span>
     <div class="sb-net" id="footerNet">Mainnet</div>
-    <div class="sb-version">ZEC Solo Miner v1.2.1</div>
+    <div class="sb-version">ZEC Solo Miner v1.2.2</div>
   </div>
 </aside>
 
@@ -434,11 +442,37 @@ window.toggleSidebar=function(){
 
     <div id="mainContent">
 
+      <div id="pruneNotice">
+        <div class="prune-notice-txt">
+          🔒 <strong>Blockchain pruning is not yet available.</strong>
+          This feature will be enabled once Zebra implements native pruning. Full chain data is stored to disk.
+        </div>
+      </div>
+
+      <div class="ctrl-card">
+        <div class="ctrl-row">
+          <div class="ctrl-label-col">
+            <div class="ctrl-title">Network</div>
+            <div class="ctrl-desc" id="netCtrlDesc">Currently configured for <strong>Mainnet</strong>. Toggle to switch to Testnet (requires restart).</div>
+          </div>
+          <div class="toggle-wrap">
+            <span id="netToggleLbl">Mainnet</span>
+            <label class="toggle">
+              <input type="checkbox" id="netChk" onchange="toggleNetwork(this.checked)">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+        <div class="ctrl-warn" id="netWarn">
+          <div class="ctrl-warn-txt">&#9888; Network change saved. Restart Zebra and Miner services to apply. Switching networks requires re-syncing the chain from scratch.</div>
+        </div>
+      </div>
+
       <div class="top-row">
 
         <div id="syncCard" style="display:none">
           <div class="sync-donut">
-            <svg width="72" height="72" viewBox="0 0 80 80">
+            <svg width="68" height="68" viewBox="0 0 80 80">
               <circle cx="40" cy="40" r="30" fill="none" stroke="#1e1e1e" stroke-width="8"/>
               <circle id="syncArc" cx="40" cy="40" r="30" fill="none" stroke="#F4B728" stroke-width="8"
                 stroke-dasharray="0 188.5" stroke-linecap="round"
@@ -467,41 +501,15 @@ window.toggleSidebar=function(){
           </div>
         </div>
 
-      </div>
-
-      <div id="stratumBanner">
-        <div>
-          <div class="stratum-lbl">Stratum Endpoint (<span id="stratumNetLabel">Mainnet</span>) — point your ASIC / GPU miner here</div>
-          <div id="stratumVal" class="stratum-val">—</div>
-          <div id="stratumNote" class="stratum-note" style="color:var(--orange)">● Waiting for sync to complete</div>
-        </div>
-        <button class="btn btn-ghost" onclick="copyStratum()">Copy</button>
-      </div>
-
-      <div id="pruneNotice">
-        <div class="prune-notice-txt">
-          🔒 <strong>Blockchain pruning is not yet available.</strong>
-          This feature will be enabled once Zebra implements native pruning. Full chain data is stored to disk.
-        </div>
-      </div>
-
-      <div class="ctrl-card">
-        <div class="ctrl-row">
-          <div class="ctrl-label-col">
-            <div class="ctrl-title">Network</div>
-            <div class="ctrl-desc" id="netCtrlDesc">Currently configured for <strong>Mainnet</strong>. Toggle to switch to Testnet (requires restart).</div>
+        <div id="stratumBanner">
+          <div>
+            <div class="stratum-lbl">Stratum (<span id="stratumNetLabel">Mainnet</span>) — point miners here</div>
+            <div id="stratumVal" class="stratum-val">—</div>
+            <div id="stratumNote" class="stratum-note" style="color:var(--orange)">● Waiting for sync</div>
           </div>
-          <div class="toggle-wrap">
-            <span id="netToggleLbl">Mainnet</span>
-            <label class="toggle">
-              <input type="checkbox" id="netChk" onchange="toggleNetwork(this.checked)">
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
+          <button class="btn btn-ghost" onclick="copyStratum()">Copy</button>
         </div>
-        <div class="ctrl-warn" id="netWarn">
-          <div class="ctrl-warn-txt">&#9888; Network change saved. Restart Zebra and Miner services to apply. Switching networks requires re-syncing the chain from scratch.</div>
-        </div>
+
       </div>
 
       <div class="cards">
