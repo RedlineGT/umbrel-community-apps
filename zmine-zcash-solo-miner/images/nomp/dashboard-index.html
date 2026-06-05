@@ -121,25 +121,31 @@ body{
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
 .page-body{flex:1;overflow-y:auto;padding:18px 22px 32px;scroll-behavior:smooth}
 /* ── Address banner ─────────────────────────────────────── */
+/* ── Top row: sync card + addr banner ───────────────────── */
+.top-row{display:flex;gap:12px;margin-bottom:14px;align-items:stretch}
+#syncCard{
+  flex:0 0 300px;
+  background:var(--surf);border:1px solid rgba(255,140,66,.4);
+  border-radius:12px;padding:16px 20px;
+  display:flex;align-items:center;gap:20px;flex-wrap:wrap;
+}
 #addrBanner{
+  flex:1;
   display:flex;align-items:center;justify-content:space-between;
   gap:12px;flex-wrap:wrap;
   background:var(--zec-a);border:1px solid var(--zec-b);
-  border-radius:12px;padding:14px 18px;margin-bottom:14px;
+  border-radius:12px;padding:14px 18px;
 }
 .addr-lbl{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--zec);margin-bottom:4px}
 .addr-val{font-size:12px;color:var(--text);word-break:break-all;font-family:var(--mono)}
-/* ── Sync card ──────────────────────────────────────────── */
-#syncCard{
-  background:var(--surf);border:1px solid rgba(255,140,66,.4);
-  border-radius:12px;padding:16px 20px;margin-bottom:14px;
-  display:flex;align-items:center;gap:24px;flex-wrap:wrap;
-}
+/* ── Sync card internals ────────────────────────────────── */
 .sync-donut{flex-shrink:0}
-.sync-info{flex:1;min-width:160px}
+.sync-info{flex:1;min-width:130px}
 .sync-lbl{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--orange);margin-bottom:6px}
 .sync-pct{font-size:22px;font-weight:900;color:var(--zec);line-height:1}
 .sync-sub{font-size:10px;color:var(--text2);margin-top:5px}
+.sync-peers{font-size:10px;color:var(--text3);margin-top:4px;display:flex;align-items:center;gap:5px}
+.sync-peers-dot{width:5px;height:5px;border-radius:50%;background:var(--green);flex-shrink:0}
 /* ── Stratum banner ─────────────────────────────────────── */
 #stratumBanner{
   display:flex;align-items:center;justify-content:space-between;
@@ -309,10 +315,15 @@ tbody tr:hover td{background:rgba(255,255,255,.013)}
   .page-body{padding:12px 14px 24px}
   .cards{grid-template-columns:repeat(2,1fr)}
   .hide-sm{display:none!important}
+  .top-row{flex-direction:column}
+  #syncCard{flex:none}
   .two-col{grid-template-columns:1fr}
   .odds-grid{grid-template-columns:1fr 1fr}
 }
 @media(max-width:640px){
+  .top-row{flex-direction:column}
+  #syncCard{flex:none}
+  #addrBanner{flex:none}
   .sidebar{position:fixed;left:0;top:0;height:100vh;transform:translateX(-100%);z-index:200}
   .sidebar.open{transform:none}
   .page-wrap{width:100%}
@@ -423,34 +434,39 @@ window.toggleSidebar=function(){
 
     <div id="mainContent">
 
-      <div id="addrBanner" style="display:none">
-        <div>
-          <div class="addr-lbl">Mining Receiving Address — all block rewards go here</div>
-          <div class="addr-val" id="addrVal">—</div>
-        </div>
-        <div style="display:flex;gap:8px">
-          <button class="btn btn-ghost" onclick="openAddrDialog(true)">Edit</button>
-          <button class="btn btn-ghost" onclick="copyAddr()">Copy</button>
-        </div>
-      </div>
+      <div class="top-row">
 
-      <div id="syncCard" style="display:none">
-        <div class="sync-donut">
-          <svg width="80" height="80" viewBox="0 0 80 80">
-            <circle cx="40" cy="40" r="30" fill="none" stroke="#1e1e1e" stroke-width="8"/>
-            <circle id="syncArc" cx="40" cy="40" r="30" fill="none" stroke="#F4B728" stroke-width="8"
-              stroke-dasharray="0 188.5" stroke-linecap="round"
-              transform="rotate(-90 40 40)"
-              style="transition:stroke-dasharray 2s ease"/>
-            <text id="syncPctTxt" x="40" y="44" text-anchor="middle"
-              fill="#f0f0f0" font-size="11" font-family="Inter,sans-serif">0%</text>
-          </svg>
+        <div id="syncCard" style="display:none">
+          <div class="sync-donut">
+            <svg width="72" height="72" viewBox="0 0 80 80">
+              <circle cx="40" cy="40" r="30" fill="none" stroke="#1e1e1e" stroke-width="8"/>
+              <circle id="syncArc" cx="40" cy="40" r="30" fill="none" stroke="#F4B728" stroke-width="8"
+                stroke-dasharray="0 188.5" stroke-linecap="round"
+                transform="rotate(-90 40 40)"
+                style="transition:stroke-dasharray 2s ease"/>
+              <text id="syncPctTxt" x="40" y="44" text-anchor="middle"
+                fill="#f0f0f0" font-size="11" font-family="Inter,sans-serif">0%</text>
+            </svg>
+          </div>
+          <div class="sync-info">
+            <div class="sync-lbl">Blockchain Sync</div>
+            <div id="syncPctBig" class="sync-pct">—</div>
+            <div id="syncBlkInfo" class="sync-sub">Downloading chain data…</div>
+            <div class="sync-peers"><span class="sync-peers-dot"></span><span id="syncPeers">— peers</span></div>
+          </div>
         </div>
-        <div class="sync-info">
-          <div class="sync-lbl">Blockchain Sync Progress</div>
-          <div id="syncPctBig" class="sync-pct">—</div>
-          <div id="syncBlkInfo" class="sync-sub">Downloading chain data…</div>
+
+        <div id="addrBanner" style="display:none">
+          <div>
+            <div class="addr-lbl">Mining Receiving Address — all block rewards go here</div>
+            <div class="addr-val" id="addrVal">—</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-shrink:0">
+            <button class="btn btn-ghost" onclick="openAddrDialog(true)">Edit</button>
+            <button class="btn btn-ghost" onclick="copyAddr()">Copy</button>
+          </div>
         </div>
+
       </div>
 
       <div id="stratumBanner">
@@ -1056,6 +1072,7 @@ function poll(){
       }
       s('hdrPeers',peers+(peers===1?' peer':' peers'));
       s('cPeers',peers);
+      s('syncPeers',peers+(peers===1?' peer':' peers')+' connected');
 
       /* Cards — only write diff/nethash from s-nomp when non-zero to avoid
          flashing while the Zebra netinfo fetch is still in-flight */
@@ -1067,6 +1084,7 @@ function poll(){
       s('cWorkers',pool.workerCount||0);
       s('cMiners',(pool.minerCount||0)+' miner'+((pool.minerCount||0)===1?'':'s'));
       s('cPeers',peers);
+      s('syncPeers',peers+(peers===1?' peer':' peers')+' connected');
       s('cBlocks',confirmed);
       s('cBlocksSub',pending+' pending');
       s('cLuck',fmtLuck(pool.luckDays));
@@ -1110,6 +1128,7 @@ function poll(){
         cachedNetPeers = ni.peers;
         s('cPeers', ni.peers);
         s('hdrPeers', ni.peers + (ni.peers === 1 ? ' peer' : ' peers'));
+        s('syncPeers', ni.peers + (ni.peers === 1 ? ' peer' : ' peers') + ' connected');
         var syncing = g('syncCard').style.display !== 'none';
         var pill = g('nodePill');
         if(syncing){
