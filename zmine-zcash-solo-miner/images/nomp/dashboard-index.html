@@ -309,6 +309,44 @@ tbody tr:hover td{background:rgba(255,255,255,.013)}
 }
 #toast.hide{opacity:0;transform:translateY(8px)}
 
+/* ── Donate ─────────────────────────────────────────────── */
+#donateSection{
+  border-top:1px solid var(--border);padding:32px 24px 28px;
+  text-align:center;
+}
+.donate-heading{
+  font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  color:var(--text3);margin-bottom:24px;
+}
+.donate-cards{
+  display:flex;flex-wrap:wrap;justify-content:center;gap:20px;
+}
+.donate-card{
+  background:var(--surf);border:1px solid var(--border);border-radius:10px;
+  padding:18px 20px 14px;display:flex;flex-direction:column;align-items:center;
+  gap:10px;min-width:180px;max-width:220px;
+}
+.donate-coin{
+  font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;
+}
+.donate-coin.btc{color:#F7931A}
+.donate-coin.zec{color:var(--zec)}
+.donate-coin.bch{color:#0AC18E}
+.donate-qr canvas{
+  display:block;border-radius:4px;
+}
+.donate-addr{
+  font-size:8.5px;color:var(--text2);word-break:break-all;text-align:center;
+  max-width:190px;line-height:1.6;
+}
+.donate-copy{
+  background:var(--surf3);border:1px solid var(--border2);border-radius:5px;
+  color:var(--text2);font-family:var(--mono);font-size:8px;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;padding:4px 12px;cursor:pointer;
+  transition:background .15s,color .15s;
+}
+.donate-copy:hover{background:var(--surf2);color:var(--text)}
+
 /* Footer */
 footer{
   text-align:center;padding:22px;border-top:1px solid var(--border);
@@ -360,6 +398,7 @@ footer{
   .logo span{display:none}
 }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 </head>
 <body>
 
@@ -582,6 +621,30 @@ footer{
 </main>
 
 <div id="toast" class="hide"></div>
+
+<section id="donateSection">
+  <div class="donate-heading">Support Development</div>
+  <div class="donate-cards">
+    <div class="donate-card">
+      <div class="donate-coin btc">&#x20BF; Bitcoin</div>
+      <div class="donate-qr"><canvas id="qr-btc"></canvas></div>
+      <div class="donate-addr">bc1qql8kwzcfndxv5dyxpcqudkf72tpdezry5ndcee</div>
+      <button class="donate-copy" onclick="copyDonate('btc')">Copy</button>
+    </div>
+    <div class="donate-card">
+      <div class="donate-coin zec">&#x24E9; Zcash</div>
+      <div class="donate-qr"><canvas id="qr-zec"></canvas></div>
+      <div class="donate-addr">t1Qz8FMBWnmnDSDADafbbP1Cc3fUda5wcNV</div>
+      <button class="donate-copy" onclick="copyDonate('zec')">Copy</button>
+    </div>
+    <div class="donate-card">
+      <div class="donate-coin bch">&#x20BF; Bitcoin Cash</div>
+      <div class="donate-qr"><canvas id="qr-bch"></canvas></div>
+      <div class="donate-addr">bitcoincash:qqqvw9vqpncnjgwdqj9hzrdmwyj2khfrfyf5tpdmze</div>
+      <button class="donate-copy" onclick="copyDonate('bch')">Copy</button>
+    </div>
+  </div>
+</section>
 
 <footer>
   ZEC Solo Miner <span style="color:var(--text3);opacity:.6">v1.0.2</span> &nbsp;·&nbsp; Zebra v5 (NU6.2) &nbsp;·&nbsp; <span id="footerNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp
@@ -1163,6 +1226,41 @@ fetchAddress();
 poll();
 setInterval(poll,POLL);
 }();
+
+/* ── Donation QR codes ─────────────────────────────────── */
+(function(){
+  var coins={
+    btc:'bc1qql8kwzcfndxv5dyxpcqudkf72tpdezry5ndcee',
+    zec:'t1Qz8FMBWnmnDSDADafbbP1Cc3fUda5wcNV',
+    bch:'bitcoincash:qqqvw9vqpncnjgwdqj9hzrdmwyj2khfrfyf5tpdmze'
+  };
+  var colors={
+    btc:{dark:'#F7931A',light:'#000000'},
+    zec:{dark:'#F4B728',light:'#000000'},
+    bch:{dark:'#0AC18E',light:'#000000'}
+  };
+  Object.keys(coins).forEach(function(id){
+    var c=document.getElementById('qr-'+id);
+    if(!c||typeof QRCode==='undefined')return;
+    QRCode.toCanvas(c,coins[id],{
+      width:128,margin:1,
+      color:colors[id]
+    },function(err){if(err)console.warn('QR '+id,err);});
+  });
+  window.copyDonate=function(id){
+    var addrs={
+      btc:'bc1qql8kwzcfndxv5dyxpcqudkf72tpdezry5ndcee',
+      zec:'t1Qz8FMBWnmnDSDADafbbP1Cc3fUda5wcNV',
+      bch:'bitcoincash:qqqvw9vqpncnjgwdqj9hzrdmwyj2khfrfyf5tpdmze'
+    };
+    var addr=addrs[id];
+    if(!addr)return;
+    navigator.clipboard.writeText(addr).then(function(){
+      var btn=document.querySelector('.donate-card:has(#qr-'+id+') .donate-copy');
+      if(btn){var orig=btn.textContent;btn.textContent='Copied!';setTimeout(function(){btn.textContent=orig;},1500);}
+    }).catch(function(){});
+  };
+}());
 </script>
 </body>
 </html>
