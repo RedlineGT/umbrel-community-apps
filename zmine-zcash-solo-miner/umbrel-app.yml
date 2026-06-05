@@ -46,9 +46,8 @@ submission: https://github.com/RedlineGT/umbrel-community-apps
 repo: https://github.com/RedlineGT/umbrel-community-apps
 support: https://github.com/RedlineGT/umbrel-community-apps/issues
 gallery:
-  - https://i.imgur.com/yyVG0Jb.jpeg
-  - https://i.imgur.com/yyVG0Jb.jpeg
-  - https://i.imgur.com/yyVG0Jb.jpeg
+  - https://raw.githubusercontent.com/RedlineGT/umbrel-community-apps/main/zmine-zcash-solo-miner/screenshot1.png
+  - https://raw.githubusercontent.com/RedlineGT/umbrel-community-apps/main/zmine-zcash-solo-miner/screenshot2.png
 releaseNotes: >-
   Initial release. Zebra v5.0.0 (NU6.2), s-nomp zebra-mining branch,
   nheqminer CPU tromp solver. Mainnet only.
