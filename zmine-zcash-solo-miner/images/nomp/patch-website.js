@@ -311,6 +311,7 @@ const INJECT = `
             var dFmt = fmtDiff(netDiff);
             res.json({
                 type: 'four-stats',
+                refresh: '30s',
                 link: '',
                 items: [
                     { title: 'Pool Hashrate', text: hFmt.text,      subtext: hFmt.subtext },
