@@ -286,8 +286,8 @@ const INJECT = `
     var _netDiffCache = { ts: 0, diff: 0 };
     app.get('/api/umbrel/widget', function(req, res) {
         var http = require('http');
-        var pending = 2;
         var poolHash = 0, workers = 0, blocks = 0, netDiff = 0;
+        var sent = false;
         function fmtHash(h) {
             if (!h) return { text: '0', subtext: 'Sol/s' };
             if (h >= 1e9) return { text: (h/1e9).toFixed(2), subtext: 'GSol/s' };
@@ -302,8 +302,11 @@ const INJECT = `
             if (d >= 1e3) return { text: (d/1e3).toFixed(0)+'K', subtext: 'difficulty' };
             return { text: String(Math.round(d)), subtext: 'difficulty' };
         }
-        function done() {
-            if (--pending > 0) return;
+        function send() {
+            if (sent) return; sent = true;
+            clearTimeout(safetyNet);
+            if (!netDiff && _diffHistCache.points.length > 0)
+                netDiff = _diffHistCache.points[_diffHistCache.points.length-1].diff;
             var hFmt = fmtHash(poolHash);
             var dFmt = fmtDiff(netDiff);
             res.json({
@@ -317,7 +320,13 @@ const INJECT = `
                 ]
             });
         }
-        // --- Pool stats from s-nomp ---
+        // Safety net — always respond within 3.5 s regardless of upstream failures
+        var safetyNet = setTimeout(send, 3500);
+        var pending = 2;
+        function done() { if (--pending <= 0) send(); }
+        // --- Pool stats from s-nomp (same process, loopback) ---
+        var poolDone = false;
+        function onPool() { if (poolDone) return; poolDone = true; done(); }
         var sr = http.get('http://127.0.0.1:3300/api/stats', function(r) {
             var d = ''; r.on('data', function(c){ d+=c; }); r.on('end', function(){
                 try {
@@ -329,22 +338,21 @@ const INJECT = `
                         blocks   += parseInt((pl.blocks||{}).confirmed)||0;
                     });
                 } catch(e){}
-                done();
+                onPool();
             });
         });
-        sr.setTimeout(4000, function(){ sr.destroy(); });
-        sr.on('error', function(){ done(); });
-        // --- Network difficulty (5-min cache, Zebra RPC) ---
-        var now = Date.now();
+        sr.setTimeout(3000, function(){
+            try { sr.abort(); } catch(e) { try { sr.destroy(); } catch(e2){} }
+            onPool();
+        });
+        sr.on('abort', onPool);
+        sr.on('error', onPool);
+        // --- Network difficulty (5-min cache → Zebra RPC) ---
         var diffDone = false;
-        function onceDiff() {
-            if (diffDone) return; diffDone = true;
-            if (!netDiff && _diffHistCache.points.length > 0)
-                netDiff = _diffHistCache.points[_diffHistCache.points.length-1].diff;
-            done();
-        }
+        function onDiff() { if (diffDone) return; diffDone = true; done(); }
+        var now = Date.now();
         if (now - _netDiffCache.ts < 300000 && _netDiffCache.diff > 0) {
-            netDiff = _netDiffCache.diff; onceDiff();
+            netDiff = _netDiffCache.diff; onDiff();
         } else {
             var body = JSON.stringify({"jsonrpc":"2.0","id":1,"method":"getblockchaininfo","params":[]});
             var opts = { host: process.env.ZEBRA_HOST||'zebra', port: parseInt(process.env.ZEBRA_RPC_PORT)||8232,
@@ -355,11 +363,15 @@ const INJECT = `
                         var diff = parseFloat((JSON.parse(d).result||{}).difficulty)||0;
                         if (diff > 0) { netDiff = diff; _netDiffCache = { ts: Date.now(), diff: diff }; }
                     } catch(e){}
-                    onceDiff();
+                    onDiff();
                 });
             });
-            rr.setTimeout(4000, function(){ rr.destroy(); onceDiff(); });
-            rr.on('error', function(){ onceDiff(); });
+            rr.setTimeout(3000, function(){
+                try { rr.abort(); } catch(e) { try { rr.destroy(); } catch(e2){} }
+                onDiff();
+            });
+            rr.on('abort', onDiff);
+            rr.on('error', onDiff);
             rr.write(body); rr.end();
         }
     });
