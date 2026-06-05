@@ -43,9 +43,6 @@ services:
   # P2P on 8233 (exposed — helps network health, safe to open)
   zebra:
     image: ghcr.io/redlinegt/zmine-zebra:1.0.0
-    build:
-      context: ./images/zebra
-      dockerfile: Dockerfile
     <<: *sec
     cap_drop:
       - ALL
@@ -122,9 +119,6 @@ services:
   # Web dashboard on 3300 (internal — served via Umbrel proxy)
   nomp:
     image: ghcr.io/redlinegt/zmine-nomp:1.0.0
-    build:
-      context: ./images/nomp
-      dockerfile: Dockerfile
     <<: *sec
     user: "1000:1000"
     cap_drop:
@@ -164,9 +158,6 @@ services:
   # Set CPU_THREADS=0 in the env to disable entirely.
   miner:
     image: ghcr.io/redlinegt/zmine-miner:1.0.0
-    build:
-      context: ./images/miner
-      dockerfile: Dockerfile
     <<: *sec
     user: "1000:1000"
     cap_drop:
