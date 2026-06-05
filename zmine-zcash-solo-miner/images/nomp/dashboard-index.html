@@ -308,6 +308,19 @@ tbody tr:hover td{background:rgba(255,255,255,.013)}
 .donate-addr{font-size:8.5px;color:var(--text2);word-break:break-all;text-align:center;max-width:190px;line-height:1.6;font-family:var(--mono)}
 .donate-copy{background:var(--surf3);border:1px solid var(--border2);border-radius:5px;color:var(--text2);font-family:var(--font);font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:4px 12px;cursor:pointer;transition:background .15s,color .15s}
 .donate-copy:hover{background:var(--surf2);color:var(--text)}
+/* ── News ticker ─────────────────────────────────────────── */
+#newsTicker{background:var(--surf);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px}
+.ticker-label{display:inline-flex;align-items:center;background:var(--zec);color:#000;font-size:8px;font-weight:900;letter-spacing:2px;text-transform:uppercase;padding:0 14px;white-space:nowrap;flex-shrink:0}
+.ticker-wrap{display:flex;align-items:center;overflow:hidden;flex:1;min-width:0}
+.ticker-inner{display:inline-flex;align-items:center;white-space:nowrap;will-change:transform}
+.ticker-inner.animate{animation:tickerScroll linear infinite}
+@keyframes tickerScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.ticker-item{display:inline-flex;align-items:center;gap:6px;padding:0 24px 0 0}
+.ticker-item a{color:var(--text);font-size:11px;text-decoration:none;transition:color .15s}
+.ticker-item a:hover{color:var(--zec);text-decoration:underline}
+.ticker-sep{color:var(--text3);font-size:12px;padding-right:12px;line-height:1;flex-shrink:0}
+.ticker-date{font-size:9px;color:var(--text3);flex-shrink:0}
+.ticker-empty{font-size:11px;color:var(--text3);padding:0 18px;white-space:nowrap}
 [title]{cursor:help}
 /* ── Responsive ─────────────────────────────────────────── */
 @media(max-width:1000px){
@@ -407,7 +420,7 @@ window.toggleSidebar=function(){
   <div class="sb-bottom">
     <span id="nodePill" class="pill pill-sync"><span class="dot blink"></span>Connecting</span>
     <div class="sb-net" id="footerNet">Mainnet</div>
-    <div class="sb-version">ZEC Solo Miner v1.3.4</div>
+    <div class="sb-version">ZEC Solo Miner v1.3.5</div>
   </div>
 </aside>
 
@@ -607,6 +620,16 @@ window.toggleSidebar=function(){
               <div class="odds-val" id="oddsHash">—</div>
               <div class="odds-sub">vs <span id="oddsNetHash">—</span> net</div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="newsTicker">
+        <div style="display:flex;align-items:stretch;height:32px">
+          <div class="ticker-label">ZEC NEWS</div>
+          <div class="ticker-wrap">
+            <div class="ticker-empty" id="tickerEmpty">Loading…</div>
+            <div class="ticker-inner" id="tickerInner" style="display:none"></div>
           </div>
         </div>
       </div>
@@ -1481,6 +1504,46 @@ function updateOdds(){
     s('oddsBestSub', 'submit a share first');
   }
 }
+var newsLastFetch = 0;
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fetchNews(){
+  var now = Date.now();
+  if(now - newsLastFetch < 1800000) return;
+  newsLastFetch = now;
+  fetch('/api/umbrel/news',{credentials:'same-origin'})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var items = d.items || [];
+      var inner = g('tickerInner');
+      var empty = g('tickerEmpty');
+      if(!inner) return;
+      if(items.length === 0){
+        if(empty){ empty.textContent='No ZEC news in the last 14 days.'; empty.style.display=''; }
+        inner.style.display='none';
+        return;
+      }
+      if(empty) empty.style.display='none';
+      function mkItems(arr){
+        return arr.map(function(item){
+          return '<span class="ticker-sep">&#9670;</span>'
+            +'<span class="ticker-item">'
+            +'<a href="'+escHtml(item.url)+'" target="_blank" rel="noopener noreferrer">'+escHtml(item.title)+'</a>'
+            +'<span class="ticker-date">'+escHtml(item.date)+'</span>'
+            +'</span>';
+        }).join('');
+      }
+      inner.innerHTML = mkItems(items) + mkItems(items);
+      inner.classList.remove('animate');
+      inner.style.display='';
+      requestAnimationFrame(function(){
+        var halfW = inner.scrollWidth / 2;
+        var dur = Math.max(15, halfW / 80);
+        inner.style.animationDuration = dur.toFixed(1)+'s';
+        inner.classList.add('animate');
+      });
+    })
+    .catch(function(){});
+}
 initStratum();
 fetchNetwork();
 fetchAddress();
@@ -1492,6 +1555,8 @@ fetchDiffHistory();
 setInterval(fetchZecPrice,  60000);
 setInterval(fetchZecHistory, 300000);
 setInterval(fetchDiffHistory, 21600000);
+fetchNews();
+setInterval(fetchNews, 1800000);
 }();
 
 /* ── Donation QR codes ─────────────────────────────────── */

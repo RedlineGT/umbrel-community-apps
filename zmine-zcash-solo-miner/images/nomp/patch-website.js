@@ -376,6 +376,52 @@ const INJECT = `
             rr.write(body); rr.end();
         }
     });
+    // News ticker — Yahoo Finance RSS, 14-day window, 30-min cache
+    var _newsCache = { ts: 0, items: [] };
+    app.get('/api/umbrel/news', function(req, res) {
+        var now = Date.now();
+        if (now - _newsCache.ts < 30 * 60 * 1000 && _newsCache.ts > 0) {
+            return res.json({ items: _newsCache.items });
+        }
+        var https = require('https');
+        var cutoff = now - 14 * 24 * 3600 * 1000;
+        var r2 = https.get({
+            host: 'feeds.finance.yahoo.com',
+            path: '/rss/2.0/headline?s=ZEC-USD&region=US&lang=en-US',
+            headers: { 'User-Agent': 'zmine-umbrel/1.0' }
+        }, function(rs) {
+            var data = '';
+            rs.on('data', function(c) { data += c; });
+            rs.on('end', function() {
+                try {
+                    var items = [];
+                    var itemRe = /<item>([\s\S]*?)<\/item>/g;
+                    var m;
+                    while ((m = itemRe.exec(data)) !== null) {
+                        var block = m[1];
+                        var titleM = /<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/.exec(block);
+                        var linkM  = /<link>([\s\S]*?)<\/link>/.exec(block);
+                        var dateM  = /<pubDate>([\s\S]*?)<\/pubDate>/.exec(block);
+                        if (!titleM || !linkM) continue;
+                        var title = titleM[1].trim()
+                            .replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&apos;/g,"'");
+                        var url = linkM[1].trim().replace(/&amp;/g,'&');
+                        var pub = dateM ? new Date(dateM[1].trim()).getTime() : now;
+                        if (isNaN(pub)) pub = now;
+                        if (pub >= cutoff) {
+                            items.push({ title: title, url: url, date: new Date(pub).toISOString().slice(0,10) });
+                        }
+                    }
+                    _newsCache = { ts: Date.now(), items: items };
+                    res.json({ items: items });
+                } catch(e) {
+                    res.json({ items: _newsCache.items });
+                }
+            });
+        });
+        r2.setTimeout(10000, function() { try{r2.destroy();}catch(e){} res.json({ items: _newsCache.items }); });
+        r2.on('error', function() { res.json({ items: _newsCache.items }); });
+    });
     // end umbrel:patched
 `;
 
