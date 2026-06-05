@@ -42,9 +42,12 @@ const INJECT = `
         res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
         next();
     });
-    // Umbrel dashboard config endpoint — returns configured miner address
+    // Umbrel dashboard config endpoint — returns configured miner address + stratum port
     app.get('/api/umbrel/config', function(req, res) {
-        res.json({ minerAddress: process.env.POOL_ADDRESS || '' });
+        res.json({
+            minerAddress: process.env.POOL_ADDRESS || '',
+            stratumPort: process.env.STRATUM_PORT || '13333'
+        });
     });
     // Zebra sync progress endpoint — proxies getblockchaininfo
     app.get('/api/umbrel/sync', function(req, res) {

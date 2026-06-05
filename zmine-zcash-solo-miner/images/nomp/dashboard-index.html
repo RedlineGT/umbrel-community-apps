@@ -436,7 +436,7 @@ footer{
   <div id="stratumBanner">
     <div>
       <div class="stratum-lbl">Stratum Endpoint (<span id="stratumNetLabel">Mainnet</span>) — point your ASIC / GPU miner here</div>
-      <div id="stratumVal" class="stratum-val">—:3333</div>
+      <div id="stratumVal" class="stratum-val">—</div>
       <div id="stratumNote" class="stratum-note" style="color:var(--orange)">● Waiting for sync to complete</div>
     </div>
     <button class="btn btn-ghost" onclick="copyStratum()">Copy</button>
@@ -584,7 +584,7 @@ footer{
 <div id="toast" class="hide"></div>
 
 <footer>
-  ZEC Solo Miner &nbsp;·&nbsp; Zebra v5 (NU6.2) &nbsp;·&nbsp; <span id="footerNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp
+  ZEC Solo Miner <span style="color:var(--text3);opacity:.6">v1.0.2</span> &nbsp;·&nbsp; Zebra v5 (NU6.2) &nbsp;·&nbsp; <span id="footerNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp
 </footer>
 
 <script>
@@ -739,7 +739,7 @@ function renderWorkers(workers, netDiff){
     tbody.innerHTML='<tr><td colspan="9"><div class="empty">'
       +'<div class="empty-ico">⛏</div>'
       +'<div>'+msg+'</div>'
-      +'<div class="empty-sub">Point your ASIC or GPU miner at Stratum&nbsp;port&nbsp;3333</div>'
+      +'<div class="empty-sub">Point your ASIC or GPU miner at the Stratum port shown above</div>'
       +'</div></td></tr>';
     return;
   }
@@ -1106,17 +1106,24 @@ function initStratum(){
      non-Docker-internal address; Docker bridge IPs (172.16-31.x, 10.x)
      are container-internal and unreachable by LAN miners. */
   var browserHost=window.location.hostname||'YOUR-IP';
-  s('stratumVal',browserHost+':3333');
-  fetch('/api/umbrel/hostip',{credentials:'same-origin'})
+  /* Fetch stratum port from server config, then resolve host IP */
+  fetch('/api/umbrel/config',{credentials:'same-origin'})
     .then(function(r){ return r.json(); })
-    .then(function(d){
-      var ip=d.ip||'';
-      /* Reject Docker-internal ranges: 172.16-31.x.x, 10.x.x.x, 127.x */
-      var internal=/^(172\.(1[6-9]|2[0-9]|3[01])\.|10\.|127\.)/.test(ip);
-      if(ip&&!internal) s('stratumVal',ip+':3333');
-      /* else keep browserHost already displayed */
+    .then(function(cfg){
+      var port=cfg.stratumPort||'13333';
+      s('stratumVal',browserHost+':'+port);
+      return fetch('/api/umbrel/hostip',{credentials:'same-origin'})
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          var ip=d.ip||'';
+          var internal=/^(172\.(1[6-9]|2[0-9]|3[01])\.|10\.|127\.)/.test(ip);
+          if(ip&&!internal) s('stratumVal',ip+':'+port);
+        })
+        .catch(function(){});
     })
-    .catch(function(){});
+    .catch(function(){
+      s('stratumVal',browserHost+':13333');
+    });
 }
 window.copyStratum=function(){
   var v=g('stratumVal').textContent;
