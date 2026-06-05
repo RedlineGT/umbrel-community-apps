@@ -407,7 +407,7 @@ window.toggleSidebar=function(){
   <div class="sb-bottom">
     <span id="nodePill" class="pill pill-sync"><span class="dot blink"></span>Connecting</span>
     <div class="sb-net" id="footerNet">Mainnet</div>
-    <div class="sb-version">ZEC Solo Miner v1.2.7</div>
+    <div class="sb-version">ZEC Solo Miner v1.2.8</div>
   </div>
 </aside>
 
@@ -675,6 +675,30 @@ window.toggleSidebar=function(){
             </thead>
             <tbody id="blocksTbody"></tbody>
           </table>
+        </div>
+      </div>
+
+      <div class="donate-section-wrap" style="border-top:1px solid var(--border);margin-top:14px">
+        <div class="donate-heading">If you find this app useful, consider donating ❤️</div>
+        <div class="donate-cards">
+          <div class="donate-card">
+            <div class="donate-coin btc">&#x20BF; Bitcoin</div>
+            <div class="donate-qr"><div id="qr-btc-2"></div></div>
+            <div class="donate-addr">bc1qql8kwzcfndxv5dyxpcqudkf72tpdezry5ndcee</div>
+            <button class="donate-copy" onclick="copyDonate('btc',this)">Copy</button>
+          </div>
+          <div class="donate-card">
+            <div class="donate-coin zec">&#x24E9; Zcash</div>
+            <div class="donate-qr"><div id="qr-zec-2"></div></div>
+            <div class="donate-addr">t1Qz8FMBWnmnDSDADafbbP1Cc3fUda5wcNV</div>
+            <button class="donate-copy" onclick="copyDonate('zec',this)">Copy</button>
+          </div>
+          <div class="donate-card">
+            <div class="donate-coin bch">&#x20BF; Bitcoin Cash</div>
+            <div class="donate-qr"><div id="qr-bch-2"></div></div>
+            <div class="donate-addr">bitcoincash:qqqvw9vqpncnjgwdqj9hzrdmwyj2khfrfyf5tpdmze</div>
+            <button class="donate-copy" onclick="copyDonate('bch',this)">Copy</button>
+          </div>
         </div>
       </div>
 
@@ -1483,17 +1507,19 @@ setInterval(fetchDiffHistory, 21600000);
     bch:{dark:'#0AC18E',light:'#000000'}
   };
   Object.keys(coins).forEach(function(id){
-    var el=document.getElementById('qr-'+id);
-    if(!el||typeof QRCode==='undefined')return;
-    new QRCode(el,{
-      text:coins[id],
-      width:128,height:128,
-      colorDark:colors[id].dark,
-      colorLight:colors[id].light,
-      correctLevel:QRCode.CorrectLevel.M
+    ['qr-'+id,'qr-'+id+'-2'].forEach(function(elId){
+      var el=document.getElementById(elId);
+      if(!el||typeof QRCode==='undefined')return;
+      new QRCode(el,{
+        text:coins[id],
+        width:128,height:128,
+        colorDark:colors[id].dark,
+        colorLight:colors[id].light,
+        correctLevel:QRCode.CorrectLevel.M
+      });
     });
   });
-  window.copyDonate=function(id){
+  window.copyDonate=function(id,btn){
     var addrs={
       btc:'bc1qql8kwzcfndxv5dyxpcqudkf72tpdezry5ndcee',
       zec:'t1Qz8FMBWnmnDSDADafbbP1Cc3fUda5wcNV',
@@ -1502,8 +1528,8 @@ setInterval(fetchDiffHistory, 21600000);
     var addr=addrs[id];
     if(!addr)return;
     navigator.clipboard.writeText(addr).then(function(){
-      var btn=document.querySelector('.donate-card:has(#qr-'+id+') .donate-copy');
-      if(btn){var orig=btn.textContent;btn.textContent='Copied!';setTimeout(function(){btn.textContent=orig;},1500);}
+      var b=btn||document.querySelector('.donate-card:has(#qr-'+id+') .donate-copy');
+      if(b){var orig=b.textContent;b.textContent='Copied!';setTimeout(function(){b.textContent=orig;},1500);}
     }).catch(function(){});
   };
 }());
