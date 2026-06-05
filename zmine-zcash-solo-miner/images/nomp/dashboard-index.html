@@ -1028,7 +1028,7 @@ function poll(){
          flashing while the Zebra netinfo fetch is still in-flight */
       if(netDiff>0) s('cDiff', fmtN(netDiff));
       var poolSols=parseFloat(ps.networkSols);
-      if(poolSols>0||ps.networkSolsString) s('cNetHash',ps.networkSolsString||fmtH(poolSols*1e6));
+      if(poolSols>0) s('cNetHash',ps.networkSolsString||fmtH(poolSols*1e6));
       s('cPoolHash',pool.hashrateString||fmtH(pool.hashrate||0));
       s('cRound',(pool.shareCount||0)+' shares this round');
       s('cWorkers',pool.workerCount||0);
