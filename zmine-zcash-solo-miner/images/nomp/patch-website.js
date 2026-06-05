@@ -296,10 +296,10 @@ const INJECT = `
             return { text: h.toFixed(0), subtext: 'Sol/s' };
         }
         function fmtDiff(d) {
-            if (!d) return { text: '\u2014', subtext: 'diff' };
-            if (d >= 1e9) return { text: (d/1e9).toFixed(2)+'B', subtext: 'diff' };
-            if (d >= 1e6) return { text: (d/1e6).toFixed(1)+'M', subtext: 'diff' };
-            if (d >= 1e3) return { text: (d/1e3).toFixed(0)+'K', subtext: 'diff' };
+            if (!d) return { text: '\u2014', subtext: '' };
+            if (d >= 1e9) return { text: (d/1e9).toFixed(2)+'B', subtext: '' };
+            if (d >= 1e6) return { text: (d/1e6).toFixed(1)+'M', subtext: '' };
+            if (d >= 1e3) return { text: (d/1e3).toFixed(0)+'K', subtext: '' };
             return { text: String(Math.round(d)), subtext: 'diff' };
         }
         function send() {
