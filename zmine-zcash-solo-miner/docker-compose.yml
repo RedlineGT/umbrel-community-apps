@@ -46,6 +46,10 @@ services:
       context: ./images/zebra
       dockerfile: Dockerfile
     <<: *sec
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
     stop_grace_period: 2m
     volumes:
       - ${APP_DATA_DIR}/zebra:/data
@@ -55,9 +59,10 @@ services:
       MINER_ADDRESS: ${MINER_ADDRESS:-}
     ports:
       - "8233:8233"
-      - "8232:8232"
+    # RPC port 8232 is intentionally NOT exposed — unauthenticated, internal only
     networks:
       - default
+    mem_limit: 4g
     healthcheck:
       test:
         - "CMD-SHELL"
@@ -93,6 +98,7 @@ services:
       - ${APP_DATA_DIR}/redis:/data
     networks:
       - default
+    mem_limit: 384m
     logging:
       driver: json-file
       options:
@@ -119,6 +125,10 @@ services:
       dockerfile: Dockerfile
     <<: *sec
     user: "1000:1000"
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
     depends_on:
       zebra:
         condition: service_healthy
@@ -139,6 +149,7 @@ services:
       - "${STRATUM_PORT:-3333}:3333"
     networks:
       - default
+    mem_limit: 512m
     healthcheck:
       test: ["CMD", "nc", "-z", "localhost", "3300"]
       interval: 30s
@@ -167,6 +178,7 @@ services:
       CPU_THREADS: ${CPU_THREADS:-1}
     networks:
       - default
+    mem_limit: 256m
     logging:
       driver: json-file
       options:

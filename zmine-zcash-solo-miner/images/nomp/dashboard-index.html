@@ -663,6 +663,16 @@ function diffCls(d, nd){
   return 'dc-zero';
 }
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+/* Build status pill safely — avoids innerHTML with dynamic text */
+function setPill(el,cls,text,blink){
+  if(!el) return;
+  el.className='pill '+cls;
+  el.textContent='';
+  var dot=document.createElement('span');
+  dot.className=blink?'dot blink':'dot';
+  el.appendChild(dot);
+  el.appendChild(document.createTextNode(text));
+}
 
 /* ── Toast ─────────────────────────────────────────────── */
 function toast(msg){
@@ -792,7 +802,14 @@ function fetchNetwork(){
       if(chk) chk.checked = isTestnet;
       s('netToggleLbl', currentNetwork);
       var desc = g('netCtrlDesc');
-      if(desc) desc.innerHTML = 'Currently configured for <strong>'+currentNetwork+'</strong>. Toggle to switch network (requires restart).';
+      if(desc){
+        desc.textContent = '';
+        var t1=document.createTextNode('Currently configured for ');
+        var strong=document.createElement('strong');
+        strong.textContent=currentNetwork;
+        var t2=document.createTextNode('. Toggle to switch network (requires restart).');
+        desc.appendChild(t1); desc.appendChild(strong); desc.appendChild(t2);
+      }
       s('footerNet', currentNetwork);
       var ps = g('cPeersSub');
       if(ps) ps.textContent = 'Zcash '+currentNetwork.toLowerCase()+' nodes';
@@ -930,16 +947,15 @@ function poll(){
       /* Node status pill */
       var pill=g('nodePill');
       if(peers>=8){
-        pill.className='pill pill-live';
-        pill.innerHTML='<span class="dot blink"></span>'+currentNetwork;
+        setPill(pill,'pill-live',currentNetwork,true);
         g('syncFill').style.width='100%';
       } else if(peers>0){
         pill.className='pill pill-sync';
-        pill.innerHTML='<span class="dot blink"></span>Syncing';
+        setPill(pill,'pill-sync','Syncing',true);
         g('syncFill').style.width=Math.max(8,peers/8*80)+'%';
       } else {
         pill.className='pill pill-dead';
-        pill.innerHTML='<span class="dot"></span>Offline';
+        setPill(pill,'pill-dead','Offline',false);
         g('syncFill').style.width='4%';
       }
       s('hdrPeers',peers+(peers===1?' peer':' peers'));
@@ -967,7 +983,7 @@ function poll(){
       spin.classList.remove('active');
       var pill=g('nodePill');
       pill.className='pill pill-dead';
-      pill.innerHTML='<span class="dot"></span>Error';
+      setPill(pill,'pill-dead','Error',false);
     });
 
   /* Sync progress */
@@ -997,11 +1013,9 @@ function poll(){
         var syncing = g('syncCard').style.display !== 'none';
         var pill = g('nodePill');
         if(syncing){
-          pill.className = 'pill pill-sync';
-          pill.innerHTML = '<span class="dot blink"></span>Syncing';
+          setPill(pill,'pill-sync','Syncing',true);
         } else {
-          pill.className = 'pill pill-live';
-          pill.innerHTML = '<span class="dot blink"></span>'+currentNetwork;
+          setPill(pill,'pill-live',currentNetwork,true);
         }
       }
     })
