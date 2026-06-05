@@ -68,6 +68,5 @@ jobs:
             echo "Creating release $TAG"
             gh release create "$TAG" \
               --title "${APP_ID} ${VERSION}" \
-              --notes "${NOTES:-Release ${VERSION}}" \
-              --latest=false
+              --notes "${NOTES:-Release ${VERSION}}"
           done
