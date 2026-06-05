@@ -1005,7 +1005,7 @@ function poll(){
       var peers   =Math.max(parseInt(ps.networkConnections)||0, cachedNetPeers);
       var confirmed=parseInt((pool.blocks||{}).confirmed)||0;
       var pending  =parseInt((pool.blocks||{}).pending)||0;
-      lastNetDiff=netDiff;
+      if(netDiff>0) lastNetDiff=netDiff;
 
       /* Node status pill */
       var pill=g('nodePill');
@@ -1024,9 +1024,11 @@ function poll(){
       s('hdrPeers',peers+(peers===1?' peer':' peers'));
       s('cPeers',peers);
 
-      /* Cards */
-      s('cDiff',   fmtN(netDiff));
-      s('cNetHash',ps.networkSolsString||fmtH(parseFloat(ps.networkSols)*1e6));
+      /* Cards — only write diff/nethash from s-nomp when non-zero to avoid
+         flashing while the Zebra netinfo fetch is still in-flight */
+      if(netDiff>0) s('cDiff', fmtN(netDiff));
+      var poolSols=parseFloat(ps.networkSols);
+      if(poolSols>0||ps.networkSolsString) s('cNetHash',ps.networkSolsString||fmtH(poolSols*1e6));
       s('cPoolHash',pool.hashrateString||fmtH(pool.hashrate||0));
       s('cRound',(pool.shareCount||0)+' shares this round');
       s('cWorkers',pool.workerCount||0);
