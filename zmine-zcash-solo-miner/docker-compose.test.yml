@@ -1,0 +1,26 @@
+# ─────────────────────────────────────────────────────────────────────────
+# LOCAL TEST OVERRIDE — docker-compose.test.yml
+#
+# Merges on top of docker-compose.yml to make it runnable without Umbrel:
+#   1. Replaces the Umbrel-specific app_proxy with a no-op container.
+#   2. Exposes the dashboard directly on http://localhost:3300
+#
+# Usage (from the zmine-zcash-solo-miner/ directory):
+#   docker compose -f docker-compose.yml -f docker-compose.test.yml up --build
+#
+# Or just run ./test.sh from the same directory.
+# ─────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # Replace the Umbrel-managed proxy with a no-op so the stack starts.
+  app_proxy:
+    image: alpine:3.19
+    command: ["tail", "-f", "/dev/null"]
+    restart: "no"
+    environment: {}
+
+  # Expose the dashboard port directly for local browser access.
+  nomp:
+    ports:
+      - "3300:3300"

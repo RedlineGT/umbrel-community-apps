@@ -1,0 +1,6 @@
+# Runtime data — never commit
+**/data/
+**/.env
+*.log
+*.rdb
+**/__pycache__/

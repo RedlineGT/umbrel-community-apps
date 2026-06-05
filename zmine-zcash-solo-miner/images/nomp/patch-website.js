@@ -1,0 +1,263 @@
+#!/usr/bin/env node
+/**
+ * Build-time patch for s-nomp's libs/website.js.
+ * Injects after "var app = express();" (confirmed pattern from source):
+ *   1. Disable X-Powered-By header leakage
+ *   2. Security response headers (CSP, X-Frame-Options, etc.)
+ *   3. /api/umbrel/config endpoint — exposes POOL_ADDRESS env var to dashboard
+ */
+'use strict';
+const fs = require('fs');
+const FILE = '/app/libs/website.js';
+
+let src;
+try {
+    src = fs.readFileSync(FILE, 'utf8');
+} catch (e) {
+    console.error('[patch-website] Cannot read', FILE, ':', e.message);
+    process.exit(1);
+}
+
+if (src.includes('// umbrel:patched')) {
+    console.log('[patch-website] Already patched, skipping.');
+    process.exit(0);
+}
+
+const INJECT = `
+    // umbrel:patched — security hardening
+    app.disable('x-powered-by');
+    app.use(function umbrelSecurity(req, res, next) {
+        res.setHeader('X-Frame-Options', 'DENY');
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        res.setHeader('X-XSS-Protection', '1; mode=block');
+        res.setHeader('Referrer-Policy', 'no-referrer');
+        res.setHeader('Content-Security-Policy', [
+            "default-src 'self'",
+            "script-src 'self' 'unsafe-inline'",
+            "style-src 'self' 'unsafe-inline' data:",
+            "img-src 'self' data: https:",
+            "connect-src 'self'",
+            "frame-ancestors 'none'"
+        ].join('; '));
+        res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+        next();
+    });
+    // Umbrel dashboard config endpoint — returns configured miner address
+    app.get('/api/umbrel/config', function(req, res) {
+        res.json({ minerAddress: process.env.POOL_ADDRESS || '' });
+    });
+    // Zebra sync progress endpoint — proxies getblockchaininfo
+    app.get('/api/umbrel/sync', function(req, res) {
+        var http = require('http');
+        var body = JSON.stringify({"jsonrpc":"2.0","id":1,"method":"getblockchaininfo","params":[]});
+        var opts = {
+            host: process.env.ZEBRA_HOST || 'zebra',
+            port: parseInt(process.env.ZEBRA_RPC_PORT) || 8232,
+            path: '/',
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(body)
+            }
+        };
+        var req2 = http.request(opts, function(r2) {
+            var data = '';
+            r2.on('data', function(c) { data += c; });
+            r2.on('end', function() {
+                try {
+                    var j = JSON.parse(data);
+                    var r = j.result || {};
+                    res.json({
+                        progress: r.verificationprogress || 0,
+                        blocks: r.blocks || 0,
+                        estimatedHeight: r.estimatedheight || 0
+                    });
+                } catch(e) {
+                    res.json({ progress: 0, blocks: 0, estimatedHeight: 0 });
+                }
+            });
+        });
+        req2.on('error', function() {
+            res.json({ progress: 0, blocks: 0, estimatedHeight: 0 });
+        });
+        req2.write(body);
+        req2.end();
+    });
+    // Zebra network info endpoint — difficulty, hashrate, peers (works during sync)
+    app.get('/api/umbrel/netinfo', function(req, res) {
+        var http = require('http');
+        var host = process.env.ZEBRA_HOST || 'zebra';
+        var port = parseInt(process.env.ZEBRA_RPC_PORT) || 8232;
+        function rpc(method, cb) {
+            var body = JSON.stringify({"jsonrpc":"2.0","id":1,"method":method,"params":[]});
+            var opts = {
+                host: host, port: port, path: '/', method: 'POST',
+                headers: {'Content-Type':'application/json','Content-Length':Buffer.byteLength(body)}
+            };
+            var r2 = http.request(opts, function(rs) {
+                var data = '';
+                rs.on('data', function(c) { data += c; });
+                rs.on('end', function() {
+                    try { cb(null, JSON.parse(data).result); } catch(e) { cb(e); }
+                });
+            });
+            r2.on('error', cb);
+            r2.write(body);
+            r2.end();
+        }
+        var result = { difficulty: 0, networkSolps: 0, peers: 0, diffSource: 'zebra' };
+        var done = 0;
+        // After all 3 RPCs complete, if Zebra is not yet synced (< 99.5%)
+        // fall back to WhatToMine public API for current-tip difficulty + hashrate.
+        var zebraProgress = 0;
+        var zebraDiff = 0;
+        var zebraSolps = 0;
+        function finish() {
+            if (++done < 3) return;
+            if (zebraProgress >= 0.995) {
+                // Fully synced — Zebra's values are authoritative
+                result.difficulty = zebraDiff;
+                result.networkSolps = zebraSolps;
+                res.json(result);
+            } else {
+                // Still syncing — fetch live difficulty from WhatToMine
+                var https = require('https');
+                var wtmReq = https.get('https://whattomine.com/coins/166.json', function(wtmRes) {
+                    var d = '';
+                    wtmRes.on('data', function(c) { d += c; });
+                    wtmRes.on('end', function() {
+                        try {
+                            var wtm = JSON.parse(d);
+                            var liveDiff = parseFloat(wtm.difficulty);
+                            var liveHash = parseFloat(wtm.nethash);
+                            if (liveDiff > 0) {
+                                result.difficulty = liveDiff;
+                                result.diffSource = 'whattomine';
+                            }
+                            if (liveHash > 0) result.networkSolps = liveHash;
+                        } catch(ex) { /* use Zebra values if parse fails */ }
+                        if (result.difficulty === 0) result.difficulty = zebraDiff;
+                        if (result.networkSolps === 0) result.networkSolps = zebraSolps;
+                        res.json(result);
+                    });
+                });
+                wtmReq.setTimeout(5000, function() { wtmReq.destroy(); });
+                wtmReq.on('error', function() {
+                    // WhatToMine unreachable — fall back to Zebra's historical values
+                    if (result.difficulty === 0) result.difficulty = zebraDiff;
+                    if (result.networkSolps === 0) result.networkSolps = zebraSolps;
+                    res.json(result);
+                });
+            }
+        }
+        rpc('getblockchaininfo', function(e, r) {
+            if (!e && r) {
+                zebraDiff = parseFloat(r.difficulty) || 0;
+                zebraProgress = parseFloat(r.verificationprogress) || 0;
+            }
+            finish();
+        });
+        rpc('getmininginfo', function(e, r) {
+            if (!e && r) zebraSolps = parseFloat(r.networksolps) || 0;
+            finish();
+        });
+        rpc('getpeerinfo', function(e, r) {
+            if (!e && Array.isArray(r)) result.peers = r.length;
+            finish();
+        });
+    });
+    // Address GET — returns saved address and current network
+    app.get('/api/umbrel/address', function(req, res) {
+        var fs = require('fs');
+        var addr = '';
+        var net = 'Mainnet';
+        try { addr = fs.readFileSync('/config/address.txt', 'utf8').trim(); } catch(e) {}
+        try {
+            var nf = fs.readFileSync('/config/network.flag', 'utf8').trim();
+            if (nf === 'Testnet') net = 'Testnet';
+        } catch(e) {}
+        res.json({ address: addr, network: net });
+    });
+    // Ensure body-parser JSON middleware is registered before POST routes
+    app.use(require('body-parser').json());
+    // Address POST — saves address to /config/address.txt, updates env immediately
+    app.post('/api/umbrel/address', function(req, res) {
+        var fs = require('fs');
+        var body = (req.body && typeof req.body === 'object') ? req.body : {};
+        var addr = String(body.address || '').trim();
+        // Validate: must be a plausible Zcash transparent address (base58, starts with t)
+        if (!addr || !/^t[1-9A-HJ-NP-Za-km-z]{25,50}$/.test(addr)) {
+            return res.status(400).json({ ok: false, error: 'Invalid Zcash address. Must start with t1/t3 (mainnet) or t2/tm (testnet).' });
+        }
+        try {
+            try { fs.mkdirSync('/config', { recursive: true }); } catch(e) {}
+            fs.writeFileSync('/config/address.txt', addr, 'utf8');
+            process.env.POOL_ADDRESS = addr;
+            res.json({ ok: true, address: addr });
+        } catch(e) {
+            res.status(500).json({ ok: false, error: e.message || String(e) });
+        }
+    });
+    // Network GET — returns current network
+    app.get('/api/umbrel/network', function(req, res) {
+        var fs = require('fs');
+        var net = 'Mainnet';
+        try {
+            var nf = fs.readFileSync('/config/network.flag', 'utf8').trim();
+            if (nf === 'Testnet') net = 'Testnet';
+        } catch(e) {}
+        res.json({ network: net });
+    });
+    // Network POST — writes/removes /config/network.flag
+    app.post('/api/umbrel/network', function(req, res) {
+        var fs = require('fs');
+        var body = (req.body && typeof req.body === 'object') ? req.body : {};
+        var net = String(body.network || '').trim();
+        if (net !== 'Mainnet' && net !== 'Testnet') {
+            return res.status(400).json({ ok: false, error: 'network must be Mainnet or Testnet' });
+        }
+        try {
+            try { fs.mkdirSync('/config', { recursive: true }); } catch(e) {}
+            if (net === 'Testnet') {
+                fs.writeFileSync('/config/network.flag', 'Testnet', 'utf8');
+            } else {
+                try { fs.unlinkSync('/config/network.flag'); } catch(e) {}
+            }
+            res.json({ ok: true, network: net });
+        } catch(e) {
+            res.status(500).json({ ok: false, error: e.message || String(e) });
+        }
+    });
+    // Host IP — returns first non-loopback IPv4 address of the container's host network
+    app.get('/api/umbrel/hostip', function(req, res) {
+        var os = require('os');
+        var ip = '';
+        var ifaces = os.networkInterfaces();
+        Object.keys(ifaces).forEach(function(name) {
+            if (ip) return;
+            ifaces[name].forEach(function(iface) {
+                if (iface.family === 'IPv4' && !iface.internal && !ip) {
+                    ip = iface.address;
+                }
+            });
+        });
+        res.json({ ip: ip || '' });
+    });
+    // end umbrel:patched
+`;
+
+// Exact pattern confirmed from source inspection
+const patched = src.replace(
+    /(\n    var app = express\(\);)/,
+    '$1\n' + INJECT
+);
+
+if (patched === src) {
+    console.error('[patch-website] WARNING: Pattern not matched — security headers not applied!');
+    console.error('[patch-website] s-nomp will still run but without hardened headers.');
+} else {
+    console.log('[patch-website] Security headers and /api/umbrel/config injected.');
+}
+
+fs.writeFileSync(FILE, patched);
+console.log('[patch-website] Done.');

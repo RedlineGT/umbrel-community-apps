@@ -1,0 +1,179 @@
+# ============================================================
+#  ZCASH SOLO MINER — Umbrel Community App
+#
+#  REQUIRED BEFORE INSTALL:
+#    MINER_ADDRESS  — your Zcash mainnet transparent address
+#                     (starts with t1 or t3). Block rewards go here.
+#    REDIS_PASSWORD — change to a long random string.
+#
+#  OPTIONAL:
+#    STRATUM_PORT   — port external ASICs/GPUs connect to (default 3333)
+#    CPU_THREADS    — threads for built-in CPU miner (set 0 to disable)
+#
+#  SYNC: Zebra takes 2–3 days to sync mainnet on first run.
+#        Mining only works after full sync.
+#
+#  DASHBOARD: available via your Umbrel UI (port 3300 internally).
+#  STRATUM:   point your miners to <umbrel-ip>:3333
+# ============================================================
+
+# ── Shared security baseline ──────────────────────────────────────────────
+x-sec: &sec
+  restart: on-failure
+  init: true
+  security_opt:
+    - no-new-privileges:true
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+services:
+
+  # ── Umbrel reverse proxy ──────────────────────────────────────────────
+  # Routes Umbrel UI traffic to the s-nomp dashboard on port 3300.
+  app_proxy:
+    environment:
+      APP_HOST: zmine-zcash-solo-miner_nomp_1
+      APP_PORT: 3300
+
+  # ── Zebra — Zcash mainnet full node (NU5 / NU6 / NU6.2) ──────────────
+  # RPC on 8232 (internal Docker network only)
+  # P2P on 8233 (exposed — helps network health, safe to open)
+  zebra:
+    build:
+      context: ./images/zebra
+      dockerfile: Dockerfile
+    <<: *sec
+    stop_grace_period: 2m
+    volumes:
+      - ${APP_DATA_DIR}/zebra:/data
+      - ${APP_DATA_DIR}/config:/config
+    environment:
+      # *** SET THIS: your ZEC transparent mainnet address ***
+      MINER_ADDRESS: ${MINER_ADDRESS:-}
+    ports:
+      - "8233:8233"
+      - "8232:8232"
+    networks:
+      - default
+    healthcheck:
+      test:
+        - "CMD-SHELL"
+        - >
+          curl -sf --max-time 5
+          -X POST -H 'Content-Type: application/json'
+          -d '{"jsonrpc":"2.0","id":1,"method":"getblockchaininfo","params":[]}'
+          http://localhost:8232/
+          | grep -q '"result"'
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  # ── Redis — pool state store ─────────────────────────────────────────
+  # Bound to all interfaces within the container (Docker network provides
+  # isolation). Password enforced for defence-in-depth.
+  redis:
+    image: redis:7-alpine
+    <<: *sec
+    user: "1000:1000"
+    cap_drop:
+      - ALL
+    command: >
+      redis-server
+      --appendonly yes
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --requirepass ${REDIS_PASSWORD:-CHANGE_ME_use_a_long_random_string}
+      --protected-mode yes
+      --loglevel warning
+    volumes:
+      - ${APP_DATA_DIR}/redis:/data
+    networks:
+      - default
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
+    healthcheck:
+      test:
+        - "CMD"
+        - "redis-cli"
+        - "-a"
+        - "${REDIS_PASSWORD:-CHANGE_ME_use_a_long_random_string}"
+        - "ping"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ── s-nomp — Stratum server + OLED dashboard ─────────────────────────
+  # Stratum on 3333 (exposed — point your ASICs/GPUs here)
+  # Web dashboard on 3300 (internal — served via Umbrel proxy)
+  nomp:
+    build:
+      context: ./images/nomp
+      dockerfile: Dockerfile
+    <<: *sec
+    user: "1000:1000"
+    depends_on:
+      zebra:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      ZEBRA_HOST: zebra
+      ZEBRA_RPC_PORT: "8232"
+      REDIS_HOST: redis
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-CHANGE_ME_use_a_long_random_string}
+      STRATUM_PORT: "3333"
+      NETWORK: Mainnet
+      # POOL_ADDRESS is display-only; actual rewards go to Zebra miner_address.
+      POOL_ADDRESS: ${MINER_ADDRESS:-t1fgGy3CBkKJax8EH1RquQdPGPXPnDH5ig6}
+    volumes:
+      - ${APP_DATA_DIR}/config:/config
+    ports:
+      - "${STRATUM_PORT:-3333}:3333"
+    networks:
+      - default
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "3300"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 120s
+
+  # ── nheqminer — built-in CPU Equihash solver (Tromp) ─────────────────
+  # Very low hash-rate; useful for testing connectivity.
+  # Set CPU_THREADS=0 in the env to disable entirely.
+  miner:
+    build:
+      context: ./images/miner
+      dockerfile: Dockerfile
+    <<: *sec
+    user: "1000:1000"
+    cap_drop:
+      - ALL
+    depends_on:
+      nomp:
+        condition: service_healthy
+    environment:
+      STRATUM_HOST: nomp
+      STRATUM_PORT: "3333"
+      MINER_ADDRESS: ${MINER_ADDRESS:-t1fgGy3CBkKJax8EH1RquQdPGPXPnDH5ig6}
+      CPU_THREADS: ${CPU_THREADS:-1}
+    networks:
+      - default
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
+
+networks:
+  default:
+    driver: bridge
+

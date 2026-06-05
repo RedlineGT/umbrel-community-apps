@@ -1,0 +1,73 @@
+name: Release on version bump
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**/umbrel-app.yml'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect changed apps and their versions
+        id: detect
+        run: |
+          # Find all umbrel-app.yml files that changed in this push
+          CHANGED=$(git diff --name-only HEAD~1 HEAD | grep 'umbrel-app.yml' || true)
+          if [ -z "$CHANGED" ]; then
+            echo "No umbrel-app.yml files changed"
+            echo "tags=" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          TAGS=""
+          for FILE in $CHANGED; do
+            APP_DIR=$(dirname "$FILE")
+            APP_ID=$(grep '^id:' "$FILE" | awk '{print $2}' | tr -d '"')
+            VERSION=$(grep '^version:' "$FILE" | awk '{print $2}' | tr -d '"')
+            TAG="${APP_ID}-v${VERSION}"
+            echo "App: $APP_ID  Version: $VERSION  Tag: $TAG"
+
+            # Skip if this tag already exists
+            if git ls-remote --tags origin | grep -q "refs/tags/${TAG}$"; then
+              echo "Tag $TAG already exists, skipping"
+              continue
+            fi
+
+            TAGS="${TAGS}${TAG},"
+          done
+
+          echo "tags=${TAGS%,}" >> $GITHUB_OUTPUT
+
+      - name: Create releases for each new version
+        if: steps.detect.outputs.tags != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          IFS=',' read -ra TAGS <<< "${{ steps.detect.outputs.tags }}"
+          for TAG in "${TAGS[@]}"; do
+            [ -z "$TAG" ] && continue
+
+            # Extract app-id and version from tag (format: appid-vX.Y.Z)
+            VERSION=$(echo "$TAG" | grep -oP 'v[\d.]+$')
+            APP_ID=$(echo "$TAG" | sed "s/-${VERSION}$//")
+
+            # Get release notes from umbrel-app.yml
+            NOTES=$(grep -A 999 '^releaseNotes:' "${APP_ID}/umbrel-app.yml" \
+              | tail -n +2 | sed 's/^  //' | sed '/^[a-z]/q' | head -n -1 || echo "")
+
+            echo "Creating release $TAG"
+            gh release create "$TAG" \
+              --title "${APP_ID} ${VERSION}" \
+              --notes "${NOTES:-Release ${VERSION}}" \
+              --latest=false
+          done

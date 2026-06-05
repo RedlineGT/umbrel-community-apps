@@ -1,0 +1,1147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ZEC Solo Miner</title>
+<style>
+/* ═══════════════════════════════════════════════════════
+   OLED Dark Theme — pure black for zero-pixel luminance
+   ═══════════════════════════════════════════════════════ */
+:root {
+  --bg:         #000000;
+  --surf:       #080808;
+  --surf2:      #101010;
+  --surf3:      #181818;
+  --border:     #1e1e1e;
+  --border2:    #2a2a2a;
+  --text:       #ebebeb;
+  --text2:      #999999;
+  --text3:      #555555;
+  --zec:        #F4B728;
+  --zec-a:      rgba(244,183,40,.09);
+  --zec-b:      rgba(244,183,40,.28);
+  --green:      #00D4AA;
+  --green-a:    rgba(0,212,170,.09);
+  --blue:       #4DA6FF;
+  --blue-a:     rgba(77,166,255,.09);
+  --orange:     #FF8C42;
+  --orange-a:   rgba(255,140,66,.09);
+  --red:        #FF4545;
+  --red-a:      rgba(255,69,69,.09);
+  --mono: 'SF Mono','JetBrains Mono','Fira Code','Consolas',monospace;
+}
+*,::before,::after{box-sizing:border-box;margin:0;padding:0}
+html{min-height:100%}
+body{
+  min-height:100vh;background:var(--bg);color:var(--text);
+  font-family:var(--mono);font-size:12px;line-height:1.55;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+}
+
+/* ── Thin sync bar ───────────────────────────────────────── */
+#syncBar{position:fixed;top:0;left:0;right:0;height:2px;z-index:300;background:var(--surf3)}
+#syncFill{height:100%;width:0;background:linear-gradient(90deg,var(--zec),var(--green));transition:width 2s ease}
+
+/* ── Header ──────────────────────────────────────────────── */
+header{
+  position:sticky;top:0;z-index:200;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;height:50px;gap:16px;
+  background:rgba(0,0,0,.96);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--border);
+}
+.logo{
+  display:flex;align-items:center;gap:10px;
+  color:var(--zec);font-size:13px;font-weight:800;letter-spacing:2px;
+  white-space:nowrap;user-select:none;
+}
+.logo-box{
+  width:28px;height:28px;border-radius:6px;flex-shrink:0;
+  background:var(--zec-a);border:1px solid var(--zec-b);
+  display:flex;align-items:center;justify-content:center;
+}
+.hdr-right{display:flex;align-items:center;gap:18px;font-size:11px;color:var(--text2)}
+
+/* Status pill */
+.pill{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;
+  letter-spacing:.5px;border:1px solid;cursor:default;
+}
+.pill-live  {color:var(--green);border-color:rgba(0,212,170,.35);background:var(--green-a)}
+.pill-sync  {color:var(--orange);border-color:rgba(255,140,66,.35);background:var(--orange-a)}
+.pill-dead  {color:var(--red);border-color:rgba(255,69,69,.35);background:var(--red-a)}
+.dot{width:6px;height:6px;border-radius:50%;background:currentColor;display:inline-block}
+.dot.blink{animation:blink 2s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* Spinner */
+.spin-ring{
+  width:14px;height:14px;border-radius:50%;flex-shrink:0;
+  border:2px solid var(--border2);border-top-color:var(--zec);
+}
+.spin-ring.active{animation:spin .65s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Main layout ─────────────────────────────────────────── */
+main{padding:18px 24px;max-width:1480px;margin:0 auto}
+
+/* ── Stat cards ──────────────────────────────────────────── */
+.cards{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(155px,1fr));
+  gap:10px;margin-bottom:18px;
+}
+.card{
+  background:var(--surf);border:1px solid var(--border);
+  border-radius:10px;padding:14px 16px;
+  transition:border-color .2s;
+}
+.card:hover{border-color:var(--border2)}
+.card-lbl{
+  font-size:9px;text-transform:uppercase;letter-spacing:2px;
+  color:var(--text3);margin-bottom:8px;
+}
+.card-val{
+  font-size:21px;font-weight:900;letter-spacing:-0.5px;
+  line-height:1;color:var(--text);
+}
+.v-zec   {color:var(--zec)}
+.v-green {color:var(--green)}
+.v-blue  {color:var(--blue)}
+.card-sub{font-size:10px;color:var(--text2);margin-top:5px;min-height:14px}
+
+/* ── Address banner ──────────────────────────────────────── */
+#addrBanner{
+  display:none;align-items:center;justify-content:space-between;
+  gap:12px;flex-wrap:wrap;
+  background:var(--zec-a);border:1px solid var(--zec-b);
+  border-radius:10px;padding:13px 18px;margin-bottom:18px;
+}
+.addr-lbl{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--zec);margin-bottom:4px}
+.addr-val{font-size:12px;color:var(--text);word-break:break-all;font-family:var(--mono)}
+
+/* ── Sync progress card (shown while syncing) ────────────── */
+#syncCard{
+  background:var(--surf);border:1px solid rgba(255,140,66,.4);
+  border-radius:10px;padding:16px 20px;margin-bottom:18px;
+  align-items:center;gap:24px;flex-wrap:wrap;
+}
+.sync-donut{flex-shrink:0}
+.sync-info{flex:1;min-width:160px}
+.sync-lbl{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--orange);margin-bottom:6px}
+.sync-pct{font-size:22px;font-weight:900;color:var(--zec);line-height:1}
+.sync-sub{font-size:10px;color:var(--text2);margin-top:5px}
+
+/* ── Stratum banner ──────────────────────────────────────── */
+#stratumBanner{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:12px;flex-wrap:wrap;
+  background:var(--blue-a);border:1px solid rgba(77,166,255,.28);
+  border-radius:10px;padding:13px 18px;margin-bottom:18px;
+}
+.stratum-lbl{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--blue);margin-bottom:4px}
+.stratum-val{font-size:14px;color:var(--text);font-weight:800;letter-spacing:.5px}
+.stratum-note{font-size:10px;margin-top:4px}
+
+/* ── Pruning placeholder notice ─────────────────────────── */
+#pruneNotice{
+  background:var(--surf);border:1px solid var(--border);
+  border-radius:10px;padding:11px 18px;margin-bottom:18px;
+  display:flex;align-items:flex-start;gap:10px;
+}
+.prune-notice-txt{font-size:10px;color:var(--text3);line-height:1.6}
+.prune-notice-txt strong{color:var(--text2)}
+
+/* ── Control card (network toggle) ─────────────────────── */
+.ctrl-card{
+  background:var(--surf);border:1px solid var(--border);
+  border-radius:10px;padding:14px 18px;margin-bottom:18px;
+  display:flex;flex-direction:column;gap:10px;
+}
+.ctrl-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.ctrl-label-col{flex:1;min-width:200px}
+.ctrl-title{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--text3);margin-bottom:3px}
+.ctrl-desc{font-size:11px;color:var(--text2);line-height:1.4}
+/* Toggle switch */
+.toggle-wrap{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.toggle-wrap span{font-size:10px;color:var(--text2);font-family:var(--mono)}
+.toggle{
+  position:relative;display:inline-block;width:44px;height:24px;
+}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{
+  position:absolute;cursor:pointer;inset:0;
+  background:var(--surf3);border-radius:24px;
+  transition:background .2s;
+}
+.toggle-slider:before{
+  content:'';position:absolute;
+  height:18px;width:18px;left:3px;bottom:3px;
+  background:#fff;border-radius:50%;transition:transform .2s;
+}
+.toggle input:checked + .toggle-slider{background:var(--orange)}
+.toggle input:checked + .toggle-slider:before{transform:translateX(20px)}
+.ctrl-warn{border-top:1px solid var(--border);padding-top:10px;display:none}
+.ctrl-warn-txt{font-size:10px;color:var(--orange);line-height:1.4}
+
+/* ── Address dialog ─────────────────────────────────────── */
+.dlg-overlay{
+  position:fixed;inset:0;z-index:900;
+  background:rgba(0,0,0,.88);backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;padding:16px;
+}
+.dlg-box{
+  background:var(--surf);border:1px solid var(--border2);
+  border-radius:14px;padding:28px 28px 22px;max-width:520px;width:100%;
+}
+.dlg-title{font-size:14px;font-weight:900;color:var(--text);margin-bottom:8px;letter-spacing:.3px}
+.dlg-body{font-size:11px;color:var(--text2);margin-bottom:16px;line-height:1.6}
+.dlg-input{
+  width:100%;background:var(--surf2);border:1px solid var(--border2);
+  border-radius:7px;padding:10px 14px;color:var(--text);
+  font-family:var(--mono);font-size:12px;outline:none;
+  transition:border-color .2s;margin-bottom:6px;
+}
+.dlg-input:focus{border-color:var(--zec)}
+.dlg-error{font-size:10px;color:var(--red);min-height:16px;margin-bottom:10px}
+.dlg-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+
+/* ── Section header ──────────────────────────────────────── */
+.sec-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:10px;margin-bottom:12px;
+}
+.sec-title{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--text3)}
+.sec-ctrls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+/* ── Buttons ─────────────────────────────────────────────── */
+.btn{
+  display:inline-flex;align-items:center;gap:5px;
+  border:none;border-radius:7px;cursor:pointer;
+  font-family:var(--mono);font-size:10px;font-weight:700;
+  padding:7px 13px;transition:opacity .15s,background .15s;
+  white-space:nowrap;letter-spacing:.3px;
+}
+.btn:hover{opacity:.82}
+.btn-gold {background:var(--zec);color:#000}
+.btn-ghost{background:var(--surf2);color:var(--text2);border:1px solid var(--border)}
+.btn-ghost:hover{color:var(--text);border-color:var(--border2)}
+.btn-warn {background:var(--red-a);color:var(--red);border:1px solid rgba(255,69,69,.3)}
+
+/* ── Search bar ──────────────────────────────────────────── */
+.search{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.search-input{
+  flex:1;min-width:220px;
+  background:var(--surf);border:1px solid var(--border);
+  border-radius:7px;padding:8px 14px;
+  color:var(--text);font-family:var(--mono);font-size:12px;
+  outline:none;transition:border-color .2s;
+}
+.search-input:focus{border-color:var(--zec)}
+.search-input::placeholder{color:var(--text3)}
+
+/* ── Workers table ───────────────────────────────────────── */
+.tbl-wrap{
+  background:var(--surf);border:1px solid var(--border);
+  border-radius:10px;overflow:hidden;margin-bottom:24px;
+}
+table{width:100%;border-collapse:collapse}
+thead th{
+  background:var(--surf2);padding:9px 14px;text-align:left;
+  font-size:9px;text-transform:uppercase;letter-spacing:1.5px;
+  color:var(--text3);font-weight:700;
+  border-bottom:1px solid var(--border);white-space:nowrap;
+}
+tbody td{
+  padding:11px 14px;border-bottom:1px solid var(--border);
+  vertical-align:middle;
+}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(255,255,255,.013)}
+
+/* Worker name */
+.wname{color:var(--zec);cursor:pointer;font-size:11px}
+.wname:hover{text-decoration:underline}
+.wsuffix{color:var(--text3);font-size:11px}
+
+/* Badges */
+.badge{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:2px 8px;border-radius:4px;
+  font-size:9px;font-weight:800;letter-spacing:.5px;
+}
+.b-on {background:var(--green-a);color:var(--green)}
+.b-off{background:var(--orange-a);color:var(--orange)}
+
+/* Efficiency bar */
+.eff{display:flex;align-items:center;gap:8px}
+.eff-track{
+  flex:1;height:3px;background:var(--surf3);
+  border-radius:2px;overflow:hidden;min-width:48px;
+}
+.eff-fill{height:100%;background:var(--green);border-radius:2px}
+.eff-pct{min-width:30px;text-align:right;color:var(--text2);font-size:10px}
+
+/* Diff colour scale: relative to network diff */
+.dc-zero{color:var(--text3)}
+.dc-low {color:var(--text2)}
+.dc-med {color:var(--orange);font-weight:600}
+.dc-high{color:var(--zec);font-weight:800}
+.dc-block{color:var(--green);font-weight:900;animation:glow 1.5s ease-in-out infinite}
+@keyframes glow{0%,100%{text-shadow:0 0 6px var(--green)}50%{text-shadow:0 0 14px var(--green)}}
+
+/* Empty state */
+.empty{text-align:center;padding:56px 16px;color:var(--text3)}
+.empty-ico{font-size:34px;margin-bottom:14px}
+.empty-sub{font-size:11px;margin-top:6px;color:var(--text3)}
+
+/* Tooltip */
+[title]{cursor:help}
+
+/* Toast */
+#toast{
+  position:fixed;bottom:24px;right:24px;z-index:500;
+  background:var(--surf2);border:1px solid var(--border2);
+  border-radius:8px;padding:10px 18px;font-size:11px;
+  pointer-events:none;transition:opacity .3s,transform .3s;
+}
+#toast.hide{opacity:0;transform:translateY(8px)}
+
+/* Footer */
+footer{
+  text-align:center;padding:22px;border-top:1px solid var(--border);
+  color:var(--text3);font-size:10px;letter-spacing:.5px;
+}
+
+/* ── Tabs ────────────────────────────────────────────────── */
+.tab-bar{display:flex;gap:0;margin-bottom:14px;border-bottom:1px solid var(--border)}
+.tab-btn{
+  background:none;border:none;padding:9px 18px;font-family:var(--mono);
+  font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;
+  margin-bottom:-1px;transition:color .15s,border-color .15s;
+}
+.tab-btn.active{color:var(--zec);border-bottom-color:var(--zec)}
+.tab-btn:hover:not(.active){color:var(--text)}
+
+/* ── Blocks table cells ─────────────────────────────────── */
+.bh-height{font-family:var(--mono);font-size:16px;font-weight:900;color:var(--zec)}
+.bh-height a{color:inherit;text-decoration:none}
+.bh-height a:hover{text-decoration:underline}
+.bh-hash{
+  font-family:var(--mono);font-size:10px;color:var(--text2);
+  cursor:pointer;white-space:nowrap;
+}
+.bh-hash:hover{color:var(--text);text-decoration:underline}
+.bh-worker{font-size:11px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bh-status-conf{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:2px 8px;border-radius:4px;font-size:9px;font-weight:800;letter-spacing:.5px;
+  background:var(--green-a);color:var(--green);
+}
+.bh-status-pend{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:2px 8px;border-radius:4px;font-size:9px;font-weight:800;letter-spacing:.5px;
+  background:var(--orange-a);color:var(--orange);
+}
+.bh-time{font-size:10px;color:var(--text2);white-space:nowrap}
+
+/* Responsive */
+@media(max-width:900px){
+  main{padding:12px}
+  header{padding:0 14px}
+  .cards{grid-template-columns:repeat(2,1fr)}
+  .hide-sm{display:none!important}
+}
+@media(max-width:480px){
+  .card-val{font-size:17px}
+  .logo span{display:none}
+}
+</style>
+</head>
+<body>
+
+<div id="addrDlg" class="dlg-overlay" style="display:none">
+  <div class="dlg-box">
+    <div class="dlg-title">Mining Receiving Address</div>
+    <div class="dlg-body">Enter your Zcash <span id="addrNetLabel">mainnet</span> transparent address. All block rewards will be sent here. You can change this at any time.</div>
+    <input class="dlg-input" id="addrDlgInput" type="text"
+      placeholder="t1… or t3… (mainnet) · t2… or tm… (testnet)"
+      autocomplete="off" spellcheck="false" maxlength="60">
+    <div class="dlg-error" id="addrDlgError"></div>
+    <div class="dlg-actions">
+      <button class="btn btn-ghost" id="addrDlgCancel" onclick="closeAddrDialog()" style="display:none">Cancel</button>
+      <button class="btn btn-gold" onclick="saveAddress()">Save Address</button>
+    </div>
+  </div>
+</div>
+
+<div id="syncBar"><div id="syncFill"></div></div>
+
+<header>
+  <div class="logo">
+    <div class="logo-box">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="10" stroke="#F4B728" stroke-width="1.5"/>
+        <path d="M7 8h10L7 16h10" stroke="#F4B728" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <span>ZEC SOLO MINER</span>
+  </div>
+  <div class="hdr-right">
+    <span id="nodePill" class="pill pill-sync"><span class="dot blink"></span>Connecting</span>
+    <span id="hdrPeers">— peers</span>
+    <span id="hdrTime" style="color:var(--text3)">—</span>
+    <div id="spinner" class="spin-ring"></div>
+  </div>
+</header>
+
+<main>
+
+  <!-- Miner address banner (shown once config loads) -->
+  <div id="addrBanner">
+    <div>
+      <div class="addr-lbl">Mining Receiving Address — all block rewards go here</div>
+      <div class="addr-val" id="addrVal">—</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost" onclick="openAddrDialog(true)">Edit</button>
+      <button class="btn btn-ghost" onclick="copyAddr()">Copy</button>
+    </div>
+  </div>
+
+  <!-- Blockchain sync progress (hidden once fully synced) -->
+  <div id="syncCard" style="display:none">
+    <div class="sync-donut">
+      <svg width="80" height="80" viewBox="0 0 80 80">
+        <circle cx="40" cy="40" r="30" fill="none" stroke="#1e1e1e" stroke-width="8"/>
+        <circle id="syncArc" cx="40" cy="40" r="30" fill="none" stroke="#F4B728" stroke-width="8"
+          stroke-dasharray="0 188.5" stroke-linecap="round"
+          transform="rotate(-90 40 40)"
+          style="transition:stroke-dasharray 2s ease"/>
+        <text id="syncPctTxt" x="40" y="44" text-anchor="middle"
+          fill="#ebebeb" font-size="11" font-family="'Consolas',monospace">0%</text>
+      </svg>
+    </div>
+    <div class="sync-info">
+      <div class="sync-lbl">Blockchain Sync Progress</div>
+      <div id="syncPctBig" class="sync-pct">—</div>
+      <div id="syncBlkInfo" class="sync-sub">Downloading chain data…</div>
+    </div>
+  </div>
+
+  <!-- Stratum connection info -->
+  <div id="stratumBanner">
+    <div>
+      <div class="stratum-lbl">Stratum Endpoint (<span id="stratumNetLabel">Mainnet</span>) — point your ASIC / GPU miner here</div>
+      <div id="stratumVal" class="stratum-val">—:3333</div>
+      <div id="stratumNote" class="stratum-note" style="color:var(--orange)">● Waiting for sync to complete</div>
+    </div>
+    <button class="btn btn-ghost" onclick="copyStratum()">Copy</button>
+  </div>
+
+  <!-- Pruning not yet available — waiting for Zebra native support -->
+  <div id="pruneNotice">
+    <div class="prune-notice-txt">
+      🔒 <strong>Blockchain pruning is not yet available.</strong>
+      This feature will be enabled once Zebra implements native pruning. Full chain data is stored to disk.
+    </div>
+  </div>
+
+  <!-- Network toggle: Mainnet / Testnet -->
+  <div class="ctrl-card">
+    <div class="ctrl-row">
+      <div class="ctrl-label-col">
+        <div class="ctrl-title">Network</div>
+        <div class="ctrl-desc" id="netCtrlDesc">Currently configured for <strong>Mainnet</strong>. Toggle to switch to Testnet (requires restart).</div>
+      </div>
+      <div class="toggle-wrap">
+        <span id="netToggleLbl">Mainnet</span>
+        <label class="toggle">
+          <input type="checkbox" id="netChk" onchange="toggleNetwork(this.checked)">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+    <div class="ctrl-warn" id="netWarn">
+      <div class="ctrl-warn-txt">&#9888; Network change saved. Restart Zebra and Miner services to apply. Switching networks requires re-syncing the chain from scratch.</div>
+    </div>
+  </div>
+
+  <!-- Stats cards -->
+  <div class="cards">
+    <div class="card">
+      <div class="card-lbl">Network Difficulty</div>
+      <div class="card-val v-zec" id="cDiff">—</div>
+      <div id="cDiffSrc" style="font-size:0.65em;color:#555;margin-top:2px;min-height:1em;"></div>
+    </div>
+    <div class="card">
+      <div class="card-lbl">Network Hash Rate</div>
+      <div class="card-val" id="cNetHash">—</div>
+      <div class="card-sub">Equihash 200,9</div>
+    </div>
+    <div class="card">
+      <div class="card-lbl">Pool Hash Rate</div>
+      <div class="card-val v-green" id="cPoolHash">—</div>
+      <div class="card-sub" id="cRound">—</div>
+    </div>
+    <div class="card">
+      <div class="card-lbl">Active Workers</div>
+      <div class="card-val v-blue" id="cWorkers">—</div>
+      <div class="card-sub" id="cMiners">—</div>
+    </div>
+    <div class="card">
+      <div class="card-lbl">Connected Peers</div>
+      <div class="card-val v-green" id="cPeers">—</div>
+      <div class="card-sub" id="cPeersSub">Zcash mainnet nodes</div>
+    </div>
+    <div class="card">
+      <div class="card-lbl">Est. Time to Block</div>
+      <div class="card-val" id="cLuck" style="font-size:16px">—</div>
+      <div class="card-sub" id="cLuckSub">at current hash rate</div>
+    </div>
+    <div class="card">
+      <div class="card-lbl">Blocks Found</div>
+      <div class="card-val v-zec" id="cBlocks">0</div>
+      <div class="card-sub" id="cBlocksSub">0 pending</div>
+    </div>
+  </div>
+
+  <!-- Tab bar -->
+  <div class="tab-bar">
+    <button class="tab-btn active" id="tabMiners" onclick="switchTab('miners')">Miners</button>
+    <button class="tab-btn" id="tabBlocks" onclick="switchTab('blocks')">Blocks Found</button>
+  </div>
+
+  <!-- ── Miners pane ──────────────────────────────────────── -->
+  <div id="paneMiners">
+    <div class="sec-hdr">
+      <div class="sec-title">Connected Workers / ASICs</div>
+      <div class="sec-ctrls">
+        <span id="filterTag" style="display:none;font-size:10px;color:var(--text2)">Filtered</span>
+        <button class="btn btn-ghost" id="clearBtn" style="display:none" onclick="clearFilter()">All Workers</button>
+        <button class="btn btn-warn" onclick="resetBest()">Reset All-Time Records</button>
+      </div>
+    </div>
+
+    <div class="search">
+      <input class="search-input" id="addrIn"
+        placeholder="Filter by t1/t3 address or worker name…"
+        autocomplete="off" spellcheck="false">
+      <button class="btn btn-gold" onclick="doFilter()">Filter</button>
+      <button class="btn btn-ghost" onclick="clearFilter()">Clear</button>
+    </div>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Worker / Address</th>
+            <th>Status</th>
+            <th>Hash Rate</th>
+            <th title="Difficulty of shares seen in current stats window">Cur. Diff</th>
+            <th class="hide-sm" title="Highest difficulty share seen since this page loaded">Session Best</th>
+            <th title="Highest difficulty share ever seen (stored locally)">All-Time Best</th>
+            <th title="All-Time Best as % of current network difficulty">% of Block</th>
+            <th class="hide-sm">Efficiency</th>
+            <th class="hide-sm">Last Share</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── Blocks pane ──────────────────────────────────────── -->
+  <div id="paneBlocks" style="display:none">
+    <div class="sec-hdr">
+      <div class="sec-title">Block History</div>
+      <div class="sec-ctrls">
+        <span id="blocksCount" style="font-size:10px;color:var(--text3)">—</span>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Height</th>
+            <th>Status</th>
+            <th>Miner / Worker</th>
+            <th>Block Hash <span style="color:var(--text3);font-weight:400;font-size:8px">(click to copy)</span></th>
+            <th class="hide-sm">Coinbase TX <span style="color:var(--text3);font-weight:400;font-size:8px">(click to copy)</span></th>
+            <th>Found</th>
+          </tr>
+        </thead>
+        <tbody id="blocksTbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<div id="toast" class="hide"></div>
+
+<footer>
+  ZEC Solo Miner &nbsp;·&nbsp; Zebra v5 (NU6.2) &nbsp;·&nbsp; <span id="footerNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp
+</footer>
+
+<script>
+!function(){'use strict';
+/* ── Config ────────────────────────────────────────────── */
+var POLL = 10000;
+var currentNetwork = 'Mainnet';
+
+/* ── State ─────────────────────────────────────────────── */
+var filterAddr = localStorage.getItem('zmf.filter') || '';
+var sessBest   = {};        // { worker: maxDiff } — resets on page load
+var allBest    = {};        // { worker: maxDiff } — persisted
+var lastNetDiff = 0;
+var cachedNetPeers = 0; // best known peer count from Zebra direct RPC
+
+try { allBest = JSON.parse(localStorage.getItem('zmf.atb') || '{}'); }
+catch(e) { allBest = {}; }
+
+if (filterAddr) { g('addrIn').value = filterAddr; toggleFilter(true); }
+
+/* ── DOM helpers ───────────────────────────────────────── */
+function g(id){ return document.getElementById(id); }
+function s(id,v){ var e=g(id); if(e) e.textContent=v; }
+
+/* ── Number formatters ─────────────────────────────────── */
+function fmtN(n){
+  n=+n; if(!n||isNaN(n)) return '—';
+  if(n>=1e24) return (n/1e24).toFixed(2)+'Y';
+  if(n>=1e21) return (n/1e21).toFixed(2)+'Z';
+  if(n>=1e18) return (n/1e18).toFixed(2)+'E';
+  if(n>=1e15) return (n/1e15).toFixed(2)+'P';
+  if(n>=1e12) return (n/1e12).toFixed(2)+'T';
+  if(n>=1e9 ) return (n/1e9 ).toFixed(2)+'G';
+  if(n>=1e6 ) return (n/1e6 ).toFixed(2)+'M';
+  if(n>=1e3 ) return (n/1e3 ).toFixed(1)+'K';
+  return n.toFixed(2);
+}
+function fmtH(h){
+  h=+h; if(!h) return '0 Sol/s';
+  if(h>=1e12) return (h/1e12).toFixed(2)+' TSol/s';
+  if(h>=1e9 ) return (h/1e9 ).toFixed(2)+' GSol/s';
+  if(h>=1e6 ) return (h/1e6 ).toFixed(2)+' MSol/s';
+  if(h>=1e3 ) return (h/1e3 ).toFixed(2)+' KSol/s';
+  return h.toFixed(2)+' Sol/s';
+}
+function timeAgo(ts){
+  if(!ts) return '—';
+  var d=(Date.now()/1000)-ts;
+  if(d<60)   return Math.round(d)+'s ago';
+  if(d<3600) return Math.round(d/60)+'m ago';
+  return Math.round(d/3600)+'h ago';
+}
+function isOnline(ts){ return ts&&(Date.now()/1000-ts)<600; }
+function fmtLuck(days){
+  days=parseFloat(days)||0;
+  if(!days||!isFinite(days)||days>99999) return '—';
+  if(days>=365) return (days/365).toFixed(1)+' yr';
+  if(days>=1  ) return days.toFixed(1)+' day'+(days>=2?'s':'');
+  return (days*24).toFixed(1)+' hr';
+}
+function pctOfBlock(diff, netDiff){
+  if(!diff||!netDiff) return '—';
+  var p=(diff/netDiff)*100;
+  if(p>=100) return '✓ BLOCK!';
+  if(p<0.0001) return '<0.0001%';
+  return p.toFixed(4)+'%';
+}
+/* Colour class based on ratio to network diff */
+function diffCls(d, nd){
+  if(!d||!nd) return 'dc-zero';
+  var r=d/nd;
+  if(r>=1   ) return 'dc-block';
+  if(r>=0.1 ) return 'dc-high';
+  if(r>=0.01) return 'dc-med';
+  if(r>0    ) return 'dc-low';
+  return 'dc-zero';
+}
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ── Toast ─────────────────────────────────────────────── */
+function toast(msg){
+  var t=g('toast'); t.textContent=msg; t.classList.remove('hide');
+  clearTimeout(t._t); t._t=setTimeout(function(){ t.classList.add('hide'); },2600);
+}
+
+/* ── Filter controls ───────────────────────────────────── */
+function toggleFilter(on){
+  g('filterTag').style.display = on?'inline':'none';
+  g('clearBtn').style.display  = on?'inline-flex':'none';
+}
+window.doFilter=function(){
+  filterAddr=g('addrIn').value.trim();
+  localStorage.setItem('zmf.filter',filterAddr);
+  toggleFilter(!!filterAddr); renderNow();
+};
+window.clearFilter=function(){
+  filterAddr=''; g('addrIn').value='';
+  localStorage.removeItem('zmf.filter');
+  toggleFilter(false); renderNow();
+};
+window.resetBest=function(){
+  if(!confirm('Reset all-time best difficulty records for all workers?')) return;
+  allBest={}; sessBest={};
+  localStorage.removeItem('zmf.atb');
+  toast('All-time records cleared'); renderNow();
+};
+window.quickFilter=function(addr){
+  g('addrIn').value=addr; doFilter();
+};
+window.copyAddr=function(){
+  var v=g('addrVal').textContent;
+  if(v&&navigator.clipboard)
+    navigator.clipboard.writeText(v).then(function(){ toast('Address copied!'); });
+};
+g('addrIn').addEventListener('keyup',function(e){ if(e.key==='Enter') doFilter(); });
+
+/* ── Best-diff tracking ────────────────────────────────── */
+function trackDiff(w,d){
+  d=parseFloat(d)||0; if(!d) return;
+  if(!sessBest[w]||d>sessBest[w]) sessBest[w]=d;
+  if(!allBest[w] ||d>allBest[w] ){
+    allBest[w]=d;
+    localStorage.setItem('zmf.atb',JSON.stringify(allBest));
+  }
+}
+
+/* ── Cached workers for re-render ──────────────────────── */
+var cachedWorkers={}; var cachedNetDiff=0;
+function renderNow(){ renderWorkers(cachedWorkers,cachedNetDiff); }
+
+/* ── Workers table renderer ────────────────────────────── */
+function renderWorkers(workers, netDiff){
+  cachedWorkers=workers; cachedNetDiff=netDiff;
+  var tbody=g('tbody');
+  var keys=Object.keys(workers);
+  if(filterAddr){
+    var fa=filterAddr.toLowerCase();
+    keys=keys.filter(function(k){ return k.toLowerCase().indexOf(fa)!==-1; });
+  }
+  if(!keys.length){
+    var msg=filterAddr?'No workers match this filter':'No workers connected';
+    tbody.innerHTML='<tr><td colspan="9"><div class="empty">'
+      +'<div class="empty-ico">⛏</div>'
+      +'<div>'+msg+'</div>'
+      +'<div class="empty-sub">Point your ASIC or GPU miner at Stratum&nbsp;port&nbsp;3333</div>'
+      +'</div></td></tr>';
+    return;
+  }
+  var html='';
+  keys.forEach(function(wk){
+    var w=workers[wk];
+    var d=parseFloat(w.diff)||0;
+    trackDiff(wk,d);
+    var sb=sessBest[wk]||0;
+    var ab=allBest[wk]||0;
+    var valid=parseFloat(w.shares)||0;
+    var inv=Math.abs(parseFloat(w.invalidshares)||0);
+    var total=valid+inv;
+    var eff=total>0?Math.min(100,Math.round(valid/total*100)):0;
+    var online=isOnline(w.lastShare);
+
+    /* split address / worker-name suffix */
+    var dot=wk.indexOf('.');
+    var addr =dot!==-1?wk.slice(0,dot):wk;
+    var trail=dot!==-1?wk.slice(dot):'';
+    var short=addr.length>22?addr.slice(0,11)+'…'+addr.slice(-5):addr;
+
+    var badge=online
+      ?'<span class="badge b-on"><span class="dot"></span>Online</span>'
+      :'<span class="badge b-off"><span class="dot"></span>Idle</span>';
+
+    var abPct=pctOfBlock(ab,netDiff);
+    var abCls=diffCls(ab,netDiff);
+    var sbCls=diffCls(sb,netDiff);
+    var  dCls=diffCls(d ,netDiff);
+
+    var abTitle='All-time best: '+ab+' / Network diff: '+netDiff+' = '+abPct;
+
+    html+='<tr>'
+      +'<td><span class="wname" title="'+esc(wk)+'" data-addr="'+esc(addr)+'" onclick="quickFilter(this.dataset.addr)">'
+      +esc(short)+'</span><span class="wsuffix">'+esc(trail)+'</span></td>'
+      +'<td>'+badge+'</td>'
+      +'<td style="color:var(--green);font-weight:700">'+fmtH(w.hashrate)+'</td>'
+      +'<td class="'+dCls+'">'+fmtN(d)+'</td>'
+      +'<td class="hide-sm '+sbCls+'">'+fmtN(sb)+'</td>'
+      +'<td class="'+abCls+'" title="'+esc(abTitle)+'">'+fmtN(ab)+'</td>'
+      +'<td style="font-size:10px;color:var(--text2)" title="'+esc(abTitle)+'">'+esc(abPct)+'</td>'
+      +'<td class="hide-sm"><div class="eff">'
+        +'<div class="eff-track"><div class="eff-fill" style="width:'+eff+'%"></div></div>'
+        +'<span class="eff-pct">'+eff+'%</span></div></td>'
+      +'<td class="hide-sm" style="color:var(--text2)">'+timeAgo(w.lastShare)+'</td>'
+      +'</tr>';
+  });
+  tbody.innerHTML=html;
+}
+
+/* ── Network toggle ───────────────────────────────────────────────────── */
+function fetchNetwork(){
+  fetch('/api/umbrel/network',{credentials:'same-origin'})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      currentNetwork = d.network || 'Mainnet';
+      var isTestnet = currentNetwork === 'Testnet';
+      var chk = g('netChk');
+      if(chk) chk.checked = isTestnet;
+      s('netToggleLbl', currentNetwork);
+      var desc = g('netCtrlDesc');
+      if(desc) desc.innerHTML = 'Currently configured for <strong>'+currentNetwork+'</strong>. Toggle to switch network (requires restart).';
+      s('footerNet', currentNetwork);
+      var ps = g('cPeersSub');
+      if(ps) ps.textContent = 'Zcash '+currentNetwork.toLowerCase()+' nodes';
+      var snl = g('stratumNetLabel');
+      if(snl) snl.textContent = currentNetwork;
+    })
+    .catch(function(){});
+}
+window.toggleNetwork = function(enable){
+  var net = enable ? 'Testnet' : 'Mainnet';
+  if(!confirm('Switch to '+net+'? Zebra and Miner services must be restarted to apply. Switching networks requires re-syncing the chain.')){
+    var chk = g('netChk');
+    if(chk) chk.checked = !enable;
+    return;
+  }
+  fetch('/api/umbrel/network',{
+    method:'POST',
+    credentials:'same-origin',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({network:net})
+  })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(d.ok){
+        var warn = g('netWarn');
+        if(warn) warn.style.display = 'block';
+        toast('Network set to '+net+' — restart services to apply');
+        fetchNetwork();
+      } else {
+        toast('Failed to save: '+(d.error||'unknown error'));
+        fetchNetwork();
+      }
+    })
+    .catch(function(){ toast('Failed to save network setting'); fetchNetwork(); });
+};
+
+/* ── Address dialog ───────────────────────────────────────────────────── */
+var addrDialogCanCancel = false;
+function openAddrDialog(canCancel){
+  addrDialogCanCancel = !!canCancel;
+  var dlg = g('addrDlg');
+  if(!dlg) return;
+  var cancelBtn = g('addrDlgCancel');
+  if(cancelBtn) cancelBtn.style.display = canCancel ? 'inline-flex' : 'none';
+  var inp = g('addrDlgInput');
+  var curAddr = g('addrVal') ? g('addrVal').textContent : '';
+  if(inp) inp.value = (curAddr === '—' ? '' : curAddr);
+  s('addrDlgError','');
+  dlg.style.display = 'flex';
+  if(inp) setTimeout(function(){ inp.focus(); }, 50);
+  var netLabel = g('addrNetLabel');
+  if(netLabel) netLabel.textContent = currentNetwork.toLowerCase();
+}
+window.closeAddrDialog = function(){
+  if(!addrDialogCanCancel) return;
+  var dlg = g('addrDlg');
+  if(dlg) dlg.style.display = 'none';
+};
+window.saveAddress = function(){
+  var inp = g('addrDlgInput');
+  var addr = inp ? inp.value.trim() : '';
+  if(!addr){ s('addrDlgError','Address is required.'); return; }
+  if(!/^t[1-9A-HJ-NP-Za-km-z]{25,50}$/.test(addr)){
+    s('addrDlgError','Invalid format. Use t1…/t3… for mainnet or t2…/tm… for testnet.');
+    return;
+  }
+  var mainnetAddr = /^t[13]/.test(addr);
+  if(currentNetwork === 'Testnet' && mainnetAddr){
+    if(!confirm('This looks like a mainnet address (t1/t3) but network is Testnet. Save anyway?')) return;
+  } else if(currentNetwork === 'Mainnet' && !mainnetAddr){
+    if(!confirm('This looks like a testnet address but network is Mainnet. Save anyway?')) return;
+  }
+  s('addrDlgError','');
+  fetch('/api/umbrel/address',{
+    method:'POST',
+    credentials:'same-origin',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({address:addr})
+  })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(d.ok){
+        s('addrVal', d.address);
+        g('addrBanner').style.display = 'flex';
+        var dlg = g('addrDlg');
+        if(dlg) dlg.style.display = 'none';
+        toast('Address saved — restart Zebra to apply to block rewards');
+      } else {
+        s('addrDlgError', d.error || 'Failed to save address.');
+      }
+    })
+    .catch(function(){ s('addrDlgError','Network error. Try again.'); });
+};
+function fetchAddress(){
+  fetch('/api/umbrel/address',{credentials:'same-origin'})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var addr = d.address || '';
+      currentNetwork = d.network || currentNetwork;
+      if(addr){
+        s('addrVal', addr);
+        g('addrBanner').style.display = 'flex';
+        var dlg = g('addrDlg');
+        if(dlg) dlg.style.display = 'none';
+      } else {
+        g('addrBanner').style.display = 'none';
+        openAddrDialog(false);
+      }
+    })
+    .catch(function(){});
+}
+
+/* ── Main poll ─────────────────────────────────────────── */
+function poll(){
+  var spin=g('spinner'); spin.classList.add('active');
+  fetch('/api/stats',{credentials:'same-origin'})
+    .then(function(r){ if(!r.ok) throw r.status; return r.json(); })
+    .then(function(data){
+      spin.classList.remove('active');
+      s('hdrTime',new Date().toLocaleTimeString());
+
+      var pool=null;
+      if(data.pools){ var pn=Object.keys(data.pools)[0]; if(pn) pool=data.pools[pn]; }
+      if(!pool) return;
+
+      var ps=pool.poolStats||{};
+      var netDiff =parseFloat(ps.networkDiff)||0;
+      /* s-nomp's networkConnections is often stale/zero; use the best known
+         value from Zebra's direct getpeerinfo (cachedNetPeers) if higher */
+      var peers   =Math.max(parseInt(ps.networkConnections)||0, cachedNetPeers);
+      var confirmed=parseInt((pool.blocks||{}).confirmed)||0;
+      var pending  =parseInt((pool.blocks||{}).pending)||0;
+      lastNetDiff=netDiff;
+
+      /* Node status pill */
+      var pill=g('nodePill');
+      if(peers>=8){
+        pill.className='pill pill-live';
+        pill.innerHTML='<span class="dot blink"></span>'+currentNetwork;
+        g('syncFill').style.width='100%';
+      } else if(peers>0){
+        pill.className='pill pill-sync';
+        pill.innerHTML='<span class="dot blink"></span>Syncing';
+        g('syncFill').style.width=Math.max(8,peers/8*80)+'%';
+      } else {
+        pill.className='pill pill-dead';
+        pill.innerHTML='<span class="dot"></span>Offline';
+        g('syncFill').style.width='4%';
+      }
+      s('hdrPeers',peers+(peers===1?' peer':' peers'));
+      s('cPeers',peers);
+
+      /* Cards */
+      s('cDiff',   fmtN(netDiff));
+      s('cNetHash',ps.networkSolsString||fmtH(parseFloat(ps.networkSols)*1e6));
+      s('cPoolHash',pool.hashrateString||fmtH(pool.hashrate||0));
+      s('cRound',(pool.shareCount||0)+' shares this round');
+      s('cWorkers',pool.workerCount||0);
+      s('cMiners',(pool.minerCount||0)+' miner'+((pool.minerCount||0)===1?'':'s'));
+      s('cPeers',peers);
+      s('cBlocks',confirmed);
+      s('cBlocksSub',pending+' pending');
+      s('cLuck',fmtLuck(pool.luckDays));
+      s('cLuckSub',pool.luckHours
+        ?'~'+(+pool.luckHours).toFixed(1)+' hrs expected'
+        :'at current hash rate');
+
+      renderWorkers(pool.workers||{}, netDiff);
+      renderBlocks(pool);
+    })
+    .catch(function(){
+      spin.classList.remove('active');
+      var pill=g('nodePill');
+      pill.className='pill pill-dead';
+      pill.innerHTML='<span class="dot"></span>Error';
+    });
+
+  /* Sync progress */
+  fetch('/api/umbrel/sync',{credentials:'same-origin'})
+    .then(function(r){ return r.json(); })
+    .then(updateSync)
+    .catch(function(){});
+  /* Network stats direct from Zebra (available even during sync) */
+  fetch('/api/umbrel/netinfo',{credentials:'same-origin'})
+    .then(function(r){ return r.json(); })
+    .then(function(ni){
+      /* Difficulty: s-nomp's networkDiff is 0 until it mines shares,
+         so always use Zebra's live value when available */
+      if(ni.difficulty > 0){
+        lastNetDiff = ni.difficulty;
+        s('cDiff', fmtN(ni.difficulty));
+        var diffLbl = document.getElementById('cDiffSrc');
+        if(diffLbl) diffLbl.textContent = ni.diffSource === 'whattomine' ? '(live)' : '(from node)';
+      }
+      if(ni.networkSolps > 0){
+        s('cNetHash', fmtH(ni.networkSolps));
+      }
+      if(ni.peers > 0){
+        cachedNetPeers = ni.peers;
+        s('cPeers', ni.peers);
+        s('hdrPeers', ni.peers + (ni.peers === 1 ? ' peer' : ' peers'));
+        var syncing = g('syncCard').style.display !== 'none';
+        var pill = g('nodePill');
+        if(syncing){
+          pill.className = 'pill pill-sync';
+          pill.innerHTML = '<span class="dot blink"></span>Syncing';
+        } else {
+          pill.className = 'pill pill-live';
+          pill.innerHTML = '<span class="dot blink"></span>'+currentNetwork;
+        }
+      }
+    })
+    .catch(function(){});
+}
+
+/* ── Tab switching ─────────────────────────────────────── */
+var activeTab='miners';
+window.switchTab=function(tab){
+  activeTab=tab;
+  g('paneMiners').style.display=tab==='miners'?'':'none';
+  g('paneBlocks').style.display=tab==='blocks'?'':'none';
+  g('tabMiners').className='tab-btn'+(tab==='miners'?' active':'');
+  g('tabBlocks').className='tab-btn'+(tab==='blocks'?' active':'');
+};
+
+/* ── Blocks table renderer ─────────────────────────────── */
+window.copyHash=function(h){
+  if(h&&navigator.clipboard)
+    navigator.clipboard.writeText(h).then(function(){ toast('Hash copied!'); });
+};
+function renderBlocks(pool){
+  var tbody=g('blocksTbody');
+  if(!tbody) return;
+  var confirmed=(pool.confirmed&&pool.confirmed.blocks)?pool.confirmed.blocks:[];
+  var pending=(pool.pending&&pool.pending.blocks)?pool.pending.blocks:[];
+  /* update count in section header */
+  var countEl=g('blocksCount');
+  if(countEl) countEl.textContent=confirmed.length+' confirmed, '+pending.length+' pending';
+  var rows=[];
+  function parseBlock(str,status){
+    var p=str.split(':');
+    return{blockHash:p[0]||'',txHash:p[1]||'',height:p[2]||'?',worker:p[3]||'?',ts:parseInt(p[4])||0,status:status};
+  }
+  pending.forEach(function(str){rows.push(parseBlock(str,'pending'));});
+  confirmed.forEach(function(str){rows.push(parseBlock(str,'confirmed'));});
+  rows.sort(function(a,b){return(parseInt(b.height)||0)-(parseInt(a.height)||0);});
+  if(!rows.length){
+    tbody.innerHTML='<tr><td colspan="6"><div class="empty">'
+      +'<div class="empty-ico">🔍</div>'
+      +'<div>No blocks found yet</div>'
+      +'<div class="empty-sub">Keep mining — your first block will appear here</div>'
+      +'</div></td></tr>';
+    return;
+  }
+  var isMainnet=currentNetwork==='Mainnet';
+  var html='';
+  rows.forEach(function(b){
+    /* time: relative + full datetime on hover */
+    var ago=timeAgo(b.ts);
+    var dt=b.ts?new Date(b.ts*1000).toISOString().replace('T',' ').slice(0,-5)+' UTC':'—';
+    /* truncate hashes: first 10 + … + last 6 chars */
+    var shortBH=b.blockHash?b.blockHash.slice(0,10)+'…'+b.blockHash.slice(-6):'—';
+    var shortTX=b.txHash?b.txHash.slice(0,10)+'…'+b.txHash.slice(-6):'—';
+    /* miner: split address.worker */
+    var dot=b.worker.indexOf('.');
+    var wAddr=dot!==-1?b.worker.slice(0,dot):b.worker;
+    var wSuffix=dot!==-1?b.worker.slice(dot):'';
+    var shortW=wAddr.length>18?wAddr.slice(0,9)+'…'+wAddr.slice(-5):wAddr;
+    /* height cell — explorer link on mainnet */
+    var heightCell=isMainnet&&b.blockHash
+      ?'<span class="bh-height"><a href="https://zcashblockexplorer.com/blocks/'+esc(b.blockHash)+'" target="_blank" rel="noopener noreferrer">'+esc(b.height)+'</a></span>'
+      :'<span class="bh-height">'+esc(b.height)+'</span>';
+    /* status badge */
+    var badge=b.status==='confirmed'
+      ?'<span class="bh-status-conf">✓ Confirmed</span>'
+      :'<span class="bh-status-pend">⏳ Pending</span>';
+    html+='<tr>'
+      +'<td>'+heightCell+'</td>'
+      +'<td>'+badge+'</td>'
+      +'<td class="bh-worker" title="'+esc(b.worker)+'">'
+        +'<span style="color:var(--zec)">'+esc(shortW)+'</span>'
+        +'<span style="color:var(--text3)">'+esc(wSuffix)+'</span>'
+      +'</td>'
+      +'<td class="bh-hash" title="'+esc(b.blockHash)+'" data-hash="'+esc(b.blockHash)+'" onclick="copyHash(this.dataset.hash)">'+esc(shortBH)+'</td>'
+      +'<td class="bh-hash hide-sm" title="'+esc(b.txHash)+'" data-hash="'+esc(b.txHash)+'" onclick="copyHash(this.dataset.hash)">'+esc(shortTX)+'</td>'
+      +'<td class="bh-time" title="'+esc(dt)+'">'+ago+'</td>'
+      +'</tr>';
+  });
+  tbody.innerHTML=html;
+}
+
+/* ── Stratum info ──────────────────────────────────────── */
+function initStratum(){
+  /* Use window.location.hostname first — it is always the correct LAN IP
+     from the miner's perspective (the address the browser used to reach
+     this page). The server-side hostip is only used if it returns a
+     non-Docker-internal address; Docker bridge IPs (172.16-31.x, 10.x)
+     are container-internal and unreachable by LAN miners. */
+  var browserHost=window.location.hostname||'YOUR-IP';
+  s('stratumVal',browserHost+':3333');
+  fetch('/api/umbrel/hostip',{credentials:'same-origin'})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var ip=d.ip||'';
+      /* Reject Docker-internal ranges: 172.16-31.x.x, 10.x.x.x, 127.x */
+      var internal=/^(172\.(1[6-9]|2[0-9]|3[01])\.|10\.|127\.)/.test(ip);
+      if(ip&&!internal) s('stratumVal',ip+':3333');
+      /* else keep browserHost already displayed */
+    })
+    .catch(function(){});
+}
+window.copyStratum=function(){
+  var v=g('stratumVal').textContent;
+  if(v&&navigator.clipboard)
+    navigator.clipboard.writeText(v).then(function(){ toast('Stratum address copied!'); });
+};
+
+/* ── Sync progress renderer ────────────────────────────── */
+var CIRC=188.5; // 2 * Math.PI * 30
+function updateSync(data){
+  var p=parseFloat(data.progress)||0;
+  var pct=p*100;
+  var synced=pct>=99.9;
+  var card=g('syncCard');
+  card.style.display=synced?'none':'flex';
+  if(!synced){
+    var filled=(pct/100)*CIRC;
+    g('syncArc').setAttribute('stroke-dasharray',filled.toFixed(1)+' '+CIRC);
+    g('syncPctTxt').textContent=pct.toFixed(1)+'%';
+    s('syncPctBig',pct.toFixed(2)+'%');
+    var blk=parseInt(data.blocks)||0;
+    var est=parseInt(data.estimatedHeight)||0;
+    s('syncBlkInfo',blk&&est?'Block '+blk.toLocaleString()+' / ~'+est.toLocaleString():'Downloading…');
+  }
+  var note=g('stratumNote');
+  if(note){
+    note.textContent=synced
+      ?'● Active — ready to accept connections'
+      :'● Waiting for sync ('+pct.toFixed(2)+'%)';
+    note.style.color=synced?'var(--green)':'var(--orange)';
+  }
+}
+
+initStratum();
+fetchNetwork();
+fetchAddress();
+poll();
+setInterval(poll,POLL);
+}();
+</script>
+</body>
+</html>

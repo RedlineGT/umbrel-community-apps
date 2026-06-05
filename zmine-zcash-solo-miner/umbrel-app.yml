@@ -1,0 +1,58 @@
+manifestVersion: 1
+id: zmine-zcash-solo-miner
+name: Zcash Solo Miner
+tagline: Mine ZEC on mainnet with your own Zebra full node
+icon: icon.png
+category: Finance
+version: "1.0.0"
+port: 3300
+description: >-
+  A complete, self-contained Zcash solo mining stack that runs entirely on your
+  Umbrel node — no third-party pools, no fees, full sovereignty.
+
+
+  Stack components:
+
+  • Zebra v5+ — ZcashFoundation's official Rust full node (NU5 / NU6 / NU6.2
+  compatible, mainnet)
+
+  • s-nomp — ZcashFoundation's fork of the Solo/New Open Mining Portal
+  (zebra-mining branch), providing Stratum server + web dashboard
+
+  • nheqminer — CPU Equihash solver (Tromp algorithm) for local hash
+  contribution or testing
+
+  • Redis — lightweight data store for pool state
+
+
+  All block rewards go directly to your configured transparent Zcash address
+  (t1/t3 address). Payment processing is fully disabled — no pool operator
+  cut.
+
+
+  IMPORTANT: You MUST set your Zcash mainnet transparent address by editing
+  MINER_ADDRESS in docker-compose.yml before installing. Initial mainnet chain
+  sync takes 2–3 days depending on hardware.
+
+
+  CPU solo mining on mainnet is statistically very unlikely to find blocks.
+  For realistic results, point external GPU or ASIC miners at your Umbrel's
+  Stratum port (3333).
+
+developer: ZcashFoundation
+website: https://github.com/ZcashFoundation/zebra
+submitter: RedlineGT
+submission: https://github.com/RedlineGT/umbrel-community-apps
+repo: https://github.com/RedlineGT/umbrel-community-apps
+support: https://github.com/RedlineGT/umbrel-community-apps/issues
+gallery:
+  - https://i.imgur.com/yyVG0Jb.jpeg
+  - https://i.imgur.com/yyVG0Jb.jpeg
+  - https://i.imgur.com/yyVG0Jb.jpeg
+releaseNotes: >-
+  Initial release. Zebra v5.0.0 (NU6.2), s-nomp zebra-mining branch,
+  nheqminer CPU tromp solver. Mainnet only.
+dependencies: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""
