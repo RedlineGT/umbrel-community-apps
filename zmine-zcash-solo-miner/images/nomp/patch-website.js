@@ -73,10 +73,11 @@ const INJECT = `
                     res.json({
                         progress: r.verificationprogress || 0,
                         blocks: r.blocks || 0,
-                        estimatedHeight: r.estimatedheight || 0
+                        estimatedHeight: r.estimatedheight || 0,
+                        sizeOnDisk: r.size_on_disk || 0
                     });
                 } catch(e) {
-                    res.json({ progress: 0, blocks: 0, estimatedHeight: 0 });
+                    res.json({ progress: 0, blocks: 0, estimatedHeight: 0, sizeOnDisk: 0 });
                 }
             });
         });
@@ -245,6 +246,41 @@ const INJECT = `
             });
         });
         res.json({ ip: ip || '' });
+    });
+    // Difficulty history — 90-day daily avg from Blockchair, cached 6 hours
+    var _diffHistCache = { ts: 0, points: [] };
+    app.get('/api/umbrel/diff-history', function(req, res) {
+        var now = Date.now();
+        if (now - _diffHistCache.ts < 6 * 3600 * 1000 && _diffHistCache.points.length > 0) {
+            return res.json({ points: _diffHistCache.points });
+        }
+        var https = require('https');
+        var end   = new Date();
+        var start = new Date(now - 90 * 24 * 3600 * 1000);
+        var from  = start.toISOString().slice(0, 10);
+        var to    = end.toISOString().slice(0, 10);
+        var path  = '/zcash/blocks?a=date,avg(difficulty)&q=time(' + from + '..' + to + ')';
+        var r2 = https.get({
+            host: 'api.blockchair.com', path: path,
+            headers: { 'User-Agent': 'zmine-umbrel/1.0' }
+        }, function(rs) {
+            var data = '';
+            rs.on('data', function(c) { data += c; });
+            rs.on('end', function() {
+                try {
+                    var j = JSON.parse(data);
+                    var points = (j.data || []).map(function(row) {
+                        return { date: row.date, diff: parseFloat(row['avg(difficulty)']) || 0 };
+                    }).filter(function(p) { return p.diff > 0; });
+                    if (points.length > 0) _diffHistCache = { ts: Date.now(), points: points };
+                    res.json({ points: points.length > 0 ? points : _diffHistCache.points });
+                } catch(e) {
+                    res.json({ points: _diffHistCache.points });
+                }
+            });
+        });
+        r2.setTimeout(10000, function() { r2.destroy(); res.json({ points: _diffHistCache.points }); });
+        r2.on('error', function() { res.json({ points: _diffHistCache.points }); });
     });
     // end umbrel:patched
 `;
