@@ -300,7 +300,7 @@ const INJECT = `
             if (d >= 1e9) return { text: (d/1e9).toFixed(2)+'B', subtext: '' };
             if (d >= 1e6) return { text: (d/1e6).toFixed(1)+'M', subtext: '' };
             if (d >= 1e3) return { text: (d/1e3).toFixed(0)+'K', subtext: '' };
-            return { text: String(Math.round(d)), subtext: 'diff' };
+            return { text: String(Math.round(d)), subtext: '' };
         }
         function send() {
             if (sent) return; sent = true;
