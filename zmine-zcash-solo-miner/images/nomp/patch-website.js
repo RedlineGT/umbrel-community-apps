@@ -395,13 +395,13 @@ const INJECT = `
             rs.on('end', function() {
                 try {
                     var items = [];
-                    var itemRe = /<item>([\s\S]*?)<\/item>/g;
+                    var itemRe = /<item>([\\s\\S]*?)<\\/item>/g;
                     var m;
                     while ((m = itemRe.exec(data)) !== null) {
                         var block = m[1];
-                        var titleM = /<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/.exec(block);
-                        var linkM  = /<link>([\s\S]*?)<\/link>/.exec(block);
-                        var dateM  = /<pubDate>([\s\S]*?)<\/pubDate>/.exec(block);
+                        var titleM = /<title>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?<\\/title>/.exec(block);
+                        var linkM  = /<link>([\\s\\S]*?)<\\/link>/.exec(block);
+                        var dateM  = /<pubDate>([\\s\\S]*?)<\\/pubDate>/.exec(block);
                         if (!titleM || !linkM) continue;
                         var title = titleM[1].trim()
                             .replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&apos;/g,"'");
