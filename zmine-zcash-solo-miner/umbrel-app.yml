@@ -7,45 +7,71 @@ category: Finance
 version: "1.3.7"
 port: 3300
 description: >-
-  A complete, self-contained Zcash solo mining stack that runs entirely on your
-  Umbrel node — no third-party pools, no fees, full sovereignty.
+  A complete, self-contained Zcash solo mining stack running entirely on your
+  Umbrel — no third-party pools, no fees, full sovereignty over your mining
+  operation.
 
 
-  Stack components:
+  Features:
 
-  • Zebra v5+ — ZcashFoundation's official Rust full node (NU5 / NU6 / NU6.2
-  compatible, mainnet & testnet)
+  • Live dashboard with OLED dark theme and collapsible sidebar navigation
 
-  • s-nomp — ZcashFoundation's fork of the Solo/New Open Mining Portal
-  (zebra-mining branch), providing Stratum server + real-time dashboard
+  • Real-time pool hashrate, active workers, and connected peer count
 
-  • nheqminer — CPU Equihash solver (Tromp algorithm) for local hash
-  contribution or testing
+  • ZEC/USD price ticker with 90-day sparkline chart and high/low range
 
-  • Redis — lightweight data store for pool state
+  • 90-day network difficulty chart with historical comparison
+
+  • Block odds calculator — daily and monthly probability, closest share
+  ever achieved, and pool vs network hashrate ratio
+
+  • Complete block history with confirmation status and coinbase TX hashes
+
+  • Per-worker stats: hashrate, current difficulty, session best, all-time
+  best share, efficiency rating, and last share time
+
+  • Stratum endpoint banner — one-click copy for pointing your ASICs or
+  GPU rigs at your node
+
+  • Mining address management — set and update your reward address directly
+  from the dashboard without touching config files
+
+  • Mainnet / Testnet toggle with persistent network flag
+
+  • Rolling ZEC news ticker — last 14 days of headlines from Yahoo Finance,
+  each headline clickable linking to the original article
+
+  • Umbrel home screen widget showing Pool Hashrate, Blocks Found, Net
+  Difficulty, and Active Workers at a glance
+
+  • Donate section with BTC, ZEC, and BCH QR codes
 
 
-  All block rewards go directly to your configured transparent Zcash address
+  All block rewards go directly to your configured Zcash transparent address
   (t1/t3). Payment processing is fully disabled — no pool operator cut.
 
+  Point external GPU or ASIC miners at your Umbrel's Stratum port (13333)
+  for the best chance of finding blocks. The built-in CPU miner is included
+  for connectivity testing.
 
-  The dashboard gives you a full live view of your mining operation: real-time
-  hashrate, connected workers, network difficulty, ZEC price chart (90-day),
-  block odds calculator, and a complete block history — all in a clean sidebar
-  layout with OLED dark theme.
-
-
-  IMPORTANT: You MUST set your Zcash mainnet transparent address by editing
-  MINER_ADDRESS in docker-compose.yml before installing. Initial mainnet chain
-  sync takes 2–3 days depending on hardware.
+  Initial mainnet chain sync takes 2–3 days depending on your hardware.
 
 
-  CPU solo mining on mainnet is statistically very unlikely to find blocks.
-  For realistic results, point external GPU or ASIC miners at your Umbrel's
-  Stratum port (13333).
+  Powered by open-source software:
 
-developer: ZcashFoundation
-website: https://github.com/ZcashFoundation/zebra
+  • Zebra v5+ by Zcash Foundation — Rust-based Zcash full node
+  (github.com/ZcashFoundation/zebra)
+
+  • s-nomp zebra-mining branch by Zcash Foundation — Stratum pool server
+  (github.com/ZcashFoundation/s-nomp)
+
+  • nheqminer by nicehash — CPU Equihash 200,9 solver (Tromp algorithm)
+  (github.com/nicehash/nheqminer)
+
+  • Redis — in-memory data store for pool state (redis.io)
+
+developer: RedlineGT
+website: https://github.com/RedlineGT/umbrel-community-apps
 submitter: RedlineGT
 submission: https://github.com/RedlineGT/umbrel-community-apps
 repo: https://github.com/RedlineGT/umbrel-community-apps
@@ -53,49 +79,7 @@ support: https://github.com/RedlineGT/umbrel-community-apps/issues
 gallery:
   - https://raw.githubusercontent.com/RedlineGT/umbrel-community-apps/main/zmine-zcash-solo-miner/screenshot1.png
   - https://raw.githubusercontent.com/RedlineGT/umbrel-community-apps/main/zmine-zcash-solo-miner/screenshot2.png
-releaseNotes: >-
-  v1.2.0 — Major dashboard redesign
-
-
-  • New sidebar navigation layout (Overview, Miners, Blocks Found, Donate)
-  with collapsible sidebar and hamburger toggle
-
-  • Switched to Inter font (Google Fonts) for a modern, clean UI
-
-  • OLED dark theme preserved (#000 background) with refined card system
-  and consistent color variables
-
-  • ZEC price ticker with live 90-day sparkline chart and high/low range
-
-  • Block odds calculator — daily/monthly chance, closest share ever,
-  pool vs network hashrate
-
-  • Improved stat cards grid with auto-fit layout
-
-  • Responsive design: sidebar collapses on tablet, slides in on mobile
-
-  • Zebra healthcheck tuned (start_period 300s, retries 30) for slow
-  hardware syncing large chains
-
-  • SVG favicon and donate section polish
-
-
-  Changelog:
-
-  v1.0.9 — Fix Edit address button (window.openAddrDialog), add SVG favicon
-
-  v1.0.8 — Zebra healthcheck: start_period 300s, retries 30
-
-  v1.0.7 — Donate section copy update
-
-  v1.0.6 — ZEC price ticker, 90-day chart, block odds panel, CSP fix
-
-  v1.0.5 — Fix hashrate card flash on zero pool hash
-
-  v1.0.4 — Inline QR code library (offline-safe), fix QR API
-
-  v1.0.0 — Initial release. Zebra v5+ (NU6.2), s-nomp zebra-mining branch,
-  nheqminer CPU tromp solver. Mainnet only.
+releaseNotes: ""
 dependencies: []
 path: ""
 defaultUsername: ""
