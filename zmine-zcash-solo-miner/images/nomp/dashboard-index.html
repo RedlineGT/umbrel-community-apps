@@ -183,6 +183,31 @@ body{
 .toggle input:checked + .toggle-slider:before{transform:translateX(20px)}
 .ctrl-warn{border-top:1px solid var(--border);padding-top:10px;display:none}
 .ctrl-warn-txt{font-size:10px;color:var(--orange);line-height:1.4}
+/* ── VS Fight panels ─────────────────────────────────────── */
+.vs-card{flex:2 1 320px;min-width:280px;background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:14px 16px;transition:border-color .2s,transform .15s;cursor:default;position:relative;overflow:hidden}
+.vs-card:hover{border-color:var(--border2);transform:translateY(-1px)}
+.vs-card-lbl{font-size:9px;text-transform:uppercase;letter-spacing:1.8px;color:var(--text3);margin-bottom:10px;font-weight:600}
+.vs-row{display:flex;align-items:center;gap:0;min-height:72px}
+.vs-side{flex:1;display:flex;flex-direction:column;gap:4px}
+.vs-side-lbl{font-size:8px;text-transform:uppercase;letter-spacing:1.5px;font-weight:700;opacity:.7}
+.vs-side-val{font-size:20px;font-weight:900;letter-spacing:-.5px;line-height:1}
+.vs-side-sub{font-size:9px;margin-top:2px;opacity:.65;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px}
+.vs-left{text-align:left}
+.vs-right{text-align:right;align-items:flex-end}
+.vs-sep{width:40px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:0 4px}
+.vs-vs{font-size:10px;font-weight:900;color:var(--text3);letter-spacing:2px;text-transform:uppercase;background:var(--surf3);border-radius:6px;padding:3px 7px;border:1px solid var(--border2)}
+.vs-divider{width:1px;flex:1;background:linear-gradient(180deg,transparent,var(--border2),transparent)}
+.vs-bar-wrap{margin-top:10px;height:4px;background:var(--surf3);border-radius:2px;overflow:hidden;display:flex}
+.vs-bar-l{height:100%;border-radius:2px 0 0 2px;transition:width .8s ease}
+.vs-bar-r{height:100%;border-radius:0 2px 2px 0;transition:width .8s ease}
+/* ── Stratum combined card ──────────────────────────────── */
+.stratum-stat-card{flex:1 1 200px;min-width:180px;background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:14px 16px;transition:border-color .2s,transform .15s;cursor:default}
+.stratum-stat-card:hover{border-color:var(--border2);transform:translateY(-1px)}
+.sc-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)}
+.sc-row:last-child{border-bottom:none}
+.sc-lbl{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);font-weight:600}
+.sc-val{font-size:15px;font-weight:800;letter-spacing:-.3px}
+.sc-sub{font-size:9px;color:var(--text3);margin-top:1px}
 /* ── Stat cards ─────────────────────────────────────────── */
 .cards{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:14px;align-items:stretch}
 .card{flex:1 1 148px;min-width:148px;background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:16px 18px;transition:border-color .2s,transform .15s;cursor:default}
@@ -448,7 +473,7 @@ window.toggleSidebar=function(){
   <div class="sb-bottom">
     <span id="nodePill" class="pill pill-sync"><span class="dot blink"></span>Connecting</span>
     <div class="sb-net" id="footerNet">Mainnet</div>
-    <div class="sb-version">ZEC Solo Miner v1.3.14</div>
+    <div class="sb-version">ZEC Solo Miner v1.3.15</div>
   </div>
 </aside>
 
@@ -543,36 +568,97 @@ window.toggleSidebar=function(){
           </div>
           <button class="btn btn-ghost" onclick="copyStratum()">Copy</button>
         </div>
-        <div class="card">
-          <div class="card-lbl">Network Difficulty</div>
-          <div class="card-val v-zec" id="cDiff">—</div>
-          <div id="cDiffSrc" style="font-size:0.65em;color:#555;margin-top:2px;min-height:1em;"></div>
-          <div class="diff-retarget" id="cDiffRetarget" style="display:none">
+        <!-- hidden sinks so existing JS writes don't error -->
+        <span id="cDiff" style="display:none"></span>
+        <span id="cNetHash" style="display:none"></span>
+        <span id="cPoolHash" style="display:none"></span>
+        <span id="cWorkers" style="display:none"></span>
+        <span id="cMiners" style="display:none"></span>
+        <span id="cPeers" style="display:none"></span>
+
+        <!-- ── VS Panel 1: Network Difficulty vs Best Live Share ── -->
+        <div class="vs-card" id="vsDiffCard">
+          <div class="vs-card-lbl">Difficulty — Network vs Your Fleet</div>
+          <div class="vs-row">
+            <div class="vs-side vs-left">
+              <div class="vs-side-lbl" style="color:var(--blue)">Network</div>
+              <div class="vs-side-val" style="color:var(--blue)" id="vsDiffNet">—</div>
+              <div class="vs-side-sub" style="color:var(--blue)" id="vsDiffNetSrc"></div>
+            </div>
+            <div class="vs-sep">
+              <div class="vs-divider"></div>
+              <div class="vs-vs">VS</div>
+              <div class="vs-divider"></div>
+            </div>
+            <div class="vs-side vs-right">
+              <div class="vs-side-lbl" style="color:var(--zec)">Best Share</div>
+              <div class="vs-side-val" style="color:var(--zec)" id="vsDiffBest">—</div>
+              <div class="vs-side-sub" style="color:var(--zec)" id="vsDiffBestMiner"></div>
+            </div>
+          </div>
+          <div class="vs-bar-wrap" id="vsDiffBarWrap">
+            <div class="vs-bar-l" id="vsDiffBarL" style="width:100%;background:var(--blue)"></div>
+            <div class="vs-bar-r" id="vsDiffBarR" style="width:0;background:var(--zec)"></div>
+          </div>
+          <div id="cDiffRetarget" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:10px;color:var(--text2);line-height:1.6">
             <div>Projected next: <span class="diff-proj-val" id="cDiffProj">—</span> <span id="cDiffChgBadge"></span></div>
             <div id="cDiffChgSub" style="font-size:9px;color:var(--text3)"></div>
             <div class="diff-trend-bar"><div class="diff-trend-fill" id="cDiffTrendFill" style="width:50%"></div></div>
             <div style="font-size:9px;color:var(--text3);margin-top:3px">Adjusts every block · Digishield</div>
           </div>
         </div>
-        <div class="card">
-          <div class="card-lbl">Network Hash Rate</div>
-          <div class="card-val" id="cNetHash">—</div>
-          <div class="card-sub">Equihash 200,9</div>
+
+        <!-- ── VS Panel 2: Network Hashrate vs Pool Hashrate ── -->
+        <div class="vs-card" id="vsHashCard">
+          <div class="vs-card-lbl">Hash Rate — Network vs Pool</div>
+          <div class="vs-row">
+            <div class="vs-side vs-left">
+              <div class="vs-side-lbl" style="color:var(--blue)">Network</div>
+              <div class="vs-side-val" style="color:var(--blue)" id="vsHashNet">—</div>
+              <div class="vs-side-sub" style="color:var(--text3)">Equihash 200,9</div>
+            </div>
+            <div class="vs-sep">
+              <div class="vs-divider"></div>
+              <div class="vs-vs">VS</div>
+              <div class="vs-divider"></div>
+            </div>
+            <div class="vs-side vs-right">
+              <div class="vs-side-lbl" style="color:var(--green)">Pool</div>
+              <div class="vs-side-val" style="color:var(--green)" id="vsHashPool">—</div>
+              <div class="vs-side-sub" style="color:var(--text3)" id="vsHashPoolSub">—</div>
+            </div>
+          </div>
+          <div class="vs-bar-wrap" id="vsHashBarWrap">
+            <div class="vs-bar-l" id="vsHashBarL" style="width:100%;background:var(--blue)"></div>
+            <div class="vs-bar-r" id="vsHashBarR" style="width:0;background:var(--green)"></div>
+          </div>
+          <div style="font-size:9px;color:var(--text3);margin-top:6px" id="vsHashShare"></div>
         </div>
-        <div class="card">
-          <div class="card-lbl">Pool Hash Rate</div>
-          <div class="card-val v-green" id="cPoolHash">—</div>
-          <div class="card-sub" id="cRound">—</div>
-        </div>
-        <div class="card">
-          <div class="card-lbl">Active Workers</div>
-          <div class="card-val v-blue" id="cWorkers">—</div>
-          <div class="card-sub" id="cMiners">—</div>
-        </div>
-        <div class="card">
-          <div class="card-lbl">Connected Peers</div>
-          <div class="card-val v-green" id="cPeers">—</div>
-          <div class="card-sub" id="cPeersSub">Zcash mainnet nodes</div>
+
+        <!-- ── Combined Stratum card ── -->
+        <div class="stratum-stat-card">
+          <div class="vs-card-lbl">Stratum</div>
+          <div class="sc-row">
+            <div>
+              <div class="sc-lbl">Active Workers</div>
+              <div class="sc-sub" id="scMiners"></div>
+            </div>
+            <div class="sc-val" style="color:var(--blue)" id="scWorkers">—</div>
+          </div>
+          <div class="sc-row">
+            <div>
+              <div class="sc-lbl">Peers</div>
+              <div class="sc-sub" id="scPeersSub">Mainnet nodes</div>
+            </div>
+            <div class="sc-val" style="color:var(--green)" id="scPeers">—</div>
+          </div>
+          <div class="sc-row">
+            <div>
+              <div class="sc-lbl">Connections</div>
+              <div class="sc-sub" id="scConnSub">TCP connections</div>
+            </div>
+            <div class="sc-val" style="color:var(--zec)" id="scConns">—</div>
+          </div>
         </div>
         <div class="card">
           <div class="card-lbl">Est. Time to Block</div>
@@ -751,7 +837,7 @@ window.toggleSidebar=function(){
       </div>
 
       <div class="stack-footer">
-        ZEC Solo Miner v1.3.14 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
+        ZEC Solo Miner v1.3.15 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
       </div>
 
       <div class="donate-section-wrap" style="margin-top:0">
@@ -1214,6 +1300,12 @@ function poll(){
       renderWorkers(pool.workers||{}, netDiff);
       updateOdds();
       renderBlocks(pool);
+      // VS panels
+      var wc = parseInt(pool.workerCount)||0;
+      var mc = parseInt(pool.minerCount)||0;
+      updateDiffVsPanel(netDiff, allBest);
+      updateHashVsPanel(cachedNetHashrate, cachedPoolHashrate, pool.shareCount||0);
+      updateStratumCard(wc, mc, peers, null);
     })
     .catch(function(){
       spin.classList.remove('active');
@@ -1240,7 +1332,14 @@ function poll(){
         if(diffLbl) diffLbl.textContent = ni.diffSource === 'whattomine' ? '(live)' : '(from node)';
       }
       if(ni.networkSolps > 0){
+        cachedNetHashrate = ni.networkSolps;
         s('cNetHash', fmtH(ni.networkSolps));
+        updateHashVsPanel(cachedNetHashrate, cachedPoolHashrate);
+      }
+      if(ni.difficulty > 0){
+        updateDiffVsPanel(ni.difficulty, allBest);
+        var diffLbl = document.getElementById('vsDiffNetSrc');
+        if(diffLbl) diffLbl.textContent = ni.diffSource === 'whattomine' ? '(live)' : '(from node)';
       }
       if(ni.difficulty > 0 && ni.networkSolps > 0){
         updateDiffRetarget(ni.difficulty, ni.networkSolps);
@@ -1250,6 +1349,7 @@ function poll(){
         s('cPeers', ni.peers);
         s('hdrPeers', ni.peers + (ni.peers === 1 ? ' peer' : ' peers'));
         s('syncPeers', ni.peers + (ni.peers === 1 ? ' peer' : ' peers') + ' connected');
+        updateStratumCard(undefined, undefined, ni.peers, undefined);
         var syncing = g('syncCard').style.display !== 'none';
         var pill = g('nodePill');
         if(syncing){
@@ -1371,6 +1471,55 @@ window.copyStratum=function(){
   if(v&&navigator.clipboard)
     navigator.clipboard.writeText(v).then(function(){ toast('Stratum address copied!'); });
 };
+
+/* ── VS panel updaters ──────────────────────────────────── */
+function updateDiffVsPanel(netDiff, allBestMap, netDiffArg){
+  var net = netDiff || netDiffArg || lastNetDiff;
+  if(net > 0) s('vsDiffNet', fmtN(net));
+  // best share across fleet
+  var best = 0, bestW = '';
+  Object.keys(allBestMap||{}).forEach(function(w){ if((allBestMap[w]||0) > best){ best = allBestMap[w]; bestW = w; } });
+  if(best > 0){
+    s('vsDiffBest', fmtN(best));
+    var short = bestW.length > 18 ? bestW.slice(0,8)+'\u2026'+bestW.slice(-6) : bestW;
+    s('vsDiffBestMiner', short ? '\u26CF\uFE0F '+short : '');
+    // bar: left = net proportion (always 100%), right = best/net ratio capped at 50%
+    var ratio = net > 0 ? Math.min(best / net, 0.5) : 0;
+    var rPct  = (ratio * 100).toFixed(2);
+    var lPct  = (100 - parseFloat(rPct)).toFixed(2);
+    var lb = g('vsDiffBarL'); if(lb) lb.style.width = lPct + '%';
+    var rb = g('vsDiffBarR'); if(rb) rb.style.width = rPct + '%';
+  } else {
+    s('vsDiffBest', '\u2014');
+    s('vsDiffBestMiner', 'no shares yet');
+  }
+}
+function updateHashVsPanel(netSolps, poolSolps, shareCount){
+  if(netSolps > 0) s('vsHashNet', fmtH(netSolps));
+  if(poolSolps >= 0) s('vsHashPool', fmtH(poolSolps));
+  if(shareCount !== undefined) s('vsHashPoolSub', shareCount + ' shares this round');
+  // bar split
+  var total = netSolps + poolSolps;
+  if(total > 0){
+    var lPct = ((netSolps  / total) * 100).toFixed(2);
+    var rPct = ((poolSolps / total) * 100).toFixed(2);
+    var lb = g('vsHashBarL'); if(lb) lb.style.width = lPct + '%';
+    var rb = g('vsHashBarR'); if(rb) rb.style.width = rPct + '%';
+    var pctOfNet = netSolps > 0 ? (poolSolps / netSolps * 100) : 0;
+    var shareStr = pctOfNet > 0
+      ? 'Pool is ' + (pctOfNet < 0.0001 ? '<0.0001' : pctOfNet.toFixed(4)) + '% of network'
+      : '';
+    s('vsHashShare', shareStr);
+  }
+}
+function updateStratumCard(workers, miners, peers, conns){
+  if(workers !== undefined){ s('scWorkers', workers); }
+  if(miners  !== undefined){ s('scMiners',  miners + (miners===1?'':'')); }
+  if(peers   !== undefined){ s('scPeers',   peers); }
+  if(conns   !== undefined){ s('scConns',   conns !== null ? conns : '\u2014'); }
+  var peerSub = g('scPeersSub');
+  if(peerSub) peerSub.textContent = currentNetwork + ' nodes';
+}
 
 /* ── Diff retarget projection ──────────────────────────── */
 function updateDiffRetarget(curDiff, networkSolps){
@@ -1667,8 +1816,10 @@ function fetchStratumPeers(){
       }).join('');
       grid.innerHTML = html;
       var noteStr = peers.length+' connection'+(peers.length===1?'':'s');
-      if(localCount > 0) noteStr += ' · '+localCount+' local (Docker/same-host — RTT < 1ms is normal)';
+      if(localCount > 0) noteStr += ' \u00b7 '+localCount+' local (Docker/same-host \u2014 RTT < 1ms is normal)';
       note.textContent = noteStr;
+      // feed stratum combined card
+      updateStratumCard(undefined, undefined, undefined, peers.length);
     })
     .catch(function(){});
 }
