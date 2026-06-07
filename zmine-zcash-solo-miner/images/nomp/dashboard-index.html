@@ -222,6 +222,17 @@ body{
 .diff-chg-dn{color:var(--green);font-weight:700}
 .diff-trend-bar{height:3px;background:var(--surf3);border-radius:2px;margin-top:5px;overflow:hidden;position:relative}
 .diff-trend-fill{height:100%;border-radius:2px;transition:width .8s ease}
+/* ── Stratum latency panel ───────────────────────────── */
+#stratumLatency{margin-top:14px;background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:14px 16px}
+.lat-title{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--text3);font-weight:700;margin-bottom:10px}
+.lat-grid{display:flex;flex-wrap:wrap;gap:8px}
+.lat-row{display:flex;align-items:center;gap:8px;background:var(--surf2);border-radius:8px;padding:7px 12px;min-width:200px;flex:1 1 200px}
+.lat-ip{font-size:11px;font-family:monospace;color:var(--text);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lat-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;white-space:nowrap}
+.lat-good{color:var(--green);background:var(--green-a)}
+.lat-ok  {color:var(--zec);background:rgba(244,183,40,.12)}
+.lat-slow{color:var(--red);background:var(--red-a)}
+.lat-note{font-size:9px;color:var(--text3);margin-top:8px}
 /* ── Block odds ─────────────────────────────────────────── */
 #oddsSection{background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
 .odds-title{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--text3);margin-bottom:12px;font-weight:700}
@@ -437,7 +448,7 @@ window.toggleSidebar=function(){
   <div class="sb-bottom">
     <span id="nodePill" class="pill pill-sync"><span class="dot blink"></span>Connecting</span>
     <div class="sb-net" id="footerNet">Mainnet</div>
-    <div class="sb-version">ZEC Solo Miner v1.3.12</div>
+    <div class="sb-version">ZEC Solo Miner v1.3.13</div>
   </div>
 </aside>
 
@@ -708,6 +719,11 @@ window.toggleSidebar=function(){
             <tbody id="tbody"></tbody>
           </table>
         </div>
+        <div id="stratumLatency" style="display:none">
+          <div class="lat-title">Stratum Connection Latency (TCP RTT per IP)</div>
+          <div class="lat-grid" id="latGrid"></div>
+          <div class="lat-note" id="latNote"></div>
+        </div>
       </div>
 
       <div id="paneBlocks" style="display:none">
@@ -735,7 +751,7 @@ window.toggleSidebar=function(){
       </div>
 
       <div class="stack-footer">
-        ZEC Solo Miner v1.3.12 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
+        ZEC Solo Miner v1.3.13 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
       </div>
 
       <div class="donate-section-wrap" style="margin-top:0">
@@ -1618,6 +1634,45 @@ function updateOdds(){
     s('oddsFleetBestMiner', '');
   }
 }
+/* ── Stratum peer latency ───────────────────────────────── */
+function fetchStratumPeers(){
+  fetch('/api/umbrel/stratum-peers',{credentials:'same-origin'})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var peers = d.peers || [];
+      var panel = g('stratumLatency');
+      var grid  = g('latGrid');
+      var note  = g('latNote');
+      if(!panel||!grid) return;
+      if(peers.length === 0){
+        panel.style.display = 'none';
+        return;
+      }
+      panel.style.display = '';
+      var localCount = 0;
+      var html = peers.map(function(p){
+        var rtt = p.rttMs;
+        var rttStr = rtt === null ? 'n/a' : rtt < 1 ? rtt.toFixed(3)+' ms' : rtt.toFixed(2)+' ms';
+        var cls = 'lat-ok';
+        if(rtt !== null){
+          if(rtt < 1) { cls = 'lat-good'; localCount++; }
+          else if(rtt < 20) cls = 'lat-good';
+          else if(rtt < 80) cls = 'lat-ok';
+          else cls = 'lat-slow';
+        }
+        return '<div class="lat-row">'
+          +'<span class="lat-ip">'+escHtml(p.ip+(p.port?':'+p.port:''))+'</span>'
+          +'<span class="lat-badge '+cls+'">'+escHtml(rttStr)+'</span>'
+          +'</div>';
+      }).join('');
+      grid.innerHTML = html;
+      var noteStr = peers.length+' connection'+(peers.length===1?'':'s');
+      if(localCount > 0) noteStr += ' · '+localCount+' local (Docker/same-host — RTT < 1ms is normal)';
+      note.textContent = noteStr;
+    })
+    .catch(function(){});
+}
+
 var newsLastFetch = 0;
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function fetchNews(){
@@ -1671,6 +1726,8 @@ setInterval(fetchZecHistory, 300000);
 setInterval(fetchDiffHistory, 21600000);
 fetchNews();
 setInterval(fetchNews, 1800000);
+fetchStratumPeers();
+setInterval(fetchStratumPeers, 15000);
 }();
 
 /* ── Donation QR codes ─────────────────────────────────── */
