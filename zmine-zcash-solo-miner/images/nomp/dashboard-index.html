@@ -437,7 +437,7 @@ window.toggleSidebar=function(){
   <div class="sb-bottom">
     <span id="nodePill" class="pill pill-sync"><span class="dot blink"></span>Connecting</span>
     <div class="sb-net" id="footerNet">Mainnet</div>
-    <div class="sb-version">ZEC Solo Miner v1.3.11</div>
+    <div class="sb-version">ZEC Solo Miner v1.3.12</div>
   </div>
 </aside>
 
@@ -626,7 +626,7 @@ window.toggleSidebar=function(){
           </div>
         </div>
         <div id="oddsSection">
-          <div class="odds-title">Block Odds &amp; Mining Progress — pool vs network</div>
+          <div class="odds-title">Block Odds &amp; Mining Progress</div>
           <div class="odds-grid">
             <div class="odds-card">
               <div class="odds-lbl">Chance Today</div>
@@ -647,9 +647,11 @@ window.toggleSidebar=function(){
               <div class="bsb-bar"><div class="bsb-fill" id="oddsBestBar" style="width:0"></div></div>
             </div>
             <div class="odds-card">
-              <div class="odds-lbl">Your Hashrate</div>
-              <div class="odds-val" id="oddsHash">—</div>
-              <div class="odds-sub">vs <span id="oddsNetHash">—</span> net</div>
+              <div class="odds-lbl">Fleet's Best Share Ever</div>
+              <div class="odds-val" id="oddsFleetBest">—</div>
+              <div class="odds-sub" id="oddsFleetBestSub">submit a share first</div>
+              <div class="odds-sub" id="oddsFleetBestMiner" style="font-size:9px;color:var(--text3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+              <div class="bsb-bar"><div class="bsb-fill" id="oddsFleetBestBar" style="width:0"></div></div>
             </div>
           </div>
         </div>
@@ -733,7 +735,7 @@ window.toggleSidebar=function(){
       </div>
 
       <div class="stack-footer">
-        ZEC Solo Miner v1.3.11 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
+        ZEC Solo Miner v1.3.12 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
       </div>
 
       <div class="donate-section-wrap" style="margin-top:0">
@@ -1588,16 +1590,32 @@ function updateOdds(){
   s('oddsHash',    cachedPoolHashrate > 0 ? fmtH(cachedPoolHashrate) : '—');
   s('oddsNetHash', cachedNetHashrate  > 0 ? fmtH(cachedNetHashrate)  : '—');
   /* closest share ever across all workers */
-  var best = 0;
-  Object.keys(allBest).forEach(function(w){ if(allBest[w] > best) best = allBest[w]; });
+  var best = 0, bestWorker = '';
+  Object.keys(allBest).forEach(function(w){ if(allBest[w] > best){ best = allBest[w]; bestWorker = w; } });
   var bestPct = (lastNetDiff > 0 && best > 0) ? best / lastNetDiff * 100 : 0;
   if(bestPct > 0){
-    s('oddsBest',    bestPct >= 100 ? '🎉 BLOCK!' : bestPct.toFixed(4) + '%');
+    s('oddsBest',    bestPct >= 100 ? '\uD83C\uDF89 BLOCK!' : bestPct.toFixed(4) + '%');
     s('oddsBestSub', bestPct >= 100 ? 'Block found!' : 'of block difficulty needed');
     var bb = g('oddsBestBar'); if(bb) bb.style.width = Math.min(100, bestPct).toFixed(2) + '%';
   } else {
-    s('oddsBest',    '—');
+    s('oddsBest',    '\u2014');
     s('oddsBestSub', 'submit a share first');
+  }
+  /* fleet best share card */
+  var fleetBest = 0, fleetWorker = '';
+  Object.keys(allBest).forEach(function(w){ if(allBest[w] > fleetBest){ fleetBest = allBest[w]; fleetWorker = w; } });
+  var fleetPct = (lastNetDiff > 0 && fleetBest > 0) ? fleetBest / lastNetDiff * 100 : 0;
+  if(fleetPct > 0){
+    var dispPct = fleetPct >= 100 ? '\uD83C\uDF89 BLOCK!' : fleetPct.toFixed(4) + '%';
+    s('oddsFleetBest', dispPct);
+    s('oddsFleetBestSub', fleetPct >= 100 ? 'Block found!' : 'of block difficulty');
+    var short = fleetWorker.length > 22 ? fleetWorker.slice(0,10)+'\u2026'+fleetWorker.slice(-8) : fleetWorker;
+    s('oddsFleetBestMiner', short ? '\u26CF\uFE0F ' + short : '');
+    var fb = g('oddsFleetBestBar'); if(fb) fb.style.width = Math.min(100, fleetPct).toFixed(2) + '%';
+  } else {
+    s('oddsFleetBest', '\u2014');
+    s('oddsFleetBestSub', 'submit a share first');
+    s('oddsFleetBestMiner', '');
   }
 }
 var newsLastFetch = 0;
