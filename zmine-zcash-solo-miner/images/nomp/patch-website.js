@@ -379,7 +379,8 @@ const INJECT = `
     });
     // Stratum peer latency -- reads per-socket TCP RTT via ss(8)
     app.get('/api/umbrel/stratum-peers', function(req, res) {
-        var cp = require('child_process');
+        var cp  = require('child_process');
+        var dns = require('dns');
         var port = process.env.STRATUM_PORT || '13333';
         cp.exec('ss -tinp sport = :' + port, { timeout: 3000 }, function(err, stdout) {
             if (err) return res.json({ peers: [] });
@@ -389,19 +390,31 @@ const INJECT = `
                 var m = lines[i].match(/^ESTAB\s+\S+\s+\S+\s+\S+\s+(\S+)/);
                 if (!m) continue;
                 var remote = m[1];
-                // strip IPv6-mapped prefix ::ffff:
                 remote = remote.replace(/^\[?::ffff:/i, '').replace(/\]?$/, '');
                 var ipMatch = remote.match(/^(.+):(\d+)$/);
-                var ip   = ipMatch ? ipMatch[1] : remote;
+                var ip    = ipMatch ? ipMatch[1] : remote;
                 var port2 = ipMatch ? ipMatch[2] : '';
-                // RTT is on the next line: "     rtt:0.190/0.095ms ..."
                 var rttMs = null;
                 var rttLine = lines[i + 1] || '';
                 var rm = rttLine.match(/rtt:([0-9.]+)/);
                 if (rm) rttMs = parseFloat(rm[1]);
-                peers.push({ ip: ip, port: port2, rttMs: rttMs });
+                peers.push({ ip: ip, port: port2, rttMs: rttMs, host: null });
             }
-            res.json({ peers: peers });
+            if (peers.length === 0) return res.json({ peers: [] });
+            // Reverse DNS — resolve all IPs in parallel, respond when all settle
+            var remaining = peers.length;
+            function done() {
+                remaining--;
+                if (remaining === 0) res.json({ peers: peers });
+            }
+            peers.forEach(function(p) {
+                dns.reverse(p.ip, function(err2, hostnames) {
+                    if (!err2 && hostnames && hostnames.length > 0) {
+                        p.host = hostnames[0];
+                    }
+                    done();
+                });
+            });
         });
     });
     // News ticker — Yahoo Finance RSS, 14-day window, 30-min cache
