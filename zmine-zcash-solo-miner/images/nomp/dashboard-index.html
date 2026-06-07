@@ -208,6 +208,13 @@ body{
 .price-meta{font-size:10px;color:var(--text2);display:flex;gap:16px;flex-wrap:wrap}
 .spark-wrap{width:100%;height:72px}
 .spark-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--text3);margin-top:3px}
+/* ── Block reward & halving countdown ───────────────────── */
+.card-reward{font-size:10px;color:var(--text2);margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+.card-reward strong{color:var(--zec);font-size:11px}
+.card-halving{font-size:10px;color:var(--text3);margin-top:6px;line-height:1.5}
+.card-halving strong{color:var(--text)}
+.halv-bar{height:3px;background:var(--surf3);border-radius:2px;margin-top:5px;overflow:hidden}
+.halv-fill{height:100%;background:linear-gradient(90deg,var(--zec),var(--green));border-radius:2px;transition:width 1s ease}
 /* ── Block odds ─────────────────────────────────────────── */
 #oddsSection{background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
 .odds-title{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--text3);margin-bottom:12px;font-weight:700}
@@ -398,7 +405,7 @@ window.toggleSidebar=function(){
         <path d="M7 8h10L7 16h10" stroke="#F4B728" stroke-width="2.5" stroke-linecap="round"/>
       </svg>
     </div>
-    <span class="sb-logo-text">ZEC MINER</span>
+    <span class="sb-logo-text" id="sbLogoText">ZEC MINER</span>
   </div>
   <div class="sb-section-lbl">Main Menu</div>
   <nav class="sb-nav">
@@ -423,7 +430,7 @@ window.toggleSidebar=function(){
   <div class="sb-bottom">
     <span id="nodePill" class="pill pill-sync"><span class="dot blink"></span>Connecting</span>
     <div class="sb-net" id="footerNet">Mainnet</div>
-    <div class="sb-version">ZEC Solo Miner v1.3.9</div>
+    <div class="sb-version">ZEC Solo Miner v1.3.10</div>
   </div>
 </aside>
 
@@ -552,6 +559,14 @@ window.toggleSidebar=function(){
           <div class="card-lbl">Blocks Found</div>
           <div class="card-val v-zec" id="cBlocks">0</div>
           <div class="card-sub" id="cBlocksSub">0 pending</div>
+          <div class="card-reward" id="cReward" style="display:none">
+            Block reward: <strong id="cRewardVal">—</strong> ZEC
+          </div>
+          <div class="card-halving" id="cHalving" style="display:none">
+            <div>Next halving: <strong id="cHalvBlocks">—</strong> blocks</div>
+            <div id="cHalvTime"></div>
+            <div class="halv-bar"><div class="halv-fill" id="cHalvBar" style="width:0"></div></div>
+          </div>
         </div>
       </div>
 
@@ -705,7 +720,7 @@ window.toggleSidebar=function(){
       </div>
 
       <div class="stack-footer">
-        ZEC Solo Miner v1.3.9 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
+        ZEC Solo Miner v1.3.10 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
       </div>
 
       <div class="donate-section-wrap" style="margin-top:0">
@@ -1303,6 +1318,7 @@ function initStratum(){
     .then(function(cfg){
       var port=cfg.stratumPort||'13333';
       s('stratumVal',browserHost+':'+port);
+      if(cfg.appName) s('sbLogoText', cfg.appName);
       return fetch('/api/umbrel/hostip',{credentials:'same-origin'})
         .then(function(r){ return r.json(); })
         .then(function(d){
@@ -1322,6 +1338,32 @@ window.copyStratum=function(){
     navigator.clipboard.writeText(v).then(function(){ toast('Stratum address copied!'); });
 };
 
+/* ── Halving countdown ─────────────────────────────────── */
+function updateHalvingInfo(blockHeight){
+  if(!blockHeight||blockHeight<1) return;
+  var HALV=840000, INIT=12.5, BT=75; // block time seconds
+  var epoch=Math.floor(blockHeight/HALV);
+  var reward=INIT/Math.pow(2,epoch);
+  var nextHalv=(epoch+1)*HALV;
+  var blocksLeft=nextHalv-blockHeight;
+  var secsLeft=blocksLeft*BT;
+  var days=Math.floor(secsLeft/86400);
+  var hrs=Math.floor((secsLeft%86400)/3600);
+  var mins=Math.floor((secsLeft%3600)/60);
+  var timeStr;
+  if(days>365) timeStr='~'+(days/365).toFixed(1)+' years';
+  else if(days>0) timeStr='~'+days+'d '+hrs+'h '+mins+'m';
+  else if(hrs>0) timeStr=hrs+'h '+mins+'m';
+  else timeStr=mins+' min';
+  var progress=(blockHeight-epoch*HALV)/HALV*100;
+  s('cRewardVal',reward.toFixed(2));
+  s('cHalvBlocks',blocksLeft.toLocaleString());
+  s('cHalvTime','\u2248 '+timeStr+' (halving #'+(epoch+1)+')');
+  var bar=g('cHalvBar'); if(bar) bar.style.width=Math.min(progress,100).toFixed(2)+'%';
+  var re=g('cReward'); if(re) re.style.display='';
+  var he=g('cHalving'); if(he) he.style.display='';
+}
+
 /* ── Sync progress renderer ────────────────────────────── */
 var CIRC=188.5; // 2 * Math.PI * 30
 function updateSync(data){
@@ -1330,12 +1372,13 @@ function updateSync(data){
   var synced=pct>=99.9;
   var card=g('syncCard');
   card.style.display=synced?'none':'flex';
+  var blk=parseInt(data.blocks)||0;
+  if(blk>0) updateHalvingInfo(blk);
   if(!synced){
     var filled=(pct/100)*CIRC;
     g('syncArc').setAttribute('stroke-dasharray',filled.toFixed(1)+' '+CIRC);
     g('syncPctTxt').textContent=pct.toFixed(1)+'%';
     s('syncPctBig',pct.toFixed(2)+'%');
-    var blk=parseInt(data.blocks)||0;
     var est=parseInt(data.estimatedHeight)||0;
     s('syncBlkInfo',blk&&est?'Block '+blk.toLocaleString()+' / ~'+est.toLocaleString():'Downloading…');
     var sz=parseInt(data.sizeOnDisk)||0;

@@ -46,7 +46,8 @@ const INJECT = `
     app.get('/api/umbrel/config', function(req, res) {
         res.json({
             minerAddress: process.env.POOL_ADDRESS || '',
-            stratumPort: process.env.STRATUM_PORT || '13333'
+            stratumPort: process.env.STRATUM_PORT || '13333',
+            appName: process.env.APP_NAME || 'ZEC Miner'
         });
     });
     // Zebra sync progress endpoint — proxies getblockchaininfo
