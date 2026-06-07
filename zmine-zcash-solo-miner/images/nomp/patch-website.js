@@ -385,7 +385,7 @@ const INJECT = `
         cp.exec('ss -tinp sport = :' + port, { timeout: 3000 }, function(err, stdout) {
             if (err) return res.json({ peers: [] });
             var peers = [];
-            var lines = stdout.split('\n');
+            var lines = stdout.split('\\n');
             for (var i = 0; i < lines.length; i++) {
                 var m = lines[i].match(/^ESTAB\s+\S+\s+\S+\s+\S+\s+(\S+)/);
                 if (!m) continue;
