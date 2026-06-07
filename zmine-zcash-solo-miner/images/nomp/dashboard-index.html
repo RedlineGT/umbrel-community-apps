@@ -215,6 +215,13 @@ body{
 .card-halving strong{color:var(--text)}
 .halv-bar{height:3px;background:var(--surf3);border-radius:2px;margin-top:5px;overflow:hidden}
 .halv-fill{height:100%;background:linear-gradient(90deg,var(--zec),var(--green));border-radius:2px;transition:width 1s ease}
+/* ── Diff retarget info ────────────────────────────── */
+.diff-retarget{font-size:10px;color:var(--text2);margin-top:8px;padding-top:8px;border-top:1px solid var(--border);line-height:1.6}
+.diff-proj-val{font-weight:700;color:var(--blue)}
+.diff-chg-up{color:var(--red);font-weight:700}
+.diff-chg-dn{color:var(--green);font-weight:700}
+.diff-trend-bar{height:3px;background:var(--surf3);border-radius:2px;margin-top:5px;overflow:hidden;position:relative}
+.diff-trend-fill{height:100%;border-radius:2px;transition:width .8s ease}
 /* ── Block odds ─────────────────────────────────────────── */
 #oddsSection{background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
 .odds-title{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--text3);margin-bottom:12px;font-weight:700}
@@ -430,7 +437,7 @@ window.toggleSidebar=function(){
   <div class="sb-bottom">
     <span id="nodePill" class="pill pill-sync"><span class="dot blink"></span>Connecting</span>
     <div class="sb-net" id="footerNet">Mainnet</div>
-    <div class="sb-version">ZEC Solo Miner v1.3.10</div>
+    <div class="sb-version">ZEC Solo Miner v1.3.11</div>
   </div>
 </aside>
 
@@ -529,6 +536,12 @@ window.toggleSidebar=function(){
           <div class="card-lbl">Network Difficulty</div>
           <div class="card-val v-zec" id="cDiff">—</div>
           <div id="cDiffSrc" style="font-size:0.65em;color:#555;margin-top:2px;min-height:1em;"></div>
+          <div class="diff-retarget" id="cDiffRetarget" style="display:none">
+            <div>Projected next: <span class="diff-proj-val" id="cDiffProj">—</span> <span id="cDiffChgBadge"></span></div>
+            <div id="cDiffChgSub" style="font-size:9px;color:var(--text3)"></div>
+            <div class="diff-trend-bar"><div class="diff-trend-fill" id="cDiffTrendFill" style="width:50%"></div></div>
+            <div style="font-size:9px;color:var(--text3);margin-top:3px">Adjusts every block · Digishield</div>
+          </div>
         </div>
         <div class="card">
           <div class="card-lbl">Network Hash Rate</div>
@@ -720,7 +733,7 @@ window.toggleSidebar=function(){
       </div>
 
       <div class="stack-footer">
-        ZEC Solo Miner v1.3.10 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
+        ZEC Solo Miner v1.3.11 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
       </div>
 
       <div class="donate-section-wrap" style="margin-top:0">
@@ -1211,6 +1224,9 @@ function poll(){
       if(ni.networkSolps > 0){
         s('cNetHash', fmtH(ni.networkSolps));
       }
+      if(ni.difficulty > 0 && ni.networkSolps > 0){
+        updateDiffRetarget(ni.difficulty, ni.networkSolps);
+      }
       if(ni.peers > 0){
         cachedNetPeers = ni.peers;
         s('cPeers', ni.peers);
@@ -1337,6 +1353,35 @@ window.copyStratum=function(){
   if(v&&navigator.clipboard)
     navigator.clipboard.writeText(v).then(function(){ toast('Stratum address copied!'); });
 };
+
+/* ── Diff retarget projection ──────────────────────────── */
+function updateDiffRetarget(curDiff, networkSolps){
+  if(!curDiff||curDiff<1||!networkSolps||networkSolps<1) return;
+  var TARGET_BT = 75; // seconds
+  var projected = networkSolps * TARGET_BT;
+  var pct = (projected - curDiff) / curDiff * 100;
+  var badge = g('cDiffChgBadge');
+  var fill  = g('cDiffTrendFill');
+  if(Math.abs(pct) < 0.5){
+    badge.textContent = '(≈ no change)';
+    badge.className = '';
+    badge.style.color = 'var(--text3)';
+    if(fill){ fill.style.width='50%'; fill.style.background='var(--text3)'; }
+  } else if(pct > 0){
+    badge.textContent = '(▲ +'+pct.toFixed(1)+'%)';
+    badge.className = 'diff-chg-up';
+    var barW = Math.min(50 + pct/2, 95);
+    if(fill){ fill.style.width=barW+'%'; fill.style.background='var(--red)'; }
+  } else {
+    badge.textContent = '(▼ '+pct.toFixed(1)+'%)';
+    badge.className = 'diff-chg-dn';
+    var barW = Math.max(50 + pct/2, 5);
+    if(fill){ fill.style.width=barW+'%'; fill.style.background='var(--green)'; }
+  }
+  s('cDiffProj', fmtN(projected));
+  s('cDiffChgSub', 'Based on '+fmtH(networkSolps)+' net sol/s · 75s target');
+  var el = g('cDiffRetarget'); if(el) el.style.display='';
+}
 
 /* ── Halving countdown ─────────────────────────────────── */
 function updateHalvingInfo(blockHeight){
