@@ -202,8 +202,10 @@ body{
 .vs-bar-l{height:100%;border-radius:2px 0 0 2px;transition:width .8s ease}
 .vs-bar-r{height:100%;border-radius:0 2px 2px 0;transition:width .8s ease}
 /* ── Stratum combined card ──────────────────────────────── */
+@keyframes breathe{0%,100%{box-shadow:0 0 0 0 rgba(0,212,170,0);border-color:var(--border)}50%{box-shadow:0 0 20px 5px rgba(0,212,170,.18);border-color:rgba(0,212,170,.5)}}
 .stratum-stat-card{flex:1 1 200px;min-width:180px;background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:14px 16px;transition:border-color .2s,transform .15s;cursor:default}
 .stratum-stat-card:hover{border-color:var(--border2);transform:translateY(-1px)}
+.stratum-stat-card.synced{animation:breathe 3s ease-in-out infinite}
 .sc-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)}
 .sc-row:last-child{border-bottom:none}
 .sc-lbl{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);font-weight:600}
@@ -555,12 +557,8 @@ window.toggleSidebar=function(){
 
         <div id="addrBanner" style="display:none">
           <div>
-            <div class="addr-lbl">Mining Receiving Address — all block rewards go here</div>
-            <div class="addr-val" id="addrVal">—</div>
-          </div>
-          <div style="display:flex;gap:8px;flex-shrink:0">
-            <button class="btn btn-ghost" onclick="openAddrDialog(true)">Edit</button>
-            <button class="btn btn-ghost" onclick="copyAddr()">Copy</button>
+            <div class="addr-lbl">Mining Receiving Address</div>
+            <div class="addr-val" id="addrValSink">—</div>
           </div>
         </div>
 
@@ -575,8 +573,27 @@ window.toggleSidebar=function(){
         <span id="stratumNetLabel" style="display:none">Mainnet</span>
 
         <!-- ── Combined Stratum card — placed first ── -->
-        <div class="stratum-stat-card">
-          <div class="vs-card-lbl">Stratum</div>
+        <div class="stratum-stat-card" id="stratumCard">
+          <!-- Card header: title left, peers count right -->
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <div class="vs-card-lbl" style="margin-bottom:0">Stratum</div>
+            <div style="display:flex;align-items:center;gap:5px">
+              <span style="font-size:15px;font-weight:800;color:var(--green)" id="scPeersHdr">—</span>
+              <span style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px" id="scPeersSub">peers</span>
+            </div>
+          </div>
+          <!-- Mining address row -->
+          <div id="scAddrRow" style="display:none;padding-bottom:10px;margin-bottom:4px;border-bottom:1px solid var(--border)">
+            <div class="sc-lbl" style="color:var(--zec);margin-bottom:4px">Mining Address — all rewards here</div>
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+              <div class="addr-val" id="addrVal" style="flex:1;min-width:0">—</div>
+              <div style="display:flex;gap:6px;flex-shrink:0">
+                <button class="btn btn-ghost" onclick="openAddrDialog(true)">Edit</button>
+                <button class="btn btn-ghost" onclick="copyAddr()">Copy</button>
+              </div>
+            </div>
+          </div>
+          <!-- Stratum address row -->
           <div class="sc-row sc-row-addr">
             <div style="flex:1;min-width:0">
               <div class="sc-lbl">Point miners here (<span id="scStratumNet">Mainnet</span>)</div>
@@ -594,17 +611,20 @@ window.toggleSidebar=function(){
           </div>
           <div class="sc-row">
             <div>
-              <div class="sc-lbl">Peers</div>
-              <div class="sc-sub" id="scPeersSub">Mainnet nodes</div>
-            </div>
-            <div class="sc-val" style="color:var(--green)" id="scPeers">—</div>
-          </div>
-          <div class="sc-row">
-            <div>
               <div class="sc-lbl">Connections</div>
               <div class="sc-sub" id="scConnSub">TCP connections</div>
             </div>
             <div class="sc-val" style="color:var(--zec)" id="scConns">—</div>
+          </div>
+          <!-- hidden sinks -->
+          <span id="scPeers" style="display:none"></span>
+          <!-- Chain storage info -->
+          <div class="sc-row" id="scChainRow" style="display:none">
+            <div style="flex:1;min-width:0">
+              <div class="sc-lbl">Chain Storage</div>
+              <div class="sc-sub" id="scChainPath" style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:2px;word-break:break-all"></div>
+            </div>
+            <div class="sc-val" style="color:var(--text2);font-size:12px" id="scChainSize">—</div>
           </div>
         </div>
 
@@ -623,7 +643,7 @@ window.toggleSidebar=function(){
               <div class="vs-divider"></div>
             </div>
             <div class="vs-side vs-right">
-              <div class="vs-side-lbl" style="color:var(--zec)">Fleet Best Share</div>
+              <div class="vs-side-lbl" style="color:var(--zec)">Fleet</div>
               <div class="vs-side-val" style="color:var(--zec)" id="vsDiffBest">—</div>
               <div class="vs-side-sub" style="color:var(--zec)" id="vsDiffBestMiner"></div>
             </div>
@@ -707,6 +727,7 @@ window.toggleSidebar=function(){
             <div class="price-left">
               <span class="price-lbl">Network Difficulty</span>
               <span class="price-usd" id="diffCur">—</span>
+              <span class="price-chg" id="diffChg" style="display:none"></span>
             </div>
             <div class="price-meta">
               <span>90d High: <strong id="diff90Hi">—</strong></span>
@@ -738,10 +759,22 @@ window.toggleSidebar=function(){
               <div class="odds-bar"><div class="odds-bar-fill" id="oddsMonthBar" style="width:0"></div></div>
             </div>
             <div class="odds-card">
-              <div class="odds-lbl">Closest Share Ever</div>
-              <div class="odds-val" id="oddsBest">—</div>
-              <div class="odds-sub" id="oddsBestSub">% of block difficulty</div>
-              <div class="bsb-bar"><div class="bsb-fill" id="oddsBestBar" style="width:0"></div></div>
+              <div class="odds-lbl">Fleet Share Stats</div>
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;margin-top:4px">
+                <div style="flex:1">
+                  <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.2px;color:var(--text3);font-weight:600;margin-bottom:3px">Submitted</div>
+                  <div style="font-size:15px;font-weight:800;color:var(--green)" id="oddsFleetSubmitted">—</div>
+                </div>
+                <div style="flex:1">
+                  <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.2px;color:var(--text3);font-weight:600;margin-bottom:3px">Rejected</div>
+                  <div style="font-size:15px;font-weight:800;color:var(--text)" id="oddsFleetRejected">—</div>
+                </div>
+                <div style="flex:1">
+                  <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.2px;color:var(--text3);font-weight:600;margin-bottom:3px">Rej %</div>
+                  <div style="font-size:15px;font-weight:800" id="oddsFleetRejPct">—</div>
+                </div>
+              </div>
+              <div class="odds-sub" id="oddsFleetRejSub" style="margin-top:6px">of total shares</div>
             </div>
             <div class="odds-card">
               <div class="odds-lbl">Fleet's Best Share Ever</div>
@@ -1216,7 +1249,7 @@ window.saveAddress = function(){
     .then(function(d){
       if(d.ok){
         s('addrVal', d.address);
-        g('addrBanner').style.display = 'flex';
+        g('scAddrRow').style.display = 'block';
         var dlg = g('addrDlg');
         if(dlg) dlg.style.display = 'none';
         toast('Address saved — restart Zebra to apply to block rewards');
@@ -1234,11 +1267,11 @@ function fetchAddress(){
       currentNetwork = d.network || currentNetwork;
       if(addr){
         s('addrVal', addr);
-        g('addrBanner').style.display = 'flex';
+        g('scAddrRow').style.display = 'block';
         var dlg = g('addrDlg');
         if(dlg) dlg.style.display = 'none';
       } else {
-        g('addrBanner').style.display = 'none';
+        g('scAddrRow').style.display = 'none';
         openAddrDialog(false);
       }
     })
@@ -1325,22 +1358,38 @@ function poll(){
     })
     .catch(function(){
       spin.classList.remove('active');
-      var pill=g('nodePill');
-      pill.className='pill pill-dead';
-      setPill(pill,'pill-dead','Error',false);
+      /* /api/stats failed — pool is still initialising or crashed.
+         Probe Zebra directly before declaring an error so we don't
+         show a red pill when the node itself is perfectly healthy. */
+      fetch('/api/umbrel/sync',{credentials:'same-origin'})
+        .then(function(r){ return r.json(); })
+        .then(function(zd){
+          var pill=g('nodePill');
+          var prog=parseFloat(zd.progress)||0;
+          if(prog>0){
+            /* Zebra is alive — pool is just not ready yet */
+            if(prog<0.999){
+              setPill(pill,'pill-sync','Syncing',true);
+            } else {
+              setPill(pill,'pill-sync','Pool starting\u2026',true);
+            }
+          } else {
+            setPill(pill,'pill-dead','Error',false);
+          }
+        })
+        .catch(function(){
+          /* Both /api/stats and /api/umbrel/sync failed — truly offline */
+          var pill=g('nodePill');
+          setPill(pill,'pill-dead','Offline',false);
+        });
     });
 
-  /* Sync progress */
-  fetch('/api/umbrel/sync',{credentials:'same-origin'})
-    .then(function(r){ return r.json(); })
-    .then(updateSync)
-    .catch(function(){});
-  /* Network stats direct from Zebra (available even during sync) */
-  fetch('/api/umbrel/netinfo',{credentials:'same-origin'})
+  /* Single Zebra fetch — replaces separate /sync + /netinfo calls */
+  fetch('/api/umbrel/nodeinfo',{credentials:'same-origin'})
     .then(function(r){ return r.json(); })
     .then(function(ni){
-      /* Difficulty: s-nomp's networkDiff is 0 until it mines shares,
-         so always use Zebra's live value when available */
+      updateSync(ni);
+      /* Difficulty */
       if(ni.difficulty > 0){
         lastNetDiff = ni.difficulty;
         s('cDiff', fmtN(ni.difficulty));
@@ -1360,18 +1409,25 @@ function poll(){
       if(ni.difficulty > 0 && ni.networkSolps > 0){
         updateDiffRetarget(ni.difficulty, ni.networkSolps);
       }
-      if(ni.peers > 0){
+      if(ni.peers >= 0){
         cachedNetPeers = ni.peers;
-        s('cPeers', ni.peers);
-        s('hdrPeers', ni.peers + (ni.peers === 1 ? ' peer' : ' peers'));
-        s('syncPeers', ni.peers + (ni.peers === 1 ? ' peer' : ' peers') + ' connected');
-        updateStratumCard(undefined, undefined, ni.peers, undefined);
+        if(ni.peers > 0){
+          s('cPeers', ni.peers);
+          s('hdrPeers', ni.peers + (ni.peers === 1 ? ' peer' : ' peers'));
+          s('syncPeers', ni.peers + (ni.peers === 1 ? ' peer' : ' peers') + ' connected');
+          updateStratumCard(undefined, undefined, ni.peers, undefined);
+        }
         var syncing = g('syncCard').style.display !== 'none';
         var pill = g('nodePill');
-        if(syncing){
-          setPill(pill,'pill-sync','Syncing',true);
-        } else {
-          setPill(pill,'pill-live',currentNetwork,true);
+        var curCls = pill.className || '';
+        if(curCls.indexOf('pill-live') === -1 || ni.peers > 0){
+          if(syncing){
+            setPill(pill,'pill-sync','Syncing',true);
+          } else if(ni.peers >= 8){
+            setPill(pill,'pill-live',currentNetwork,true);
+          } else if(ni.peers > 0){
+            setPill(pill,'pill-sync','Syncing',true);
+          }
         }
       }
     })
@@ -1469,6 +1525,11 @@ function initStratum(){
       var port=cfg.stratumPort||'13333';
       s('stratumVal',browserHost+':'+port);
       if(cfg.appName) s('sbLogoText', cfg.appName);
+      if(cfg.chainPath){
+        s('scChainPath', cfg.chainPath);
+        var row = g('scChainRow');
+        if(row) row.style.display = 'flex';
+      }
       return fetch('/api/umbrel/hostip',{credentials:'same-origin'})
         .then(function(r){ return r.json(); })
         .then(function(d){
@@ -1612,15 +1673,22 @@ function updateSync(data){
     var sz=parseInt(data.sizeOnDisk)||0;
     if(sz>0){
       var gb=(sz/1073741824);
-      s('syncSize',gb>=1?gb.toFixed(2)+' GB chain size':Math.round(sz/1048576)+' MB chain size');
+      var szStr = gb>=1?gb.toFixed(2)+' GB':Math.round(sz/1048576)+' MB';
+      s('syncSize', szStr+' chain size');
+      s('scChainSize', szStr);
     }
   }
   var note=g('stratumNote');
   if(note){
     note.textContent=synced
-      ?'● Active — ready to accept connections'
+      ?'● Blockchain synced — accepting connections'
       :'● Waiting for sync ('+pct.toFixed(2)+'%)';
     note.style.color=synced?'var(--green)':'var(--orange)';
+  }
+  var sc=g('stratumCard');
+  if(sc){
+    if(synced){ sc.classList.add('synced'); }
+    else { sc.classList.remove('synced'); }
   }
 }
 
@@ -1641,6 +1709,14 @@ function fetchDiffHistory(){
       s('diff90Hi', fmtN(hi));
       s('diff90Lo', fmtN(lo));
       s('diffCur',  fmtN(vals[vals.length-1]));
+      var diffChgPct = vals[0] > 0 ? (vals[vals.length-1] - vals[0]) / vals[0] * 100 : 0;
+      var diffChgEl = g('diffChg');
+      if(diffChgEl && diffChgPct !== 0){
+        var pos = diffChgPct >= 0;
+        diffChgEl.textContent = (pos ? '+' : '') + diffChgPct.toFixed(1) + '%';
+        diffChgEl.className = 'price-chg ' + (pos ? 'price-up' : 'price-dn');
+        diffChgEl.style.display = '';
+      }
       var start = d.points[0].date;
       s('diffDateStart', start);
       s('diffAge', 'Updated ' + new Date().toLocaleTimeString());
@@ -1876,7 +1952,7 @@ var newsLastFetch = 0;
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function fetchNews(){
   var now = Date.now();
-  if(now - newsLastFetch < 1800000) return;
+  if(now - newsLastFetch < 600000) return;
   newsLastFetch = now;
   fetch('/api/umbrel/news',{credentials:'same-origin'})
     .then(function(r){ return r.json(); })
@@ -1924,7 +2000,7 @@ setInterval(fetchZecPrice,  60000);
 setInterval(fetchZecHistory, 300000);
 setInterval(fetchDiffHistory, 21600000);
 fetchNews();
-setInterval(fetchNews, 1800000);
+setInterval(fetchNews, 600000);
 fetchStratumPeers();
 setInterval(fetchStratumPeers, 15000);
 }();
