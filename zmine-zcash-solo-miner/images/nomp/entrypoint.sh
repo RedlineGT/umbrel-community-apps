@@ -34,7 +34,7 @@ fi
 
 # ── Override address from config file if present ────────────────────────────
 if [ -f "/config/address.txt" ]; then
-    SAVED_ADDR="$(cat /config/address.txt | tr -d '[:space:]')"
+    SAVED_ADDR="$(tr -d '[:space:]' < /config/address.txt)"
     if [ -n "${SAVED_ADDR}" ]; then
         POOL_ADDRESS="${SAVED_ADDR}"
         echo "[nomp] Address loaded from /config/address.txt: ${POOL_ADDRESS}"
@@ -63,7 +63,7 @@ echo "[nomp] Zebra RPC ready."
 # ── Generate config.json ───────────────────────────────────────────────────
 cat > /app/config.json << EOF
 {
-    "logLevel": "debug",
+    "logLevel": "warning",
     "logColors": true,
     "cliPort": 17117,
     "cliServer": "127.0.0.1",
@@ -71,7 +71,7 @@ cat > /app/config.json << EOF
     "defaultPoolConfigs": {
         "blockRefreshInterval": 500,
         "jobRebroadcastTimeout": 55,
-        "connectionTimeout": 600,
+        "connectionTimeout": 180,
         "emitInvalidBlockHashes": false,
         "validateWorkerUsername": false,
         "banning": {
