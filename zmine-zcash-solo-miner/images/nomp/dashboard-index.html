@@ -104,7 +104,7 @@ body{
   background:var(--zec-a);border:1px solid var(--zec-b);
   padding:3px 10px;border-radius:20px;
 }
-#hdrTime{color:var(--text3);font-size:11px}
+#hdrTime{color:var(--text3);font-size:12px;font-weight:600}
 .spin-ring{width:16px;height:16px;border-radius:50%;flex-shrink:0;border:2px solid var(--border2);border-top-color:var(--zec)}
 .spin-ring.active{animation:spin .65s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -155,6 +155,7 @@ body{
 .stratum-lbl{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--blue);margin-bottom:4px}
 .stratum-val{font-size:14px;color:var(--text);font-weight:700;letter-spacing:.5px}
 .stratum-note{font-size:10px;margin-top:4px}
+.sc-row-addr{flex-wrap:nowrap;align-items:flex-start;padding-bottom:10px;margin-bottom:2px}
 /* ── Prune notice ───────────────────────────────────────── */
 #pruneNotice{
   background:var(--surf);border:1px solid var(--border);
@@ -473,7 +474,7 @@ window.toggleSidebar=function(){
   <div class="sb-bottom">
     <span id="nodePill" class="pill pill-sync"><span class="dot blink"></span>Connecting</span>
     <div class="sb-net" id="footerNet">Mainnet</div>
-    <div class="sb-version">ZEC Solo Miner v1.3.16</div>
+    <div class="sb-version">ZEC Solo Miner v1.3.18</div>
   </div>
 </aside>
 
@@ -491,7 +492,10 @@ window.toggleSidebar=function(){
     </div>
     <div class="ph-right">
       <span id="hdrZecPrice" style="display:none"></span>
-      <span id="hdrTime">—</span>
+      <div style="text-align:right;line-height:1.3">
+        <div id="hdrTime" style="color:var(--text3);font-size:12px;font-weight:600">—</div>
+        <div id="hdrDate" style="color:var(--text3);font-size:10px">—</div>
+      </div>
       <div id="spinner" class="spin-ring"></div>
     </div>
   </header>
@@ -560,14 +564,6 @@ window.toggleSidebar=function(){
           </div>
         </div>
 
-        <div id="stratumBanner">
-          <div>
-            <div class="stratum-lbl">Stratum (<span id="stratumNetLabel">Mainnet</span>) — point miners here</div>
-            <div id="stratumVal" class="stratum-val">—</div>
-            <div id="stratumNote" class="stratum-note" style="color:var(--orange)">● Waiting for sync</div>
-          </div>
-          <button class="btn btn-ghost" onclick="copyStratum()">Copy</button>
-        </div>
         <!-- hidden sinks so existing JS writes don't error -->
         <span id="cDiff" style="display:none"></span>
         <span id="cNetHash" style="display:none"></span>
@@ -575,69 +571,20 @@ window.toggleSidebar=function(){
         <span id="cWorkers" style="display:none"></span>
         <span id="cMiners" style="display:none"></span>
         <span id="cPeers" style="display:none"></span>
+        <!-- hidden sink for old stratumNetLabel + stratumNote used by initStratum() -->
+        <span id="stratumNetLabel" style="display:none">Mainnet</span>
 
-        <!-- ── VS Panel 1: Network Difficulty vs Best Live Share ── -->
-        <div class="vs-card" id="vsDiffCard">
-          <div class="vs-card-lbl">Difficulty — Network vs Your Fleet</div>
-          <div class="vs-row">
-            <div class="vs-side vs-left">
-              <div class="vs-side-lbl" style="color:var(--blue)">Network</div>
-              <div class="vs-side-val" style="color:var(--blue)" id="vsDiffNet">—</div>
-              <div class="vs-side-sub" style="color:var(--blue)" id="vsDiffNetSrc"></div>
-            </div>
-            <div class="vs-sep">
-              <div class="vs-divider"></div>
-              <div class="vs-vs">VS</div>
-              <div class="vs-divider"></div>
-            </div>
-            <div class="vs-side vs-right">
-              <div class="vs-side-lbl" style="color:var(--zec)">Best Share</div>
-              <div class="vs-side-val" style="color:var(--zec)" id="vsDiffBest">—</div>
-              <div class="vs-side-sub" style="color:var(--zec)" id="vsDiffBestMiner"></div>
-            </div>
-          </div>
-          <div class="vs-bar-wrap" id="vsDiffBarWrap">
-            <div class="vs-bar-l" id="vsDiffBarL" style="width:100%;background:var(--blue)"></div>
-            <div class="vs-bar-r" id="vsDiffBarR" style="width:0;background:var(--zec)"></div>
-          </div>
-          <div id="cDiffRetarget" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:10px;color:var(--text2);line-height:1.6">
-            <div>Projected next: <span class="diff-proj-val" id="cDiffProj">—</span> <span id="cDiffChgBadge"></span></div>
-            <div id="cDiffChgSub" style="font-size:9px;color:var(--text3)"></div>
-            <div class="diff-trend-bar"><div class="diff-trend-fill" id="cDiffTrendFill" style="width:50%"></div></div>
-            <div style="font-size:9px;color:var(--text3);margin-top:3px">Adjusts every block · Digishield</div>
-          </div>
-        </div>
-
-        <!-- ── VS Panel 2: Network Hashrate vs Pool Hashrate ── -->
-        <div class="vs-card" id="vsHashCard">
-          <div class="vs-card-lbl">Hash Rate — Network vs Pool</div>
-          <div class="vs-row">
-            <div class="vs-side vs-left">
-              <div class="vs-side-lbl" style="color:var(--blue)">Network</div>
-              <div class="vs-side-val" style="color:var(--blue)" id="vsHashNet">—</div>
-              <div class="vs-side-sub" style="color:var(--text3)">Equihash 200,9</div>
-            </div>
-            <div class="vs-sep">
-              <div class="vs-divider"></div>
-              <div class="vs-vs">VS</div>
-              <div class="vs-divider"></div>
-            </div>
-            <div class="vs-side vs-right">
-              <div class="vs-side-lbl" style="color:var(--green)">Pool</div>
-              <div class="vs-side-val" style="color:var(--green)" id="vsHashPool">—</div>
-              <div class="vs-side-sub" style="color:var(--text3)" id="vsHashPoolSub">—</div>
-            </div>
-          </div>
-          <div class="vs-bar-wrap" id="vsHashBarWrap">
-            <div class="vs-bar-l" id="vsHashBarL" style="width:100%;background:var(--blue)"></div>
-            <div class="vs-bar-r" id="vsHashBarR" style="width:0;background:var(--green)"></div>
-          </div>
-          <div style="font-size:9px;color:var(--text3);margin-top:6px" id="vsHashShare"></div>
-        </div>
-
-        <!-- ── Combined Stratum card ── -->
+        <!-- ── Combined Stratum card — placed first ── -->
         <div class="stratum-stat-card">
           <div class="vs-card-lbl">Stratum</div>
+          <div class="sc-row sc-row-addr">
+            <div style="flex:1;min-width:0">
+              <div class="sc-lbl">Point miners here (<span id="scStratumNet">Mainnet</span>)</div>
+              <div class="sc-val" style="color:var(--zec);font-size:13px;word-break:break-all" id="stratumVal">—</div>
+              <div class="sc-sub" id="stratumNote" style="color:var(--orange)">● Waiting for sync</div>
+            </div>
+            <button class="btn btn-ghost" style="flex-shrink:0;margin-left:8px" onclick="copyStratum()">Copy</button>
+          </div>
           <div class="sc-row">
             <div>
               <div class="sc-lbl">Active Workers</div>
@@ -660,6 +607,59 @@ window.toggleSidebar=function(){
             <div class="sc-val" style="color:var(--zec)" id="scConns">—</div>
           </div>
         </div>
+
+        <!-- ── VS Panel 1: Network Difficulty vs Fleet Best Share ── -->
+        <div class="vs-card" id="vsDiffCard">
+          <div class="vs-card-lbl">Difficulty — Network vs Your Fleet</div>
+          <div class="vs-row">
+            <div class="vs-side vs-left">
+              <div class="vs-side-lbl" style="color:var(--blue)">Network</div>
+              <div class="vs-side-val" style="color:var(--blue)" id="vsDiffNet">—</div>
+              <div class="vs-side-sub" style="color:var(--blue)" id="vsDiffNetSrc"></div>
+            </div>
+            <div class="vs-sep">
+              <div class="vs-divider"></div>
+              <div class="vs-vs">VS</div>
+              <div class="vs-divider"></div>
+            </div>
+            <div class="vs-side vs-right">
+              <div class="vs-side-lbl" style="color:var(--zec)">Fleet Best Share</div>
+              <div class="vs-side-val" style="color:var(--zec)" id="vsDiffBest">—</div>
+              <div class="vs-side-sub" style="color:var(--zec)" id="vsDiffBestMiner"></div>
+            </div>
+          </div>
+          <div id="cDiffRetarget" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:10px;color:var(--text2);line-height:1.6">
+            <div>Projected next: <span class="diff-proj-val" id="cDiffProj">—</span> <span id="cDiffChgBadge"></span></div>
+            <div id="cDiffChgSub" style="font-size:9px;color:var(--text3)"></div>
+            <div class="diff-trend-bar"><div class="diff-trend-fill" id="cDiffTrendFill" style="width:50%"></div></div>
+            <div style="font-size:9px;color:var(--text3);margin-top:3px">Adjusts every block · Digishield</div>
+          </div>
+        </div>
+
+        <!-- ── VS Panel 2: Network Hashrate vs Pool Hashrate ── -->
+        <div class="vs-card" id="vsHashCard">
+          <div class="vs-card-lbl">Hash Rate — Network vs Fleet</div>
+          <div class="vs-row">
+            <div class="vs-side vs-left">
+              <div class="vs-side-lbl" style="color:var(--blue)">Network</div>
+              <div class="vs-side-val" style="color:var(--blue)" id="vsHashNet">—</div>
+              <div class="vs-side-sub" style="color:var(--text3)">Equihash 200,9</div>
+            </div>
+            <div class="vs-sep">
+              <div class="vs-divider"></div>
+              <div class="vs-vs">VS</div>
+              <div class="vs-divider"></div>
+            </div>
+            <div class="vs-side vs-right">
+              <div class="vs-side-lbl" style="color:var(--green)">Fleet</div>
+              <div class="vs-side-val" style="color:var(--green)" id="vsHashPool">—</div>
+              <div class="vs-side-sub" style="color:var(--text3)" id="vsHashPoolSub">—</div>
+            </div>
+          </div>
+          <div style="font-size:9px;color:var(--text3);margin-top:6px" id="vsHashShare"></div>
+        </div>
+
+        <!-- stratum card now at top, removed from here -->
         <div class="card">
           <div class="card-lbl">Est. Time to Block</div>
           <div class="card-val" id="cLuck" style="font-size:16px">—</div>
@@ -798,7 +798,9 @@ window.toggleSidebar=function(){
                 <th class="hide-sm" title="Highest difficulty share seen since this page loaded">Session Best</th>
                 <th title="Highest difficulty share ever seen (stored locally)">All-Time Best</th>
                 <th title="All-Time Best as % of current network difficulty">% of Block</th>
-                <th class="hide-sm">Efficiency</th>
+                <th class="hide-sm" title="Total valid shares submitted">Submitted</th>
+                <th class="hide-sm" title="Total invalid/rejected shares">Rejected</th>
+                <th class="hide-sm" title="Rejected shares as % of total">Rej %</th>
                 <th class="hide-sm">Last Share</th>
               </tr>
             </thead>
@@ -837,7 +839,7 @@ window.toggleSidebar=function(){
       </div>
 
       <div class="stack-footer">
-        ZEC Solo Miner v1.3.16 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
+        ZEC Solo Miner v1.3.18 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
       </div>
 
       <div class="donate-section-wrap" style="margin-top:0">
@@ -914,6 +916,7 @@ var lastNetDiff = 0;
 var cachedNetPeers = 0;    // best known peer count from Zebra direct RPC
 var cachedPoolHashrate = 0; // Sol/s — aggregate pool hashrate from s-nomp
 var cachedNetHashrate  = 0; // Sol/s — network hashrate from Zebra netinfo
+var priceSamples = []; // [{t, p}] rolling 60-min window for drop detection
 
 try { allBest = JSON.parse(localStorage.getItem('zmf.atb') || '{}'); }
 catch(e) { allBest = {}; }
@@ -937,6 +940,7 @@ function fmtN(n){
   if(n>=1e3 ) return (n/1e3 ).toFixed(1)+'K';
   return n.toFixed(2);
 }
+function fmtNum(n){ n=+n; if(isNaN(n)) return '—'; if(n>=1e6) return (n/1e6).toFixed(1)+'M'; if(n>=1e3) return (n/1e3).toFixed(1)+'K'; return String(Math.round(n)); }
 function fmtH(h){
   h=+h; if(!h) return '0 Sol/s';
   if(h>=1e12) return (h/1e12).toFixed(2)+' TSol/s';
@@ -1068,7 +1072,8 @@ function renderWorkers(workers, netDiff){
     var valid=parseFloat(w.shares)||0;
     var inv=Math.abs(parseFloat(w.invalidshares)||0);
     var total=valid+inv;
-    var eff=total>0?Math.min(100,Math.round(valid/total*100)):0;
+    var rejPct=total>0?(inv/total*100):0;
+    var rejColor=rejPct===0?'var(--green)':rejPct<5?'var(--zec)':'var(--red)';
     var online=isOnline(w.lastShare);
 
     /* split address / worker-name suffix */
@@ -1097,9 +1102,9 @@ function renderWorkers(workers, netDiff){
       +'<td class="hide-sm '+sbCls+'">'+fmtN(sb)+'</td>'
       +'<td class="'+abCls+'" title="'+esc(abTitle)+'">'+fmtN(ab)+'</td>'
       +'<td style="font-size:10px;color:var(--text2)" title="'+esc(abTitle)+'">'+esc(abPct)+'</td>'
-      +'<td class="hide-sm"><div class="eff">'
-        +'<div class="eff-track"><div class="eff-fill" style="width:'+eff+'%"></div></div>'
-        +'<span class="eff-pct">'+eff+'%</span></div></td>'
+      +'<td class="hide-sm" style="color:var(--text2)">'+fmtNum(valid)+'</td>'
+      +'<td class="hide-sm" style="color:var(--text2)">'+fmtNum(inv)+'</td>'
+      +'<td class="hide-sm" style="color:'+rejColor+';font-weight:700">'+( total>0 ? rejPct.toFixed(1)+'%' : '—' )+'</td>'
       +'<td class="hide-sm" style="color:var(--text2)">'+timeAgo(w.lastShare)+'</td>'
       +'</tr>';
   });
@@ -1131,6 +1136,8 @@ function fetchNetwork(){
       if(ps) ps.textContent = 'Zcash '+currentNetwork.toLowerCase()+' nodes';
       var snl = g('stratumNetLabel');
       if(snl) snl.textContent = currentNetwork;
+      var scn = g('scStratumNet');
+      if(scn) scn.textContent = currentNetwork;
     })
     .catch(function(){});
 }
@@ -1245,7 +1252,16 @@ function poll(){
     .then(function(r){ if(!r.ok) throw r.status; return r.json(); })
     .then(function(data){
       spin.classList.remove('active');
-      s('hdrTime',new Date().toLocaleTimeString());
+      var now = new Date();
+      var timeStr = now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+      var days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      var day = days[now.getDay()];
+      var mon = months[now.getMonth()];
+      var date = now.getDate();
+      var suffix = (date===1||date===21||date===31)?'st':(date===2||date===22)?'nd':(date===3||date===23)?'rd':'th';
+      s('hdrTime', timeStr);
+      s('hdrDate', day+', '+mon+' '+date+suffix);
 
       var pool=null;
       if(data.pools){ var pn=Object.keys(data.pools)[0]; if(pn) pool=data.pools[pn]; }
@@ -1665,8 +1681,29 @@ function fetchZecPrice(){
       var chg   = d.zcash.usd_24h_change;
       var str   = '$' + price.toFixed(2);
       s('priceUsd', str);
+      // Track rolling 60-min price samples for drop detection
+      var now = Date.now();
+      priceSamples.push({ t: now, p: price });
+      // Keep only last 60 minutes
+      priceSamples = priceSamples.filter(function(s){ return now - s.t <= 3600000; });
+      // Meaningful drop: >= 3% decline from highest price in last 60 min
+      var peakInWindow = priceSamples.reduce(function(mx, s){ return s.p > mx ? s.p : mx; }, 0);
+      var dropPct = peakInWindow > 0 ? (peakInWindow - price) / peakInWindow * 100 : 0;
+      var dropping = dropPct >= 3;
       var hdr = g('hdrZecPrice');
-      if(hdr){ hdr.textContent = 'ZEC ' + str; hdr.style.display = ''; }
+      if(hdr){
+        hdr.textContent = 'ZEC ' + str;
+        hdr.style.display = '';
+        if(dropping){
+          hdr.style.color = 'var(--red)';
+          hdr.style.background = 'var(--red-a)';
+          hdr.style.borderColor = 'rgba(255,69,69,.35)';
+        } else {
+          hdr.style.color = 'var(--zec)';
+          hdr.style.background = 'var(--zec-a)';
+          hdr.style.borderColor = 'var(--zec-b)';
+        }
+      }
       var chgEl = g('priceChg');
       if(chgEl && chg != null){
         var pos = chg >= 0;
@@ -1674,7 +1711,7 @@ function fetchZecPrice(){
         chgEl.className   = 'price-chg ' + (pos ? 'price-up' : 'price-dn');
         chgEl.style.display = '';
       }
-      s('priceAge', 'Updated ' + new Date().toLocaleTimeString());
+      s('priceAge', 'Updated ' + new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}));
     })
     .catch(function(){});
 }
@@ -1721,7 +1758,7 @@ function drawSparkline(prices){
     + '<path d="' + fill + '" fill="url(#sg)"/>'
     + '<path d="' + line + '" fill="none" stroke="#F4B728" stroke-width="1.5" stroke-linejoin="round"/>';
 }
-/* ── Block odds + closest share ───────────────────────────────────────── */
+/* ── Block odds + fleet share stats ───────────────────────────────────── */
 function updateOdds(){
   var ZEC_BPD = 1152;   /* 86400 / 75s block time  */
   var ZEC_BPM = 34560;  /* × 30 days               */
@@ -1754,19 +1791,7 @@ function updateOdds(){
   /* hashrate labels */
   s('oddsHash',    cachedPoolHashrate > 0 ? fmtH(cachedPoolHashrate) : '—');
   s('oddsNetHash', cachedNetHashrate  > 0 ? fmtH(cachedNetHashrate)  : '—');
-  /* closest share ever across all workers */
-  var best = 0, bestWorker = '';
-  Object.keys(allBest).forEach(function(w){ if(allBest[w] > best){ best = allBest[w]; bestWorker = w; } });
-  var bestPct = (lastNetDiff > 0 && best > 0) ? best / lastNetDiff * 100 : 0;
-  if(bestPct > 0){
-    s('oddsBest',    bestPct >= 100 ? '\uD83C\uDF89 BLOCK!' : bestPct.toFixed(4) + '%');
-    s('oddsBestSub', bestPct >= 100 ? 'Block found!' : 'of block difficulty needed');
-    var bb = g('oddsBestBar'); if(bb) bb.style.width = Math.min(100, bestPct).toFixed(2) + '%';
-  } else {
-    s('oddsBest',    '\u2014');
-    s('oddsBestSub', 'submit a share first');
-  }
-  /* fleet best share card */
+  /* fleet best share */
   var fleetBest = 0, fleetWorker = '';
   Object.keys(allBest).forEach(function(w){ if(allBest[w] > fleetBest){ fleetBest = allBest[w]; fleetWorker = w; } });
   var fleetPct = (lastNetDiff > 0 && fleetBest > 0) ? fleetBest / lastNetDiff * 100 : 0;
@@ -1781,6 +1806,29 @@ function updateOdds(){
     s('oddsFleetBest', '\u2014');
     s('oddsFleetBestSub', 'submit a share first');
     s('oddsFleetBestMiner', '');
+  }
+  /* fleet submitted / rejected / rejection % — aggregate across all workers */
+  var totalValid = 0, totalInv = 0;
+  Object.keys(cachedWorkers).forEach(function(wk){
+    var w = cachedWorkers[wk];
+    totalValid += parseFloat(w.shares)||0;
+    totalInv   += Math.abs(parseFloat(w.invalidshares)||0);
+  });
+  var totalShares = totalValid + totalInv;
+  var fleetRejPct = totalShares > 0 ? (totalInv / totalShares * 100) : 0;
+  s('oddsFleetSubmitted', totalShares > 0 ? fmtNum(totalValid)  : '\u2014');
+  s('oddsFleetRejected',  totalShares > 0 ? fmtNum(totalInv)    : '\u2014');
+  if(totalShares > 0){
+    var rejEl = g('oddsFleetRejPct');
+    var rejStr = fleetRejPct.toFixed(2) + '%';
+    s('oddsFleetRejPct', rejStr);
+    s('oddsFleetRejSub', fleetRejPct === 0 ? 'perfect \u2014 no rejections' : 'of total shares');
+    if(rejEl){
+      rejEl.style.color = fleetRejPct === 0 ? 'var(--green)' : fleetRejPct < 5 ? 'var(--zec)' : 'var(--red)';
+    }
+  } else {
+    s('oddsFleetRejPct', '\u2014');
+    s('oddsFleetRejSub', 'of total shares');
   }
 }
 /* ── Stratum peer latency ───────────────────────────────── */
