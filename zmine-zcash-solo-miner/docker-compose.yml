@@ -42,7 +42,7 @@ services:
   # RPC on 8232 (internal Docker network only)
   # P2P on 8233 (exposed — helps network health, safe to open)
   zebra:
-    image: ghcr.io/redlinegt/zmine-zebra:1.3.20
+    image: ghcr.io/redlinegt/zmine-zebra:1.3.21
     <<: *sec
     # cap_drop intentionally omitted: the official Zebra entrypoint uses
     # setpriv to drop from root→zebra user, which requires CAP_SETUID/SETGID.
@@ -92,6 +92,8 @@ services:
       --loglevel warning
     volumes:
       - ${APP_DATA_DIR}/redis:/data
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-CHANGE_ME_use_a_long_random_string}
     networks:
       - default
     mem_limit: 384m
@@ -101,12 +103,9 @@ services:
         max-size: "5m"
         max-file: "2"
     healthcheck:
-      test:
-        - "CMD"
-        - "redis-cli"
-        - "-a"
-        - "${REDIS_PASSWORD:-CHANGE_ME_use_a_long_random_string}"
-        - "ping"
+      # REDISCLI_AUTH passes the password via env var so it never appears in
+      # process arguments (ps aux). $$ in CMD-SHELL becomes $ in the container.
+      test: ["CMD-SHELL", "REDISCLI_AUTH=$$REDIS_PASSWORD redis-cli ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -116,7 +115,7 @@ services:
   # Stratum on 13333 (exposed — point your ASICs/GPUs here)
   # Web dashboard on 3300 (internal — served via Umbrel proxy)
   nomp:
-    image: ghcr.io/redlinegt/zmine-nomp:1.3.20
+    image: ghcr.io/redlinegt/zmine-nomp:1.3.21
     <<: *sec
     user: "1000:1000"
     cap_drop:
@@ -157,7 +156,7 @@ services:
   # Very low hash-rate; useful for testing connectivity.
   # Set CPU_THREADS=0 in the env to disable entirely.
   miner:
-    image: ghcr.io/redlinegt/zmine-miner:1.3.20
+    image: ghcr.io/redlinegt/zmine-miner:1.3.21
     <<: *sec
     user: "1000:1000"
     cap_drop:

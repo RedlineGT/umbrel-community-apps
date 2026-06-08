@@ -158,13 +158,26 @@ const INJECT = `
     });
     // Ensure body-parser JSON middleware is registered before POST routes
     app.use(require('body-parser').json());
+    // Simple write-rate-limiter — no external dep, POST endpoints only.
+    // All Umbrel browser traffic arrives via the proxy as a single source IP;
+    // 10 writes per hour is generous for deliberate config changes.
+    var _writeRL = {};
+    function writeRateLimit(req, res, next) {
+        var ip = req.ip || (req.connection && req.connection.remoteAddress) || 'x';
+        var now = Date.now();
+        var e = _writeRL[ip];
+        if (!e || now - e.ts > 3600000) { _writeRL[ip] = { count: 1, ts: now }; return next(); }
+        if (e.count >= 10) { return res.status(429).json({ ok: false, error: 'Too many requests — wait before retrying.' }); }
+        e.count++;
+        next();
+    }
     // Address POST — saves address to /config/address.txt, updates env immediately
-    app.post('/api/umbrel/address', function(req, res) {
+    app.post('/api/umbrel/address', writeRateLimit, function(req, res) {
         var body = (req.body && typeof req.body === 'object') ? req.body : {};
         var addr = String(body.address || '').trim();
-        // Validate: must be a plausible Zcash transparent address (base58, starts with t)
-        if (!addr || !/^t[1-9A-HJ-NP-Za-km-z]{25,50}$/.test(addr)) {
-            return res.status(400).json({ ok: false, error: 'Invalid Zcash address. Must start with t1/t3 (mainnet) or t2/tm (testnet).' });
+        // Validate: Zcash transparent address is exactly 35 chars — t + network prefix (1/2/3) + 33 base58check chars
+        if (!addr || !/^t[123][1-9A-HJ-NP-Za-km-z]{33}$/.test(addr)) {
+            return res.status(400).json({ ok: false, error: 'Invalid Zcash address. Must be a 35-character transparent address (t1.../t3... mainnet, t2... testnet).' });
         }
         try {
             try { _fs.mkdirSync('/config', { recursive: true }); } catch(e) {}
@@ -185,7 +198,7 @@ const INJECT = `
         res.json({ network: net });
     });
     // Network POST — writes/removes /config/network.flag
-    app.post('/api/umbrel/network', function(req, res) {
+    app.post('/api/umbrel/network', writeRateLimit, function(req, res) {
         var body = (req.body && typeof req.body === 'object') ? req.body : {};
         var net = String(body.network || '').trim();
         if (net !== 'Mainnet' && net !== 'Testnet') {
@@ -329,11 +342,13 @@ const INJECT = `
         });
     });
     // Stratum peer latency — reads per-socket TCP RTT via ss(8)
-    // DNS cache: avoid repeated reverse lookups for the same IPs (60s TTL)
+    // DNS cache: avoid repeated reverse lookups for the same IPs (60s TTL, max 500 entries)
     var _dnsCache = {};
     app.get('/api/umbrel/stratum-peers', function(req, res) {
-        var port = process.env.STRATUM_PORT || '13333';
-        _cp.exec('ss -tinp sport = :' + port, { timeout: 3000 }, function(err, stdout) {
+        // parseInt prevents any shell-injection risk if STRATUM_PORT is malformed;
+        // execFile never invokes a shell — args are passed directly to ss(1) as argv.
+        var port = String(parseInt(process.env.STRATUM_PORT, 10) || 13333);
+        _cp.execFile('ss', ['-tinp', 'sport', '=', ':' + port], { timeout: 3000 }, function(err, stdout) {
             if (err) return res.json({ peers: [] });
             var peers = [];
             var lines = stdout.split('\\n');
@@ -363,6 +378,12 @@ const INJECT = `
                 }
                 _dns.reverse(p.ip, function(err2, hostnames) {
                     var host = (!err2 && hostnames && hostnames.length > 0) ? hostnames[0] : null;
+                    // Evict the oldest entry if the cache is at capacity (prevents unbounded growth)
+                    var keys = Object.keys(_dnsCache);
+                    if (keys.length >= 500) {
+                        var oldest = keys.reduce(function(a, b) { return _dnsCache[a].ts < _dnsCache[b].ts ? a : b; });
+                        delete _dnsCache[oldest];
+                    }
                     _dnsCache[p.ip] = { host: host, ts: Date.now() };
                     p.host = host;
                     done();
@@ -404,7 +425,7 @@ const INJECT = `
                         var title = titleM[1].trim()
                             .replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&apos;/g,"'");
                         var url = linkM[1].trim().replace(/&amp;/g,'&');
-                        if (!url || url.indexOf('http') !== 0) continue;
+                        if (!url || url.indexOf('https://') !== 0) continue;
                         var pub = dateM ? new Date(dateM[1].trim()).getTime() : now;
                         if (isNaN(pub)) pub = now;
                         if (pub >= cutoff) {

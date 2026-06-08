@@ -44,9 +44,14 @@ ENV PATH="/usr/local/bin:${PATH}"
 
 # ── Clone s-nomp (ZcashFoundation zebra-mining branch) ──────────────────
 WORKDIR /app
+# Pin to exact commit — if the branch advances, this build will fail loudly
+# rather than silently pulling in unreviewed upstream changes.
+# To update: verify the new SHA, then replace the value below.
+# Current: 49fd89bf (zebra-mining tip as of 2026-06-08)
 RUN for attempt in 1 2 3; do \
         git clone --depth 1 --branch zebra-mining \
             https://github.com/ZcashFoundation/s-nomp.git . \
+        && git checkout 49fd89bf32fac6fe2440143d16622650e061e5a0 \
         && break; \
         echo "Git clone attempt ${attempt}/3 failed — retrying in 15s..."; \
         rm -rf /app/* /app/.[!.]* 2>/dev/null || true; \
