@@ -73,7 +73,7 @@ tx_cost_limit = 80000000
 [network]
 network = "${NETWORK}"
 listen_addr = "0.0.0.0:${P2P_PORT}"
-peerset_initial_target_size = 25
+peerset_initial_target_size = 50
 ${PEERS_TOML}
 
 [rpc]
@@ -89,7 +89,7 @@ ephemeral = false
 [sync]
 checkpoint_verify_concurrency_limit = 1000
 download_concurrency_limit = 50
-full_verify_concurrency_limit = 20
+full_verify_concurrency_limit = 5
 parallel_cpu_threads = 0
 
 [tracing]
@@ -125,4 +125,11 @@ export ZEBRA_STATE__CACHE_DIR="${DATA_DIR}/chain"
 export ZEBRA_RPC__COOKIE_DIR="${DATA_DIR}/rpc"
 
 echo "[zebra-config] Handing off to official Zebra entrypoint..."
+
+# Clear the peer address book on every startup to prevent stale/degraded peer
+# sets from causing sync stalls in the post-NU5 full-verifier zone.
+# This runs as root (before setpriv), so it can remove zebra-user-owned files.
+# The cache is container-internal (not mounted), so clearing it costs nothing.
+rm -rf /home/zebra/.cache/zebra/network/ 2>/dev/null || true
+
 exec /usr/local/bin/entrypoint.sh "$@"
