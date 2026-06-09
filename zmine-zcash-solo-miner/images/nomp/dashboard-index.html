@@ -455,6 +455,17 @@ window.toggleSidebar=function(){
   </div>
 </div>
 
+<div id="resetChainDlg" class="dlg-overlay" style="display:none">
+  <div class="dlg-box">
+    <div class="dlg-title" style="color:var(--red)">Wipe Blockchain Data</div>
+    <div class="dlg-body">This will delete all downloaded chain data. Zebra will re-sync from scratch (2–3 days on first run).<br><br>After confirming, <strong>restart the Zebra service</strong> in Umbrel to apply the wipe.</div>
+    <div class="dlg-actions">
+      <button class="btn btn-ghost" onclick="g('resetChainDlg').style.display='none'">Cancel</button>
+      <button class="btn" style="background:var(--red);color:#fff;border-color:var(--red)" onclick="doResetChain()">Wipe &amp; Resync</button>
+    </div>
+  </div>
+</div>
+
 <aside class="sidebar" id="sidebar">
   <div class="sb-logo">
     <div class="sb-logo-icon">
@@ -488,7 +499,7 @@ window.toggleSidebar=function(){
   <div class="sb-bottom">
     <span id="nodePill" class="pill pill-sync"><span class="dot blink"></span>Connecting</span>
     <div class="sb-net" id="footerNet">Mainnet</div>
-    <div class="sb-version">ZEC Solo Miner v1.3.29</div>
+    <div class="sb-version">ZEC Solo Miner v1.3.30</div>
   </div>
 </aside>
 
@@ -564,6 +575,7 @@ window.toggleSidebar=function(){
             <div id="syncBlkInfo" class="sync-sub">Downloading chain data…</div>
             <div class="sync-peers"><span class="sync-peers-dot"></span><span id="syncPeers">— peers</span></div>
             <div class="sync-peers" style="margin-top:2px"><span class="sync-peers-dot" style="background:var(--blue)"></span><span id="syncSize">— chain size</span></div>
+            <button style="margin-top:8px;font-size:9px;padding:3px 8px;border-radius:6px;border:1px solid var(--red);background:none;color:var(--red);cursor:pointer;line-height:1.4" onclick="g('resetChainDlg').style.display='flex'">Wipe &amp; Resync</button>
           </div>
         </div>
 
@@ -888,7 +900,7 @@ window.toggleSidebar=function(){
       </div>
 
       <div class="stack-footer">
-        ZEC Solo Miner v1.3.29 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
+        ZEC Solo Miner v1.3.30 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
       </div>
 
       <div class="donate-section-wrap" style="margin-top:0">
@@ -1103,6 +1115,16 @@ window.resetBest=function(){
 };
 window.quickFilter=function(addr){
   g('addrIn').value=addr; doFilter();
+};
+window.doResetChain=function(){
+  g('resetChainDlg').style.display='none';
+  fetch('/api/umbrel/reset-chain',{method:'POST',credentials:'same-origin',
+    headers:{'Content-Type':'application/json'},body:JSON.stringify({confirm:'DELETE_CHAIN'})})
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(d.ok){ toast('Reset flagged — restart Zebra in Umbrel to wipe chain and begin fresh sync.'); }
+    else { toast('Error: '+(d.error||'Unknown')); }
+  }).catch(function(){ toast('Network error. Try again.'); });
 };
 window.copyAddr=function(){
   var v=g('addrVal').textContent;
@@ -1577,6 +1599,7 @@ function initStratum(){
       if(cfg.appName) s('sbLogoText', cfg.appName);
       if(cfg.chainPath){
         s('scChainPath', cfg.chainPath);
+        s('scChainSize', '…');
         var row = g('scChainRow');
         if(row) row.style.display = 'flex';
       }

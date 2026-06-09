@@ -39,6 +39,14 @@ else
 ]'
 fi
 
+# Check for chain reset flag (written by the dashboard "Wipe & Resync" button)
+if [ -f "/config/reset-chain.flag" ]; then
+    echo "[zebra-config] *** CHAIN RESET REQUESTED — wiping all chain data ***"
+    rm -rf "${DATA_DIR}/chain" "${DATA_DIR}/rpc"
+    rm -f "/config/reset-chain.flag"
+    echo "[zebra-config] Chain data cleared. Starting fresh sync from genesis."
+fi
+
 echo "[zebra-config] Preparing Zebra ${NETWORK} configuration..."
 
 # Ensure /config is writable by the pool process (nomp, uid 1000)

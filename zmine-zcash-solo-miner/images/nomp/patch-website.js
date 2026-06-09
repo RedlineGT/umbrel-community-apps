@@ -116,6 +116,21 @@ const INJECT = `
         r.write(body); r.end();
     })();
 
+    // Background size poller: reads chain directory size from the filesystem
+    // every 30s so sizeOnDisk is accurate even when Zebra RPC is slow.
+    (function bgSizePoll() {
+        _cp.execFile('du', ['-sb', '/zebra-data/chain'], { timeout: 10000 }, function(err, stdout) {
+            if (!err && stdout) {
+                var sz = parseInt((stdout || '').split('\t')[0]) || 0;
+                if (sz > 0) {
+                    if (!_nodeCache.data) _nodeCache.data = {};
+                    _nodeCache.data.sizeOnDisk = sz;
+                }
+            }
+            setTimeout(bgSizePoll, 30000);
+        });
+    })();
+
     function buildNodeInfo(cb) {
         var now = Date.now();
         if (_nodeCache.data && now - _nodeCache.ts < 8000) return cb(null, _nodeCache.data);
@@ -256,6 +271,19 @@ const INJECT = `
             res.json({ ok: true, network: net });
         } catch(e) {
             res.status(500).json({ ok: false, error: e.message || String(e) });
+        }
+    });
+    // Reset chain — writes a flag file that zebra's entrypoint detects on next
+    // startup and uses to wipe all chain data before starting a fresh sync.
+    app.post('/api/umbrel/reset-chain', function(req, res) {
+        if (!req.body || req.body.confirm !== 'DELETE_CHAIN') {
+            return res.status(400).json({ ok: false, error: 'Missing confirmation' });
+        }
+        try {
+            _fs.writeFileSync('/config/reset-chain.flag', '1', 'utf8');
+            res.json({ ok: true });
+        } catch(e) {
+            res.json({ ok: false, error: 'Could not write reset flag: ' + (e.message || String(e)) });
         }
     });
     // Host IP — returns first non-loopback IPv4 address of the container's host network
