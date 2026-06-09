@@ -52,17 +52,17 @@ until nc -z "${REDIS_HOST}" 6379 2>/dev/null; do sleep 2; done
 echo "[nomp] Redis ready."
 
 # ── Wait for Zebra RPC ─────────────────────────────────────────────────────
-# nc -z only checks if the port is open; Zebra opens 8232 before it can serve
-# requests (drops connections while loading state). Probe with a real RPC call.
+# Wait for the port to accept connections, then hold 10 s so Zebra finishes
+# internal RPC init before nomp sends its first batch request. (Zebra opens
+# 8232 a few seconds before it is fully ready to serve — hitting it too early
+# causes "socket hang up" on pool init.)
 echo "[nomp] Waiting for Zebra RPC at ${ZEBRA_HOST}:${ZEBRA_RPC_PORT}..."
 WAIT=0
-until curl -sf --max-time 5 \
-    -X POST -H 'Content-Type: application/json' \
-    -d '{"jsonrpc":"2.0","id":1,"method":"getblockchaininfo","params":[]}' \
-    "http://${ZEBRA_HOST}:${ZEBRA_RPC_PORT}/" | grep -q '"result"' 2>/dev/null; do
+until nc -z "${ZEBRA_HOST}" "${ZEBRA_RPC_PORT}" 2>/dev/null; do
     sleep 5; WAIT=$((WAIT+5))
     [ $((WAIT % 60)) -eq 0 ] && echo "[nomp] Still waiting for Zebra RPC (${WAIT}s)…"
 done
+sleep 10
 echo "[nomp] Zebra RPC ready."
 
 # ── Generate config.json ───────────────────────────────────────────────────
