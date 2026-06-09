@@ -42,7 +42,7 @@ services:
   # RPC on 8232 (internal Docker network only)
   # P2P on 8233 (exposed — helps network health, safe to open)
   zebra:
-    image: ghcr.io/redlinegt/zmine-zebra:1.3.23
+    image: ghcr.io/redlinegt/zmine-zebra:1.3.28
     <<: *sec
     # cap_drop intentionally omitted: the official Zebra entrypoint uses
     # setpriv to drop from root→zebra user, which requires CAP_SETUID/SETGID.
@@ -115,7 +115,7 @@ services:
   # Stratum on 13333 (exposed — point your ASICs/GPUs here)
   # Web dashboard on 3300 (internal — served via Umbrel proxy)
   nomp:
-    image: ghcr.io/redlinegt/zmine-nomp:1.3.27
+    image: ghcr.io/redlinegt/zmine-nomp:1.3.28
     <<: *sec
     user: "1000:1000"
     cap_drop:
