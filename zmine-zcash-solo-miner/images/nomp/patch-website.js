@@ -45,6 +45,7 @@ const INJECT = `
             "default-src 'self'",
             "script-src 'self' 'unsafe-inline'",
             "style-src 'self' 'unsafe-inline' data:",
+            "font-src 'self' data:",
             "img-src 'self' data: https:",
             "connect-src 'self' https://api.coingecko.com",
             "frame-ancestors 'none'"
