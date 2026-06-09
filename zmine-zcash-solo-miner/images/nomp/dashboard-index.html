@@ -484,7 +484,7 @@ window.toggleSidebar=function(){
   <div class="sb-bottom">
     <span id="nodePill" class="pill pill-sync"><span class="dot blink"></span>Connecting</span>
     <div class="sb-net" id="footerNet">Mainnet</div>
-    <div class="sb-version">ZEC Solo Miner v1.3.24</div>
+    <div class="sb-version">ZEC Solo Miner v1.3.25</div>
   </div>
 </aside>
 
@@ -700,6 +700,10 @@ window.toggleSidebar=function(){
             <div style="font-size:20px;font-weight:800;color:var(--zec);line-height:1" id="cBlocks">0</div>
             <div style="font-size:10px;color:var(--text2);margin-top:5px"><span id="cPending">0</span> pending</div>
           </div>
+          <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
+            <div class="metric-lbl" style="color:var(--zec);margin-bottom:3px">Mining Address — all rewards here</div>
+            <div style="font-size:9px;color:var(--text2);word-break:break-all;font-family:var(--mono)" id="cMinerAddrLuck">—</div>
+          </div>
           <div class="card-reward" id="cReward" style="display:none">
             Block reward: <strong id="cRewardVal">—</strong> ZEC
           </div>
@@ -709,16 +713,6 @@ window.toggleSidebar=function(){
             <div class="halv-bar"><div class="halv-fill" id="cHalvBar" style="width:0"></div></div>
           </div>
           <span id="cBlocksSub" style="display:none"></span>
-        </div>
-        <div class="card compact-card" id="cDiffInfoCard">
-          <div class="card-lbl">Difficulty Info</div>
-          <div class="card-val v-blue" id="cDiff">—</div>
-          <div class="card-sub">live network value</div>
-          <div class="metric-list">
-            <div class="metric-row"><span>Network Hash</span><strong id="cNetHash">—</strong></div>
-            <div class="metric-row"><span>Fleet Hash</span><strong id="cPoolHash">—</strong></div>
-            <div class="metric-row"><span>Round Shares</span><strong id="cRound">—</strong></div>
-          </div>
         </div>
       </div>
 
@@ -895,7 +889,7 @@ window.toggleSidebar=function(){
       </div>
 
       <div class="stack-footer">
-        ZEC Solo Miner v1.3.24 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
+        ZEC Solo Miner v1.3.25 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
       </div>
 
       <div class="donate-section-wrap" style="margin-top:0">
@@ -1305,6 +1299,7 @@ window.saveAddress = function(){
     .then(function(d){
       if(d.ok){
         s('addrVal', d.address);
+        s('cMinerAddrLuck', d.address);
         g('scAddrRow').style.display = 'block';
         var dlg = g('addrDlg');
         if(dlg) dlg.style.display = 'none';
@@ -1323,6 +1318,7 @@ function fetchAddress(){
       currentNetwork = d.network || currentNetwork;
       if(addr){
         s('addrVal', addr);
+        s('cMinerAddrLuck', addr);
         g('scAddrRow').style.display = 'block';
         var dlg = g('addrDlg');
         if(dlg) dlg.style.display = 'none';

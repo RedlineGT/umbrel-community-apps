@@ -90,6 +90,11 @@ const INJECT = `
         var done = 0, zebraProgress = 0, zebraDiff = 0, zebraSolps = 0;
         function finish() {
             if (++done < 3) return;
+            // All 3 RPC calls finished (possibly via timeout). If Zebra was too slow
+            // and returned nothing useful, serve stale cache rather than zeros.
+            if (result.progress === 0 && _nodeCache.data && _nodeCache.data.progress > 0) {
+                return cb(null, _nodeCache.data);
+            }
             result.difficulty = zebraDiff;
             result.networkSolps = zebraSolps;
             if (zebraProgress < 0.995 && zebraDiff === 0) {
