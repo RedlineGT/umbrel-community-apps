@@ -569,7 +569,7 @@ const INJECT = `
     app.get('/api/umbrel/logs/download', function(req, res) {
         res.setHeader('Content-Type', 'text/plain; charset=utf-8');
         res.setHeader('Content-Disposition', 'attachment; filename="zmine-log.txt"');
-        res.send(_logBuffer.join('\n'));
+        res.send(_logBuffer.join('\\n'));
     });
     // end umbrel:patched
 `;
