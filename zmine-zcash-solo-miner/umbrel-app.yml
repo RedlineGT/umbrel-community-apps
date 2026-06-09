@@ -4,7 +4,7 @@ name: Zcash Solo Miner
 tagline: Mine ZEC on mainnet with your own Zebra full node
 icon: https://raw.githubusercontent.com/RedlineGT/umbrel-community-apps/main/zmine-zcash-solo-miner/icon.png
 category: Finance
-version: "1.3.26"
+version: "1.3.27"
 port: 3300
 description: >-
   A complete, self-contained Zcash solo mining stack running entirely on your
@@ -12,34 +12,71 @@ description: >-
   operation.
 
 
-  Features:
+  DASHBOARD
 
-  • Live dashboard with OLED dark theme and collapsible sidebar navigation
+  • OLED dark-themed live dashboard with collapsible sidebar navigation
 
-  • Real-time pool hashrate, active workers, and connected peer count
+  • Real-time clock, network status, and live chain sync progress bar
 
-  • ZEC/USD price ticker with 90-day sparkline chart and high/low range
+  • Stratum card with animated breathing glow — gold while syncing, green
+  when fully synced — showing live connected peer count
 
-  • 90-day network difficulty chart with historical comparison
 
-  • Block odds calculator — daily and monthly probability, closest share
-  ever achieved, and pool vs network hashrate ratio
+  NETWORK & DIFFICULTY
+
+  • Network vs Your Fleet comparison panel — side-by-side network difficulty
+  and hashrate against your fleet, with live updates
+
+  • 90-day network difficulty chart with historical comparison and next
+  retarget projection
+
+  • Share cadence section — fleet average share submission interval and
+  fastest miner highlight
+
+
+  WORKERS & HASHRATE
+
+  • Real-time fleet hashrate, active worker count, and Zebra peer count
+
+  • Per-worker stats table: hashrate, difficulty, session best share,
+  all-time best share, submitted count, rejected count, rejection %, average
+  share interval, and last share time
+
+  • Stratum connection latency panel — TCP round-trip time per connected IP
+
+
+  BLOCKS & ODDS
+
+  • Estimated time to block card with daily and monthly win probability
+
+  • Blocks found counter with large display, pending confirmation count, and
+  your mining reward address
+
+  • Halving countdown with current block subsidy
+
+  • Fleet best share ever achieved, with the miner name that set it
 
   • Complete block history with confirmation status and coinbase TX hashes
 
-  • Per-worker stats: hashrate, current difficulty, session best, all-time
-  best share, efficiency rating, and last share time
 
-  • Stratum endpoint banner — one-click copy for pointing your ASICs or
-  GPU rigs at your node
+  PRICE & NEWS
 
-  • Mining address management — set and update your reward address directly
-  from the dashboard without touching config files
-
-  • Mainnet / Testnet toggle with persistent network flag
+  • ZEC/USD price ticker with 90-day sparkline chart, high/low range, and
+  price drop alert
 
   • Rolling ZEC news ticker — last 14 days of headlines from Yahoo Finance,
-  each headline clickable linking to the original article
+  each headline clickable
+
+
+  SETUP & CONTROLS
+
+  • Stratum endpoint banner with one-click copy for pointing ASICs or GPU
+  rigs directly at your node
+
+  • Mining address management — set or update your reward address from the
+  dashboard without editing config files
+
+  • Mainnet / Testnet toggle with persistent network flag
 
   • Umbrel home screen widget showing Pool Hashrate, Blocks Found, Net
   Difficulty, and Active Workers at a glance
