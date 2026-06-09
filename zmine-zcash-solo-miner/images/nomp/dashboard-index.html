@@ -203,9 +203,11 @@ body{
 .vs-bar-r{height:100%;border-radius:0 2px 2px 0;transition:width .8s ease}
 /* ── Stratum combined card ──────────────────────────────── */
 @keyframes breathe{0%,100%{box-shadow:0 0 0 0 rgba(0,212,170,0);border-color:var(--border)}50%{box-shadow:0 0 20px 5px rgba(0,212,170,.18);border-color:rgba(0,212,170,.5)}}
+@keyframes breatheSync{0%,100%{box-shadow:0 0 0 0 rgba(251,188,5,0);border-color:var(--border)}50%{box-shadow:0 0 20px 5px rgba(251,188,5,.22);border-color:rgba(251,188,5,.55)}}
 .stratum-stat-card{flex:1 1 200px;min-width:180px;background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:14px 16px;transition:border-color .2s,transform .15s;cursor:default}
 .stratum-stat-card:hover{border-color:var(--border2);transform:translateY(-1px)}
 .stratum-stat-card.synced{animation:breathe 3s ease-in-out infinite}
+.stratum-stat-card.syncing{animation:breatheSync 3s ease-in-out infinite}
 .sc-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)}
 .sc-row:last-child{border-bottom:none}
 .sc-lbl{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);font-weight:600}
@@ -484,7 +486,7 @@ window.toggleSidebar=function(){
   <div class="sb-bottom">
     <span id="nodePill" class="pill pill-sync"><span class="dot blink"></span>Connecting</span>
     <div class="sb-net" id="footerNet">Mainnet</div>
-    <div class="sb-version">ZEC Solo Miner v1.3.25</div>
+    <div class="sb-version">ZEC Solo Miner v1.3.26</div>
   </div>
 </aside>
 
@@ -889,7 +891,7 @@ window.toggleSidebar=function(){
       </div>
 
       <div class="stack-footer">
-        ZEC Solo Miner v1.3.25 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
+        ZEC Solo Miner v1.3.26 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
       </div>
 
       <div class="donate-section-wrap" style="margin-top:0">
@@ -1646,7 +1648,7 @@ function updateHashVsPanel(netSolps, poolSolps, shareCount){
 function updateStratumCard(workers, miners, peers, conns){
   if(workers !== undefined){ s('scWorkers', workers); }
   if(miners  !== undefined){ s('scMiners',  miners + (miners===1?'':'')); }
-  if(peers   !== undefined){ s('scPeers',   peers); }
+  if(peers   !== undefined){ s('scPeers', peers); s('scPeersHdr', peers); }
   if(conns   !== undefined){ s('scConns',   conns !== null ? conns : '\u2014'); }
   var peerSub = g('scPeersSub');
   if(peerSub) peerSub.textContent = currentNetwork + ' nodes';
@@ -1741,8 +1743,8 @@ function updateSync(data){
   }
   var sc=g('stratumCard');
   if(sc){
-    if(synced){ sc.classList.add('synced'); }
-    else { sc.classList.remove('synced'); }
+    if(synced){ sc.classList.add('synced'); sc.classList.remove('syncing'); }
+    else { sc.classList.remove('synced'); sc.classList.add('syncing'); }
   }
 }
 
