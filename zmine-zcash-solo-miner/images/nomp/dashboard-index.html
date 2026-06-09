@@ -471,7 +471,7 @@ window.toggleSidebar=function(){
     <div class="dlg-title" style="color:var(--red)">Wipe Blockchain Data</div>
     <div class="dlg-body">This will delete all downloaded chain data. Zebra will re-sync from scratch (2–3 days on first run).<br><br>After confirming, <strong>restart the Zebra service</strong> in Umbrel to apply the wipe.</div>
     <div class="dlg-actions">
-      <button class="btn btn-ghost" onclick="g('resetChainDlg').style.display='none'">Cancel</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('resetChainDlg').style.display='none'">Cancel</button>
       <button class="btn" style="background:var(--red);color:#fff;border-color:var(--red)" onclick="doResetChain()">Wipe &amp; Resync</button>
     </div>
   </div>
@@ -514,7 +514,7 @@ window.toggleSidebar=function(){
   <div class="sb-bottom">
     <span id="nodePill" class="pill pill-sync"><span class="dot blink"></span>Connecting</span>
     <div class="sb-net" id="footerNet">Mainnet</div>
-    <div class="sb-version">ZEC Solo Miner v1.3.35</div>
+    <div class="sb-version">ZEC Solo Miner v1.3.36</div>
   </div>
 </aside>
 
@@ -590,7 +590,7 @@ window.toggleSidebar=function(){
             <div id="syncBlkInfo" class="sync-sub">Downloading chain data…</div>
             <div class="sync-peers"><span class="sync-peers-dot"></span><span id="syncPeers">— peers</span></div>
             <div class="sync-peers" style="margin-top:2px"><span class="sync-peers-dot" style="background:var(--blue)"></span><span id="syncSize">— chain size</span></div>
-            <button style="margin-top:8px;font-size:9px;padding:3px 8px;border-radius:6px;border:1px solid var(--red);background:none;color:var(--red);cursor:pointer;line-height:1.4" onclick="g('resetChainDlg').style.display='flex'">Wipe &amp; Resync</button>
+            <button style="margin-top:8px;font-size:9px;padding:3px 8px;border-radius:6px;border:1px solid var(--red);background:none;color:var(--red);cursor:pointer;line-height:1.4" onclick="document.getElementById('resetChainDlg').style.display='flex'">Wipe &amp; Resync</button>
           </div>
         </div>
 

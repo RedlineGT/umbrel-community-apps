@@ -159,4 +159,15 @@ echo "[nomp] Web UI   : http://0.0.0.0:${WEB_PORT}"
 echo "[nomp] Pool addr: ${POOL_ADDRESS}"
 echo "[nomp] ──────────────────────────────────────"
 
-exec "$@"
+# ── Log file setup ────────────────────────────────────────────────────────
+LOG_FILE="/config/nomp.log"
+# Rotate if > 5 MB — keep last 2 MB
+if [ -f "$LOG_FILE" ]; then
+    size=$(stat -c%s "$LOG_FILE" 2>/dev/null || echo 0)
+    if [ "$size" -gt 5242880 ]; then
+        tail -c 2097152 "$LOG_FILE" > "${LOG_FILE}.tmp" && mv "${LOG_FILE}.tmp" "$LOG_FILE"
+    fi
+fi
+
+# Run node, tee output to both Docker log capture and the mounted log file
+"$@" 2>&1 | tee -a "$LOG_FILE"
