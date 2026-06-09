@@ -75,6 +75,14 @@ RUN DAEMON_JS=/app/node_modules/stratum-pool/lib/daemon.js; \
 COPY patch-website.js /tmp/patch-website.js
 RUN node /tmp/patch-website.js && rm /tmp/patch-website.js
 
+# ── Patch libs/website.js — remove dumpprivkey call (unsupported by Zebra) ──
+# Zebra does not implement dumpprivkey. The website.js code calls it on init
+# to derive coin version bytes, fails with Method not found, then crashes with
+# ERR_HTTP_HEADERS_SENT, respawning the website process in an infinite loop.
+# Fix: replace the whole dumpprivkey block with an immediate cback() call.
+COPY patch-dumpprivkey.js /tmp/patch-dumpprivkey.js
+RUN node /tmp/patch-dumpprivkey.js && rm /tmp/patch-dumpprivkey.js
+
 # ── Replace website/index.html with OLED dark dashboard ──────────────────
 COPY dashboard-index.html /app/website/index.html
 

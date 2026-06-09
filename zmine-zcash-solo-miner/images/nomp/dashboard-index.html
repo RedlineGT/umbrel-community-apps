@@ -213,14 +213,22 @@ body{
 .sc-sub{font-size:9px;color:var(--text3);margin-top:1px}
 /* ── Stat cards ─────────────────────────────────────────── */
 .cards{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:14px;align-items:stretch}
-.card{flex:1 1 148px;min-width:148px;background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:16px 18px;transition:border-color .2s,transform .15s;cursor:default}
+.card{flex:1 1 220px;min-width:220px;background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:14px 16px;transition:border-color .2s,transform .15s;cursor:default}
 .card:hover{border-color:var(--border2);transform:translateY(-1px)}
-.card-lbl{font-size:9px;text-transform:uppercase;letter-spacing:1.8px;color:var(--text3);margin-bottom:10px;font-weight:600}
+.card-lbl{font-size:9px;text-transform:uppercase;letter-spacing:1.8px;color:var(--text3);margin-bottom:8px;font-weight:600}
 .card-val{font-size:22px;font-weight:800;letter-spacing:-.5px;line-height:1;color:var(--text)}
 .v-zec   {color:var(--zec)}
 .v-green {color:var(--green)}
 .v-blue  {color:var(--blue)}
-.card-sub{font-size:10px;color:var(--text2);margin-top:6px;min-height:14px}
+.card-sub{font-size:10px;color:var(--text2);margin-top:5px;min-height:14px}
+.compact-card{display:flex;flex-direction:column;gap:6px;min-height:230px}
+.card-metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+.metric-item{background:var(--surf2);border:1px solid var(--border);border-radius:8px;padding:8px 10px}
+.metric-lbl{font-size:8px;text-transform:uppercase;letter-spacing:1.3px;color:var(--text3);font-weight:700;margin-bottom:3px}
+.metric-val{font-size:14px;font-weight:800;line-height:1.2;color:var(--text)}
+.metric-list{display:flex;flex-direction:column;gap:7px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+.metric-row{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:10px;color:var(--text2)}
+.metric-row strong{font-size:12px;color:var(--text);font-family:var(--mono)}
 /* ── Two-col ────────────────────────────────────────────── */
 .two-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px}
 /* ── ZEC price ──────────────────────────────────────────── */
@@ -563,9 +571,6 @@ window.toggleSidebar=function(){
         </div>
 
         <!-- hidden sinks so existing JS writes don't error -->
-        <span id="cDiff" style="display:none"></span>
-        <span id="cNetHash" style="display:none"></span>
-        <span id="cPoolHash" style="display:none"></span>
         <span id="cWorkers" style="display:none"></span>
         <span id="cMiners" style="display:none"></span>
         <span id="cPeers" style="display:none"></span>
@@ -680,15 +685,20 @@ window.toggleSidebar=function(){
         </div>
 
         <!-- stratum card now at top, removed from here -->
-        <div class="card">
+        <div class="card compact-card" id="cLuckCard">
           <div class="card-lbl">Est. Time to Block</div>
-          <div class="card-val" id="cLuck" style="font-size:16px">—</div>
+          <div class="card-val" id="cLuck" style="font-size:18px">—</div>
           <div class="card-sub" id="cLuckSub">at current hash rate</div>
-        </div>
-        <div class="card">
-          <div class="card-lbl">Blocks Found</div>
-          <div class="card-val v-zec" id="cBlocks">0</div>
-          <div class="card-sub" id="cBlocksSub">0 pending</div>
+          <div class="card-metrics">
+            <div class="metric-item">
+              <div class="metric-lbl">Blocks Found</div>
+              <div class="metric-val v-zec" id="cBlocks">0</div>
+            </div>
+            <div class="metric-item">
+              <div class="metric-lbl">Pending</div>
+              <div class="metric-val" id="cPending">0</div>
+            </div>
+          </div>
           <div class="card-reward" id="cReward" style="display:none">
             Block reward: <strong id="cRewardVal">—</strong> ZEC
           </div>
@@ -696,6 +706,17 @@ window.toggleSidebar=function(){
             <div>Next halving: <strong id="cHalvBlocks">—</strong> blocks</div>
             <div id="cHalvTime"></div>
             <div class="halv-bar"><div class="halv-fill" id="cHalvBar" style="width:0"></div></div>
+          </div>
+          <span id="cBlocksSub" style="display:none"></span>
+        </div>
+        <div class="card compact-card" id="cDiffInfoCard">
+          <div class="card-lbl">Difficulty Info</div>
+          <div class="card-val v-blue" id="cDiff">—</div>
+          <div class="card-sub">live network value</div>
+          <div class="metric-list">
+            <div class="metric-row"><span>Network Hash</span><strong id="cNetHash">—</strong></div>
+            <div class="metric-row"><span>Fleet Hash</span><strong id="cPoolHash">—</strong></div>
+            <div class="metric-row"><span>Round Shares</span><strong id="cRound">—</strong></div>
           </div>
         </div>
       </div>
@@ -1339,6 +1360,7 @@ function poll(){
       s('cPeers',peers);
       s('syncPeers',peers+(peers===1?' peer':' peers')+' connected');
       s('cBlocks',confirmed);
+      s('cPending',pending);
       s('cBlocksSub',pending+' pending');
       s('cLuck',fmtLuck(pool.luckDays));
       s('cLuckSub',pool.luckHours
