@@ -479,7 +479,7 @@ window.toggleSidebar=function(){
 
 <aside class="sidebar" id="sidebar">
   <div class="sb-logo">
-    <div class="sb-logo-icon">
+    <div class="sb-logo-icon" onclick="eggClick()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
         <circle cx="12" cy="12" r="10" stroke="#F4B728" stroke-width="1.5"/>
         <path d="M7 8h10L7 16h10" stroke="#F4B728" stroke-width="2.5" stroke-linecap="round"/>
@@ -1061,6 +1061,18 @@ function spawnParticles() {
       document.body.appendChild(el);
       setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); }, (dur + 0.1) * 1000);
     })(i);
+  }
+}
+var _eggClicks = 0, _eggTimer = null;
+function eggClick() {
+  if (_eggTimer) clearTimeout(_eggTimer);
+  _eggClicks++;
+  if (_eggClicks >= 3) {
+    _eggClicks = 0;
+    var rew = g('cRewardVal') ? g('cRewardVal').textContent : '3.125';
+    triggerBlockFound(rew || '3.125');
+  } else {
+    _eggTimer = setTimeout(function() { _eggClicks = 0; }, 1500);
   }
 }
 function showBlockBanner(reward) {
