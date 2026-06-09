@@ -484,7 +484,7 @@ window.toggleSidebar=function(){
   <div class="sb-bottom">
     <span id="nodePill" class="pill pill-sync"><span class="dot blink"></span>Connecting</span>
     <div class="sb-net" id="footerNet">Mainnet</div>
-    <div class="sb-version">ZEC Solo Miner v1.3.19</div>
+    <div class="sb-version">ZEC Solo Miner v1.3.24</div>
   </div>
 </aside>
 
@@ -633,9 +633,11 @@ window.toggleSidebar=function(){
           </div>
         </div>
 
-        <!-- ── VS Panel 1: Network Difficulty vs Fleet Best Share ── -->
+        <!-- ── Combined VS Panel: Difficulty & Hash Rate ── -->
         <div class="vs-card" id="vsDiffCard">
-          <div class="vs-card-lbl">Difficulty — Network vs Your Fleet</div>
+          <div class="vs-card-lbl">Network vs Your Fleet</div>
+
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.2px;color:var(--text3);margin-bottom:6px;font-weight:600">Difficulty</div>
           <div class="vs-row">
             <div class="vs-side vs-left">
               <div class="vs-side-lbl" style="color:var(--blue)">Network</div>
@@ -659,11 +661,10 @@ window.toggleSidebar=function(){
             <div class="diff-trend-bar"><div class="diff-trend-fill" id="cDiffTrendFill" style="width:50%"></div></div>
             <div style="font-size:9px;color:var(--text3);margin-top:3px">Adjusts every block · Digishield</div>
           </div>
-        </div>
 
-        <!-- ── VS Panel 2: Network Hashrate vs Pool Hashrate ── -->
-        <div class="vs-card" id="vsHashCard">
-          <div class="vs-card-lbl">Hash Rate — Network vs Fleet</div>
+          <div style="border-top:1px solid var(--border);margin:12px 0 8px"></div>
+
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.2px;color:var(--text3);margin-bottom:6px;font-weight:600">Hash Rate</div>
           <div class="vs-row">
             <div class="vs-side vs-left">
               <div class="vs-side-lbl" style="color:var(--blue)">Network</div>
@@ -682,6 +683,11 @@ window.toggleSidebar=function(){
             </div>
           </div>
           <div style="font-size:9px;color:var(--text3);margin-top:6px" id="vsHashShare"></div>
+
+          <div style="border-top:1px solid var(--border);margin:12px 0 8px"></div>
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.2px;color:var(--text3);margin-bottom:5px;font-weight:600">Share Cadence</div>
+          <div style="font-size:13px;font-weight:700;color:var(--text)" id="vsFleetAvgInterval">—</div>
+          <div style="font-size:10px;color:var(--green);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="vsFleetFastestMiner"></div>
         </div>
 
         <!-- stratum card now at top, removed from here -->
@@ -689,15 +695,10 @@ window.toggleSidebar=function(){
           <div class="card-lbl">Est. Time to Block</div>
           <div class="card-val" id="cLuck" style="font-size:18px">—</div>
           <div class="card-sub" id="cLuckSub">at current hash rate</div>
-          <div class="card-metrics">
-            <div class="metric-item">
-              <div class="metric-lbl">Blocks Found</div>
-              <div class="metric-val v-zec" id="cBlocks">0</div>
-            </div>
-            <div class="metric-item">
-              <div class="metric-lbl">Pending</div>
-              <div class="metric-val" id="cPending">0</div>
-            </div>
+          <div style="margin-top:6px;padding-top:8px;border-top:1px solid var(--border)">
+            <div class="metric-lbl" style="margin-bottom:4px">Blocks Found</div>
+            <div style="font-size:20px;font-weight:800;color:var(--zec);line-height:1" id="cBlocks">0</div>
+            <div style="font-size:10px;color:var(--text2);margin-top:5px"><span id="cPending">0</span> pending</div>
           </div>
           <div class="card-reward" id="cReward" style="display:none">
             Block reward: <strong id="cRewardVal">—</strong> ZEC
@@ -856,6 +857,7 @@ window.toggleSidebar=function(){
                 <th class="hide-sm" title="Total invalid/rejected shares">Rejected</th>
                 <th class="hide-sm" title="Rejected shares as % of total">Rej %</th>
                 <th class="hide-sm">Last Share</th>
+                <th class="hide-sm" title="Expected time between shares = current difficulty ÷ hashrate. Lower = faster submission cadence.">Avg Interval</th>
               </tr>
             </thead>
             <tbody id="tbody"></tbody>
@@ -893,7 +895,7 @@ window.toggleSidebar=function(){
       </div>
 
       <div class="stack-footer">
-        ZEC Solo Miner v1.3.19 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
+        ZEC Solo Miner v1.3.24 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
       </div>
 
       <div class="donate-section-wrap" style="margin-top:0">
@@ -1018,6 +1020,38 @@ function fmtLuck(days){
   if(days>=1  ) return days.toFixed(1)+' day'+(days>=2?'s':'');
   return (days*24).toFixed(1)+' hr';
 }
+function fmtInterval(diff, hashrate){
+  if(!diff||!hashrate||!isFinite(diff/hashrate)) return '—';
+  var sec=diff/hashrate;
+  if(sec<60)   return '~'+Math.round(sec)+'s';
+  if(sec<3600) return '~'+Math.round(sec/60)+'m';
+  return '~'+Math.round(sec/3600)+'h';
+}
+function updateFleetCadence(workers){
+  var wkeys=Object.keys(workers);
+  var active=wkeys.filter(function(wk){ return isOnline(workers[wk].lastShare); });
+  if(!active.length){
+    s('vsFleetAvgInterval','—');
+    s('vsFleetFastestMiner','no miners online');
+    return;
+  }
+  var items=active.map(function(wk){
+    var w=workers[wk];
+    var d=parseFloat(w.diff)||0;
+    var h=parseFloat(w.hashrate)||0;
+    return {wk:wk, interval:(d>0&&h>0)?d/h:Infinity};
+  }).filter(function(x){ return isFinite(x.interval); });
+  if(!items.length){ s('vsFleetAvgInterval','—'); s('vsFleetFastestMiner',''); return; }
+  var sum=items.reduce(function(a,x){ return a+x.interval; },0);
+  var avg=sum/items.length;
+  var fastest=items.reduce(function(a,x){ return x.interval<a.interval?x:a; });
+  s('vsFleetAvgInterval', fmtInterval(avg, 1)+' fleet avg');
+  var dot=fastest.wk.indexOf('.');
+  var addr=dot!==-1?fastest.wk.slice(0,dot):fastest.wk;
+  var trail=dot!==-1?fastest.wk.slice(dot):'';
+  var short=addr.length>18?addr.slice(0,9)+'…'+addr.slice(-4):addr;
+  s('vsFleetFastestMiner','⚡ '+short+trail+' ('+fmtInterval(fastest.interval,1)+')');
+}
 function pctOfBlock(diff, netDiff){
   if(!diff||!netDiff) return '—';
   var p=(diff/netDiff)*100;
@@ -1109,7 +1143,7 @@ function renderWorkers(workers, netDiff){
   }
   if(!keys.length){
     var msg=filterAddr?'No workers match this filter':'No workers connected';
-    tbody.innerHTML='<tr><td colspan="9"><div class="empty">'
+    tbody.innerHTML='<tr><td colspan="12"><div class="empty">'
       +'<div class="empty-ico">⛏</div>'
       +'<div>'+msg+'</div>'
       +'<div class="empty-sub">Point your ASIC or GPU miner at the Stratum port shown above</div>'
@@ -1160,6 +1194,7 @@ function renderWorkers(workers, netDiff){
       +'<td class="hide-sm" style="color:var(--text2)">'+fmtNum(inv)+'</td>'
       +'<td class="hide-sm" style="color:'+rejColor+';font-weight:700">'+( total>0 ? rejPct.toFixed(1)+'%' : '—' )+'</td>'
       +'<td class="hide-sm" style="color:var(--text2)">'+timeAgo(w.lastShare)+'</td>'
+      +'<td class="hide-sm" style="color:var(--text2);font-family:var(--mono)">'+fmtInterval(d,parseFloat(w.hashrate)||0)+'</td>'
       +'</tr>';
   });
   tbody.innerHTML=html;
@@ -1369,6 +1404,7 @@ function poll(){
 
       cachedPoolHashrate = parseFloat(pool.hashrate) || 0;
       renderWorkers(pool.workers||{}, netDiff);
+      updateFleetCadence(pool.workers||{});
       updateOdds();
       renderBlocks(pool);
       // VS panels

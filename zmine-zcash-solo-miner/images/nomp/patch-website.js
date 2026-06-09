@@ -66,6 +66,8 @@ const INJECT = `
     var ZEBRA_HOST = process.env.ZEBRA_HOST || 'zebra';
     var ZEBRA_PORT = parseInt(process.env.ZEBRA_RPC_PORT) || 8232;
     function zebraRpc(method, cb) {
+        var _called = false;
+        function once(e, r) { if (_called) return; _called = true; cb(e, r); }
         var body = JSON.stringify({"jsonrpc":"2.0","id":1,"method":method,"params":[]});
         var opts = {
             host: ZEBRA_HOST, port: ZEBRA_PORT, path: '/', method: 'POST',
@@ -74,10 +76,10 @@ const INJECT = `
         var r = _http.request(opts, function(rs) {
             var d = '';
             rs.on('data', function(c) { d += c; });
-            rs.on('end', function() { try { cb(null, JSON.parse(d).result); } catch(e) { cb(e); } });
+            rs.on('end', function() { try { once(null, JSON.parse(d).result); } catch(e) { once(e); } });
         });
-        r.setTimeout(5000, function() { try { r.abort(); } catch(e) { try { r.destroy(); } catch(e2){} } cb(new Error('timeout')); });
-        r.on('error', cb);
+        r.setTimeout(5000, function() { try { r.abort(); } catch(e) { try { r.destroy(); } catch(e2){} } once(new Error('timeout')); });
+        r.on('error', once);
         r.write(body); r.end();
     }
     function buildNodeInfo(cb) {
@@ -92,6 +94,8 @@ const INJECT = `
             result.networkSolps = zebraSolps;
             if (zebraProgress < 0.995 && zebraDiff === 0) {
                 // Not synced and no local diff — try WhatToMine for live display
+                var _wtmDone = false;
+                function wtmDone() { if (_wtmDone) return; _wtmDone = true; _nodeCache = { ts: Date.now(), data: result }; cb(null, result); }
                 var wtm = _https.get('https://whattomine.com/coins/166.json', function(ws) {
                     var d = ''; ws.on('data', function(c){ d+=c; }); ws.on('end', function() {
                         try {
@@ -99,12 +103,11 @@ const INJECT = `
                             if (parseFloat(j.difficulty) > 0) { result.difficulty = parseFloat(j.difficulty); result.diffSource = 'whattomine'; }
                             if (parseFloat(j.nethash) > 0) result.networkSolps = parseFloat(j.nethash);
                         } catch(ex) {}
-                        _nodeCache = { ts: Date.now(), data: result };
-                        cb(null, result);
+                        wtmDone();
                     });
                 });
-                wtm.setTimeout(5000, function() { wtm.destroy(); _nodeCache = { ts: Date.now(), data: result }; cb(null, result); });
-                wtm.on('error', function() { _nodeCache = { ts: Date.now(), data: result }; cb(null, result); });
+                wtm.setTimeout(5000, function() { wtm.destroy(); wtmDone(); });
+                wtm.on('error', function() { wtmDone(); });
             } else {
                 _nodeCache = { ts: Date.now(), data: result };
                 cb(null, result);
@@ -240,6 +243,8 @@ const INJECT = `
         var from  = start.toISOString().slice(0, 10);
         var to    = end.toISOString().slice(0, 10);
         var path  = '/zcash/blocks?a=date,avg(difficulty)&q=time(' + from + '..' + to + ')';
+        var _dSent = false;
+        function dSend(payload) { if (_dSent) return; _dSent = true; res.json(payload); }
         var r2 = _https.get({
             host: 'api.blockchair.com', path: path,
             headers: { 'User-Agent': 'zmine-umbrel/1.0' }
@@ -253,14 +258,14 @@ const INJECT = `
                         return { date: row.date, diff: parseFloat(row['avg(difficulty)']) || 0 };
                     }).filter(function(p) { return p.diff > 0; });
                     if (points.length > 0) _diffHistCache = { ts: Date.now(), points: points };
-                    res.json({ points: points.length > 0 ? points : _diffHistCache.points });
+                    dSend({ points: points.length > 0 ? points : _diffHistCache.points });
                 } catch(e) {
-                    res.json({ points: _diffHistCache.points });
+                    dSend({ points: _diffHistCache.points });
                 }
             });
         });
-        r2.setTimeout(10000, function() { r2.destroy(); res.json({ points: _diffHistCache.points }); });
-        r2.on('error', function() { res.json({ points: _diffHistCache.points }); });
+        r2.setTimeout(10000, function() { r2.destroy(); dSend({ points: _diffHistCache.points }); });
+        r2.on('error', function() { dSend({ points: _diffHistCache.points }); });
     });
     // Umbrel widget endpoint — four-stats for home screen
     var _netDiffCache = { ts: 0, diff: 0 };
