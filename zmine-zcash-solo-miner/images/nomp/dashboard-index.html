@@ -499,7 +499,7 @@ window.toggleSidebar=function(){
   <div class="sb-bottom">
     <span id="nodePill" class="pill pill-sync"><span class="dot blink"></span>Connecting</span>
     <div class="sb-net" id="footerNet">Mainnet</div>
-    <div class="sb-version">ZEC Solo Miner v1.3.30</div>
+    <div class="sb-version">ZEC Solo Miner v1.3.31</div>
   </div>
 </aside>
 
@@ -900,7 +900,7 @@ window.toggleSidebar=function(){
       </div>
 
       <div class="stack-footer">
-        ZEC Solo Miner v1.3.30 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
+        ZEC Solo Miner v1.3.31 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
       </div>
 
       <div class="donate-section-wrap" style="margin-top:0">
@@ -1595,7 +1595,7 @@ function initStratum(){
     .then(function(r){ return r.json(); })
     .then(function(cfg){
       var port=cfg.stratumPort||'13333';
-      s('stratumVal',browserHost+':'+port);
+      s('stratumVal','stratum+tcp://'+browserHost+':'+port);
       if(cfg.appName) s('sbLogoText', cfg.appName);
       if(cfg.chainPath){
         s('scChainPath', cfg.chainPath);
@@ -1608,12 +1608,12 @@ function initStratum(){
         .then(function(d){
           var ip=d.ip||'';
           var internal=/^(172\.(1[6-9]|2[0-9]|3[01])\.|10\.|127\.)/.test(ip);
-          if(ip&&!internal) s('stratumVal',ip+':'+port);
+          if(ip&&!internal) s('stratumVal','stratum+tcp://'+ip+':'+port);
         })
         .catch(function(){});
     })
     .catch(function(){
-      s('stratumVal',browserHost+':13333');
+      s('stratumVal','stratum+tcp://'+browserHost+':13333');
     });
 }
 window.copyStratum=function(){
