@@ -64,8 +64,8 @@ description: >-
   • ZEC/USD price ticker with 90-day sparkline chart, high/low range, and
   price drop alert
 
-  • Rolling ZEC news ticker — last 14 days of headlines from Yahoo Finance,
-  each headline clickable
+  • Rolling ZEC news ticker — last 14 days of headlines from CoinDesk, The
+  Block, and Decrypt — each headline clickable
 
 
   SETUP & CONTROLS

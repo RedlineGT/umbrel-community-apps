@@ -32,6 +32,22 @@ const INJECT = `
     var _os = require('os');
     var _cp = require('child_process');
     var _dns = require('dns');
+    // Live log buffer — captures console output for the dashboard log viewer
+    var _logBuffer = [];
+    var _logMaxLines = 500;
+    var _origLog = console.log.bind(console);
+    var _origErr = console.error.bind(console);
+    function _appendLog(lvl, args) {
+        var d = new Date(), h = d.getHours(), m = d.getMinutes(), s = d.getSeconds();
+        var ts = (h<10?'0':'')+h+':'+(m<10?'0':'')+m+':'+(s<10?'0':'')+s;
+        var msg = Array.prototype.slice.call(args).map(function(a){
+            return (a && typeof a === 'object') ? JSON.stringify(a) : String(a);
+        }).join(' ');
+        _logBuffer.push('['+ts+']['+lvl+'] '+msg);
+        if (_logBuffer.length > _logMaxLines) _logBuffer.shift();
+    }
+    console.log = function() { _origLog.apply(console, arguments); _appendLog('INF', arguments); };
+    console.error = function() { _origErr.apply(console, arguments); _appendLog('ERR', arguments); };
     app.disable('x-powered-by');
     app.use(function umbrelSecurity(req, res, next) {
         res.setHeader('X-Frame-Options', 'DENY');
@@ -546,6 +562,14 @@ const INJECT = `
                 }
             });
         });
+    });
+    app.get('/api/umbrel/logs', function(req, res) {
+        res.json({ lines: _logBuffer.slice() });
+    });
+    app.get('/api/umbrel/logs/download', function(req, res) {
+        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+        res.setHeader('Content-Disposition', 'attachment; filename="zmine-log.txt"');
+        res.send(_logBuffer.join('\n'));
     });
     // end umbrel:patched
 `;

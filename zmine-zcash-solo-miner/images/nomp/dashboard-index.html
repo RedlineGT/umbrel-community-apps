@@ -122,7 +122,7 @@ body{
 .page-body{flex:1;overflow-y:auto;padding:18px 22px 32px;scroll-behavior:smooth}
 /* ── Info cards (sync / addr / stratum) in same row as stat cards ── */
 #syncCard{
-  flex:0 0 240px;
+  flex:1 1 220px;min-width:220px;
   background:var(--surf);border:1px solid rgba(255,140,66,.4);
   border-radius:12px;padding:14px 16px;
   display:flex;align-items:center;gap:14px;
@@ -185,7 +185,7 @@ body{
 .ctrl-warn{border-top:1px solid var(--border);padding-top:10px;display:none}
 .ctrl-warn-txt{font-size:10px;color:var(--orange);line-height:1.4}
 /* ── VS Fight panels ─────────────────────────────────────── */
-.vs-card{flex:2 1 320px;min-width:280px;background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:14px 16px;transition:border-color .2s,transform .15s;cursor:default;position:relative;overflow:hidden}
+.vs-card{flex:1 1 220px;min-width:220px;background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:14px 16px;transition:border-color .2s,transform .15s;cursor:default;position:relative;overflow:hidden}
 .vs-card:hover{border-color:var(--border2);transform:translateY(-1px)}
 .vs-card-lbl{font-size:9px;text-transform:uppercase;letter-spacing:1.8px;color:var(--text3);margin-bottom:10px;font-weight:600}
 .vs-row{display:flex;align-items:center;gap:0;min-height:72px}
@@ -206,7 +206,7 @@ body{
 @keyframes breatheSync{0%,100%{box-shadow:0 0 0 0 rgba(251,188,5,0);border-color:var(--border)}50%{box-shadow:0 0 20px 5px rgba(251,188,5,.22);border-color:rgba(251,188,5,.55)}}
 @keyframes breatheSyncOrange{0%,100%{box-shadow:0 0 0 0 rgba(251,188,5,0);border-color:rgba(255,140,66,.4)}50%{box-shadow:0 0 20px 5px rgba(251,188,5,.22);border-color:rgba(251,188,5,.55)}}
 #syncCard.syncing{animation:breatheSyncOrange 3s ease-in-out infinite}
-.stratum-stat-card{flex:1 1 200px;min-width:180px;background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:14px 16px;transition:border-color .2s,transform .15s;cursor:default}
+.stratum-stat-card{flex:1 1 220px;min-width:220px;background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:14px 16px;transition:border-color .2s,transform .15s;cursor:default}
 .stratum-stat-card:hover{border-color:var(--border2);transform:translateY(-1px)}
 .stratum-stat-card.synced{animation:breathe 3s ease-in-out infinite}
 .stratum-stat-card.syncing{animation:breatheSync 3s ease-in-out infinite}
@@ -398,6 +398,7 @@ tbody tr:hover td{background:rgba(255,255,255,.013)}
   .cards{flex-wrap:wrap}
   #syncCard{flex:0 0 100%}
   #addrBanner,#stratumBanner{flex:1 1 45%}
+  #stratumCard,#vsDiffCard,#cLuckCard{flex:1 1 45%}
   .card{flex:1 1 140px}
   .two-col{grid-template-columns:1fr 1fr}
   .odds-grid{grid-template-columns:1fr 1fr}
@@ -421,10 +422,16 @@ tbody tr:hover td{background:rgba(255,255,255,.013)}
 window.sbNav=function(sec,el){
   document.querySelectorAll('.sb-item').forEach(function(i){i.classList.remove('active');});
   if(el) el.classList.add('active');
-  var dw=document.getElementById('donateWrap'),mc=document.getElementById('mainContent');
+  var dw=document.getElementById('donateWrap'),mc=document.getElementById('mainContent'),ls=document.getElementById('logSection');
+  if(ls) ls.style.display='none';
+  stopLogPoll();
   if(sec==='donate'){
     if(dw) dw.style.display='';
     if(mc) mc.style.display='none';
+  } else if(sec==='log'){
+    if(dw) dw.style.display='none';
+    if(mc) mc.style.display='none';
+    if(ls){ ls.style.display='flex'; startLogPoll(); }
   } else {
     if(dw) dw.style.display='none';
     if(mc) mc.style.display='';
@@ -489,6 +496,10 @@ window.toggleSidebar=function(){
     <button class="sb-item" id="sbBlocks" onclick="sbNav('blocks',this)">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
       <span>Blocks Found</span>
+    </button>
+    <button class="sb-item" id="sbLog" onclick="sbNav('log',this)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      <span>Log</span>
     </button>
     <div class="sb-section-lbl" style="margin-top:6px">Support</div>
     <button class="sb-item" id="sbDonate" onclick="sbNav('donate',this)">
@@ -607,7 +618,7 @@ window.toggleSidebar=function(){
           <div class="sc-row sc-row-addr">
             <div style="flex:1;min-width:0">
               <div class="sc-lbl">Point miners here (<span id="scStratumNet">Mainnet</span>)</div>
-              <div class="sc-val" style="color:var(--zec);font-size:13px;word-break:break-all" id="stratumVal">—</div>
+              <div class="sc-val" style="color:var(--zec);font-size:13px;white-space:nowrap;overflow:hidden" id="stratumVal">—</div>
               <div class="sc-sub" id="stratumNote" style="color:var(--orange)">● Waiting for sync</div>
             </div>
             <button class="btn btn-ghost" style="flex-shrink:0;margin-left:8px" onclick="copyStratum()">Copy</button>
@@ -629,12 +640,15 @@ window.toggleSidebar=function(){
           <!-- hidden sinks -->
           <span id="scPeers" style="display:none"></span>
           <!-- Chain storage info -->
-          <div class="sc-row" id="scChainRow" style="display:none">
-            <div style="flex:1;min-width:0">
+          <div id="scChainRow" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
               <div class="sc-lbl">Chain Storage</div>
-              <div class="sc-sub" id="scChainPath" style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:2px;word-break:break-all"></div>
+              <div class="sc-val" style="color:var(--text2);font-size:12px" id="scChainSize">—</div>
             </div>
-            <div class="sc-val" style="color:var(--text2);font-size:12px" id="scChainSize">—</div>
+            <div style="display:flex;align-items:flex-start;gap:6px">
+              <div id="scChainPath" style="font-family:var(--mono);font-size:9px;color:var(--text3);word-break:break-all;flex:1;min-width:0"></div>
+              <button class="btn btn-ghost" style="font-size:9px;padding:2px 6px;line-height:1.4;flex-shrink:0" onclick="copyChainPath()">Copy</button>
+            </div>
           </div>
         </div>
 
@@ -707,9 +721,9 @@ window.toggleSidebar=function(){
           </div>
           <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
             <div class="metric-lbl" style="color:var(--zec);margin-bottom:3px">Mining Address — all rewards here</div>
-            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px">
-              <div style="font-size:9px;color:var(--text2);word-break:break-all;font-family:var(--mono);flex:1;min-width:0" id="cMinerAddrLuck">—</div>
-              <div style="display:flex;gap:4px;flex-shrink:0">
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <div style="font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;font-family:var(--mono);width:100%" id="cMinerAddrLuck">—</div>
+              <div style="display:flex;gap:4px">
                 <button class="btn btn-ghost" style="font-size:9px;padding:2px 6px;line-height:1.4" onclick="openAddrDialog(true)">Edit</button>
                 <button class="btn btn-ghost" style="font-size:9px;padding:2px 6px;line-height:1.4" onclick="copyAddr()">Copy</button>
               </div>
@@ -719,7 +733,7 @@ window.toggleSidebar=function(){
             Block reward: <strong id="cRewardVal">—</strong> ZEC
           </div>
           <div class="card-halving" id="cHalving" style="display:none">
-            <div>Next halving: <strong id="cHalvBlocks">—</strong> blocks</div>
+            <div><strong id="cHalvBlocks">—</strong> blocks away</div>
             <div id="cHalvTime"></div>
             <div class="halv-bar"><div class="halv-fill" id="cHalvBar" style="width:0"></div></div>
           </div>
@@ -957,6 +971,14 @@ window.toggleSidebar=function(){
       </section>
     </div>
 
+    <div id="logSection" style="display:none;flex-direction:column;height:100%;box-sizing:border-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div style="font-size:15px;font-weight:700;color:var(--text)">Application Log</div>
+        <button class="btn btn-ghost" style="font-size:10px;padding:4px 10px" onclick="downloadLog()">Download</button>
+      </div>
+      <div id="logViewer" style="flex:1;background:var(--surf);border:1px solid var(--border);border-radius:8px;padding:12px;overflow-y:auto;font-family:var(--mono);font-size:10px;color:var(--text2);white-space:pre-wrap;word-break:break-all;min-height:300px;max-height:calc(100vh - 140px)"></div>
+    </div>
+
     <div id="toast" class="hide"></div>
 
   </div>
@@ -968,6 +990,44 @@ window.toggleSidebar=function(){
 /* ── Config ────────────────────────────────────────────── */
 var POLL = 10000;
 var currentNetwork = 'Mainnet';
+
+/* ── Font auto-fit ─────────────────────────────────────── */
+function fitText(elId, maxPx, minPx) {
+  var el = g(elId);
+  if (!el) return;
+  var fs = maxPx;
+  el.style.fontSize = fs + 'px';
+  while (fs > minPx && el.scrollWidth > el.offsetWidth) {
+    fs--;
+    el.style.fontSize = fs + 'px';
+  }
+}
+
+/* ── Log viewer ────────────────────────────────────────── */
+var _logPollTimer = null;
+function startLogPoll() {
+  if (_logPollTimer) return;
+  fetchLog();
+  _logPollTimer = setInterval(fetchLog, 3000);
+}
+function stopLogPoll() {
+  if (_logPollTimer) { clearInterval(_logPollTimer); _logPollTimer = null; }
+}
+function fetchLog() {
+  fetch('/api/umbrel/logs', {credentials:'same-origin'})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var lv = g('logViewer');
+      if (!lv) return;
+      var lines = d.lines || [];
+      var atBottom = lv.scrollTop + lv.clientHeight >= lv.scrollHeight - 20;
+      lv.textContent = lines.join('\n');
+      if (atBottom || lv.scrollHeight === 0) lv.scrollTop = lv.scrollHeight;
+    }).catch(function(){});
+}
+window.downloadLog = function() {
+  window.open('/api/umbrel/logs/download', '_blank');
+};
 
 /* ── State ─────────────────────────────────────────────── */
 var filterAddr = localStorage.getItem('zmf.filter') || '';
@@ -1115,6 +1175,10 @@ window.resetBest=function(){
 };
 window.quickFilter=function(addr){
   g('addrIn').value=addr; doFilter();
+};
+window.copyChainPath=function(){
+  var v=g('scChainPath')?g('scChainPath').textContent.trim():'';
+  if(v) navigator.clipboard.writeText(v).then(function(){ toast('Path copied!'); });
 };
 window.doResetChain=function(){
   g('resetChainDlg').style.display='none';
@@ -1320,7 +1384,7 @@ window.saveAddress = function(){
     .then(function(d){
       if(d.ok){
         s('addrVal', d.address);
-        s('cMinerAddrLuck', d.address);
+        s('cMinerAddrLuck', d.address); fitText('cMinerAddrLuck', 12, 7);
         var dlg = g('addrDlg');
         if(dlg) dlg.style.display = 'none';
         toast('Address saved — restart Zebra to apply to block rewards');
@@ -1338,7 +1402,7 @@ function fetchAddress(){
       currentNetwork = d.network || currentNetwork;
       if(addr){
         s('addrVal', addr);
-        s('cMinerAddrLuck', addr);
+        s('cMinerAddrLuck', addr); fitText('cMinerAddrLuck', 12, 7);
         var dlg = g('addrDlg');
         if(dlg) dlg.style.display = 'none';
       } else {
@@ -1595,7 +1659,7 @@ function initStratum(){
     .then(function(r){ return r.json(); })
     .then(function(cfg){
       var port=cfg.stratumPort||'13333';
-      s('stratumVal','stratum+tcp://'+browserHost+':'+port);
+      s('stratumVal','stratum+tcp://'+browserHost+':'+port); fitText('stratumVal',13,8);
       if(cfg.appName) s('sbLogoText', cfg.appName);
       if(cfg.chainPath){
         s('scChainPath', cfg.chainPath);
@@ -1608,12 +1672,12 @@ function initStratum(){
         .then(function(d){
           var ip=d.ip||'';
           var internal=/^(172\.(1[6-9]|2[0-9]|3[01])\.|10\.|127\.)/.test(ip);
-          if(ip&&!internal) s('stratumVal','stratum+tcp://'+ip+':'+port);
+          if(ip&&!internal){ s('stratumVal','stratum+tcp://'+ip+':'+port); fitText('stratumVal',13,8); }
         })
         .catch(function(){});
     })
     .catch(function(){
-      s('stratumVal','stratum+tcp://'+browserHost+':13333');
+      s('stratumVal','stratum+tcp://'+browserHost+':13333'); fitText('stratumVal',13,8);
     });
 }
 window.copyStratum=function(){
@@ -1709,14 +1773,15 @@ function updateHalvingInfo(blockHeight){
   var nextHalv=(epoch+1)*HALV;
   var blocksLeft=nextHalv-blockHeight;
   var secsLeft=blocksLeft*BT;
-  var days=Math.floor(secsLeft/86400);
-  var hrs=Math.floor((secsLeft%86400)/3600);
-  var mins=Math.floor((secsLeft%3600)/60);
-  var timeStr;
-  if(days>365) timeStr='~'+(days/365).toFixed(1)+' years';
-  else if(days>0) timeStr='~'+days+'d '+hrs+'h '+mins+'m';
-  else if(hrs>0) timeStr=hrs+'h '+mins+'m';
-  else timeStr=mins+' min';
+  var totalDays=Math.floor(secsLeft/86400);
+  var years=Math.floor(totalDays/365);
+  var months=Math.floor((totalDays-years*365)/30);
+  var remDays=totalDays-years*365-months*30;
+  var parts=[];
+  if(years>0) parts.push(years+(years===1?' year':' years'));
+  if(months>0) parts.push(months+(months===1?' month':' months'));
+  if(remDays>0||parts.length===0) parts.push(remDays+(remDays===1?' day':' days'));
+  var timeStr=parts.join(', ');
   var progress=(blockHeight-epoch*HALV)/HALV*100;
   s('cRewardVal',reward.toFixed(2));
   s('cHalvBlocks',blocksLeft.toLocaleString());
