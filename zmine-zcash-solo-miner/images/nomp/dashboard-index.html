@@ -428,14 +428,14 @@ window.sbNav=function(sec,el){
   if(el) el.classList.add('active');
   var dw=document.getElementById('donateWrap'),mc=document.getElementById('mainContent'),ls=document.getElementById('logSection');
   if(ls) ls.style.display='none';
-  stopLogPoll();
+  if(window.stopLogPoll) window.stopLogPoll();
   if(sec==='donate'){
     if(dw) dw.style.display='';
     if(mc) mc.style.display='none';
   } else if(sec==='log'){
     if(dw) dw.style.display='none';
     if(mc) mc.style.display='none';
-    if(ls){ ls.style.display='flex'; startLogPoll(); }
+    if(ls){ ls.style.display='flex'; if(window.startLogPoll) window.startLogPoll(); }
   } else {
     if(dw) dw.style.display='none';
     if(mc) mc.style.display='';
@@ -514,7 +514,7 @@ window.toggleSidebar=function(){
   <div class="sb-bottom">
     <span id="nodePill" class="pill pill-sync"><span class="dot blink"></span>Connecting</span>
     <div class="sb-net" id="footerNet">Mainnet</div>
-    <div class="sb-version">ZEC Solo Miner v1.3.34</div>
+    <div class="sb-version">ZEC Solo Miner v1.3.35</div>
   </div>
 </aside>
 
@@ -647,10 +647,12 @@ window.toggleSidebar=function(){
           <div id="scChainRow" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
               <div class="sc-lbl">Chain Storage</div>
-              <div class="sc-val" style="color:var(--text2);font-size:12px" id="scChainSize">—</div>
             </div>
             <div style="display:flex;align-items:flex-start;gap:6px">
-              <div id="scChainPath" style="font-family:var(--mono);font-size:9px;color:var(--text3);word-break:break-all;flex:1;min-width:0"></div>
+              <div style="flex:1;min-width:0">
+                <div id="scChainPath" style="font-family:var(--mono);font-size:9px;color:var(--text2);word-break:break-all"></div>
+                <div id="scChainSize" style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:2px">—</div>
+              </div>
               <button class="btn btn-ghost" style="font-size:9px;padding:2px 6px;line-height:1.4;flex-shrink:0" onclick="copyChainPath()">Copy</button>
             </div>
           </div>
@@ -1009,14 +1011,14 @@ function fitText(elId, maxPx, minPx) {
 
 /* ── Log viewer ────────────────────────────────────────── */
 var _logPollTimer = null;
-function startLogPoll() {
+window.startLogPoll = function startLogPoll() {
   if (_logPollTimer) return;
   fetchLog();
   _logPollTimer = setInterval(fetchLog, 3000);
-}
-function stopLogPoll() {
+};
+window.stopLogPoll = function stopLogPoll() {
   if (_logPollTimer) { clearInterval(_logPollTimer); _logPollTimer = null; }
-}
+};
 function fetchLog() {
   fetch('/api/umbrel/logs', {credentials:'same-origin'})
     .then(function(r){ return r.json(); })
@@ -1064,7 +1066,7 @@ function spawnParticles() {
   }
 }
 var _eggClicks = 0, _eggTimer = null;
-function eggClick() {
+window.eggClick = function() {
   if (_eggTimer) clearTimeout(_eggTimer);
   _eggClicks++;
   if (_eggClicks >= 3) {
@@ -1074,7 +1076,7 @@ function eggClick() {
   } else {
     _eggTimer = setTimeout(function() { _eggClicks = 0; }, 1500);
   }
-}
+};
 function showBlockBanner(reward) {
   var old = document.getElementById('bfBanner');
   if (old && old.parentNode) old.parentNode.removeChild(old);
