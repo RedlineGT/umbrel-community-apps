@@ -514,7 +514,7 @@ window.toggleSidebar=function(){
   <div class="sb-bottom">
     <span id="nodePill" class="pill pill-sync"><span class="dot blink"></span>Connecting</span>
     <div class="sb-net" id="footerNet">Mainnet</div>
-    <div class="sb-version">ZEC Solo Miner v1.3.37</div>
+    <div class="sb-version">ZEC Solo Miner v1.3.38</div>
   </div>
 </aside>
 
@@ -1043,27 +1043,34 @@ function triggerBlockFound(reward) {
 }
 function spawnParticles() {
   var cx = window.innerWidth / 2, cy = window.innerHeight / 2;
-  var colors = ['#FBbc05','#FFd555','#FFea99','#FFFFFF'];
-  for (var i = 0; i < 48; i++) {
-    (function(idx) {
-      var el = document.createElement('div');
-      var angle = (Math.PI * 2 * idx / 48) + (Math.random() - 0.5) * 0.4;
-      var dist  = 160 + Math.random() * 220;
-      var size  = 5 + Math.floor(Math.random() * 9);
-      var dur   = 0.7 + Math.random() * 0.7;
-      var col   = colors[Math.floor(Math.random() * colors.length)];
-      var bfx   = Math.cos(angle) * dist;
-      var bfy   = Math.sin(angle) * dist;
-      el.style.cssText =
-        'position:fixed;pointer-events:none;z-index:9999;border-radius:50%;' +
-        'left:' + (cx - size/2) + 'px;top:' + (cy - size/2) + 'px;' +
-        'width:' + size + 'px;height:' + size + 'px;background:' + col + ';' +
-        '--bfx:' + bfx + 'px;--bfy:' + bfy + 'px;' +
-        'animation:bfParticle ' + dur + 's ease-out forwards';
-      document.body.appendChild(el);
-      setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); }, (dur + 0.1) * 1000);
-    })(i);
+  var maxDist = Math.min(window.innerWidth, window.innerHeight) * 0.52;
+  var colors = ['#FBbc05','#FFd555','#FFea99','#FFFFFF','#FF8C42','#FF4545','#4DA6FF'];
+  var COUNT = 120;
+  function burst(delay, ox, oy) {
+    for (var i = 0; i < COUNT; i++) {
+      (function(idx, d) {
+        var el = document.createElement('div');
+        var angle = (Math.PI * 2 * idx / COUNT) + (Math.random() - 0.5) * 0.5;
+        var dist  = maxDist * (0.55 + Math.random() * 0.45);
+        var size  = 6 + Math.floor(Math.random() * 10);
+        var dur   = 1.1 + Math.random() * 1.0;
+        var col   = colors[Math.floor(Math.random() * colors.length)];
+        var bfx   = Math.cos(angle) * dist;
+        var bfy   = Math.sin(angle) * dist;
+        el.style.cssText =
+          'position:fixed;pointer-events:none;z-index:9999;border-radius:50%;' +
+          'left:' + ((cx + ox) - size/2) + 'px;top:' + ((cy + oy) - size/2) + 'px;' +
+          'width:' + size + 'px;height:' + size + 'px;background:' + col + ';' +
+          '--bfx:' + bfx + 'px;--bfy:' + bfy + 'px;' +
+          'animation:bfParticle ' + dur + 's ease-out ' + d + 's forwards';
+        document.body.appendChild(el);
+        setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); }, (d + dur + 0.15) * 1000);
+      })(i, delay);
+    }
   }
+  burst(0,    0,   0);
+  burst(0.35, -cx * 0.35, -cy * 0.25);
+  burst(0.55,  cx * 0.35, -cy * 0.25);
 }
 var _eggClicks = 0, _eggTimer = null;
 window.eggClick = function() {
@@ -2196,12 +2203,19 @@ function fetchNews(){
       inner.innerHTML = mkItems(items) + mkItems(items);
       inner.classList.remove('animate');
       inner.style.display='';
-      requestAnimationFrame(function(){
-        var halfW = inner.scrollWidth / 2;
-        var dur = Math.max(15, halfW / 80);
-        inner.style.animationDuration = dur.toFixed(1)+'s';
-        inner.classList.add('animate');
-      });
+      function applyTickerSpeed(){
+        inner.classList.remove('animate');
+        requestAnimationFrame(function(){
+          var halfW = inner.scrollWidth / 2;
+          var dur = Math.max(25, halfW / 50);
+          inner.style.animationDuration = dur.toFixed(1)+'s';
+          inner.classList.add('animate');
+        });
+      }
+      applyTickerSpeed();
+      if(document.fonts && document.fonts.ready){
+        document.fonts.ready.then(function(){ applyTickerSpeed(); });
+      }
     })
     .catch(function(){});
 }
