@@ -82,6 +82,40 @@ const INJECT = `
         r.on('error', once);
         r.write(body); r.end();
     }
+    // Background poller: runs getblockchaininfo every 60s with a 5-minute
+    // timeout so slow Zebra responses (chain_info taking 7-13m under heavy
+    // sync I/O) still populate _nodeCache without blocking the API.
+    (function bgPoll() {
+        var _done = false;
+        function finish() { if (_done) return; _done = true; setTimeout(bgPoll, 60000); }
+        var body = JSON.stringify({"jsonrpc":"2.0","id":1,"method":"getblockchaininfo","params":[]});
+        var opts = { host: ZEBRA_HOST, port: ZEBRA_PORT, path: '/', method: 'POST',
+            headers: {'Content-Type':'application/json','Content-Length':Buffer.byteLength(body)} };
+        var r = _http.request(opts, function(rs) {
+            var d = '';
+            rs.on('data', function(c) { d += c; });
+            rs.on('end', function() {
+                try {
+                    var rr = JSON.parse(d).result;
+                    var prog = parseFloat(rr.verificationprogress) || 0;
+                    if (prog > 0) {
+                        var prev = _nodeCache.data || {};
+                        _nodeCache = { ts: Date.now(), data: Object.assign({}, prev, {
+                            progress: prog,
+                            blocks: parseInt(rr.blocks) || prev.blocks || 0,
+                            estimatedHeight: parseInt(rr.estimatedheight) || prev.estimatedHeight || 0,
+                            sizeOnDisk: parseInt(rr.size_on_disk) || prev.sizeOnDisk || 0
+                        })};
+                    }
+                } catch(ex) {}
+                finish();
+            });
+        });
+        r.setTimeout(300000, function() { try { r.destroy(); } catch(ex) {} finish(); });
+        r.on('error', finish);
+        r.write(body); r.end();
+    })();
+
     function buildNodeInfo(cb) {
         var now = Date.now();
         if (_nodeCache.data && now - _nodeCache.ts < 8000) return cb(null, _nodeCache.data);
@@ -92,7 +126,7 @@ const INJECT = `
             if (++done < 3) return;
             // All 3 RPC calls finished (possibly via timeout). If Zebra was too slow
             // and returned nothing useful, serve stale cache rather than zeros.
-            if (result.progress === 0 && _nodeCache.data && _nodeCache.data.progress > 0) {
+            if (result.progress === 0 && _nodeCache.data) {
                 return cb(null, _nodeCache.data);
             }
             result.difficulty = zebraDiff;
@@ -100,7 +134,7 @@ const INJECT = `
             if (zebraProgress < 0.995 && zebraDiff === 0) {
                 // Not synced and no local diff — try WhatToMine for live display
                 var _wtmDone = false;
-                function wtmDone() { if (_wtmDone) return; _wtmDone = true; _nodeCache = { ts: Date.now(), data: result }; cb(null, result); }
+                function wtmDone() { if (_wtmDone) return; _wtmDone = true; if (result.progress > 0) _nodeCache = { ts: Date.now(), data: result }; cb(null, result); }
                 var wtm = _https.get('https://whattomine.com/coins/166.json', function(ws) {
                     var d = ''; ws.on('data', function(c){ d+=c; }); ws.on('end', function() {
                         try {
@@ -114,7 +148,7 @@ const INJECT = `
                 wtm.setTimeout(5000, function() { wtm.destroy(); wtmDone(); });
                 wtm.on('error', function() { wtmDone(); });
             } else {
-                _nodeCache = { ts: Date.now(), data: result };
+                if (result.progress > 0) _nodeCache = { ts: Date.now(), data: result };
                 cb(null, result);
             }
         }

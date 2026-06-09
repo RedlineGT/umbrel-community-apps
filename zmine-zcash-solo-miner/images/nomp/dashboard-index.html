@@ -204,6 +204,8 @@ body{
 /* ── Stratum combined card ──────────────────────────────── */
 @keyframes breathe{0%,100%{box-shadow:0 0 0 0 rgba(0,212,170,0);border-color:var(--border)}50%{box-shadow:0 0 20px 5px rgba(0,212,170,.18);border-color:rgba(0,212,170,.5)}}
 @keyframes breatheSync{0%,100%{box-shadow:0 0 0 0 rgba(251,188,5,0);border-color:var(--border)}50%{box-shadow:0 0 20px 5px rgba(251,188,5,.22);border-color:rgba(251,188,5,.55)}}
+@keyframes breatheSyncOrange{0%,100%{box-shadow:0 0 0 0 rgba(251,188,5,0);border-color:rgba(255,140,66,.4)}50%{box-shadow:0 0 20px 5px rgba(251,188,5,.22);border-color:rgba(251,188,5,.55)}}
+#syncCard.syncing{animation:breatheSyncOrange 3s ease-in-out infinite}
 .stratum-stat-card{flex:1 1 200px;min-width:180px;background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:14px 16px;transition:border-color .2s,transform .15s;cursor:default}
 .stratum-stat-card:hover{border-color:var(--border2);transform:translateY(-1px)}
 .stratum-stat-card.synced{animation:breathe 3s ease-in-out infinite}
@@ -486,7 +488,7 @@ window.toggleSidebar=function(){
   <div class="sb-bottom">
     <span id="nodePill" class="pill pill-sync"><span class="dot blink"></span>Connecting</span>
     <div class="sb-net" id="footerNet">Mainnet</div>
-    <div class="sb-version">ZEC Solo Miner v1.3.28</div>
+    <div class="sb-version">ZEC Solo Miner v1.3.29</div>
   </div>
 </aside>
 
@@ -568,7 +570,7 @@ window.toggleSidebar=function(){
         <div id="addrBanner" style="display:none">
           <div>
             <div class="addr-lbl">Mining Receiving Address</div>
-            <div class="addr-val" id="addrValSink">—</div>
+            <div class="addr-val" id="addrVal">—</div>
           </div>
         </div>
 
@@ -587,17 +589,6 @@ window.toggleSidebar=function(){
             <div style="display:flex;align-items:center;gap:5px">
               <span style="font-size:15px;font-weight:800;color:var(--green)" id="scPeersHdr">—</span>
               <span style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px" id="scPeersSub">peers</span>
-            </div>
-          </div>
-          <!-- Mining address row -->
-          <div id="scAddrRow" style="display:none;padding-bottom:10px;margin-bottom:4px;border-bottom:1px solid var(--border)">
-            <div class="sc-lbl" style="color:var(--zec);margin-bottom:4px">Mining Address — all rewards here</div>
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-              <div class="addr-val" id="addrVal" style="flex:1;min-width:0">—</div>
-              <div style="display:flex;gap:6px;flex-shrink:0">
-                <button class="btn btn-ghost" onclick="openAddrDialog(true)">Edit</button>
-                <button class="btn btn-ghost" onclick="copyAddr()">Copy</button>
-              </div>
             </div>
           </div>
           <!-- Stratum address row -->
@@ -704,7 +695,13 @@ window.toggleSidebar=function(){
           </div>
           <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
             <div class="metric-lbl" style="color:var(--zec);margin-bottom:3px">Mining Address — all rewards here</div>
-            <div style="font-size:9px;color:var(--text2);word-break:break-all;font-family:var(--mono)" id="cMinerAddrLuck">—</div>
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px">
+              <div style="font-size:9px;color:var(--text2);word-break:break-all;font-family:var(--mono);flex:1;min-width:0" id="cMinerAddrLuck">—</div>
+              <div style="display:flex;gap:4px;flex-shrink:0">
+                <button class="btn btn-ghost" style="font-size:9px;padding:2px 6px;line-height:1.4" onclick="openAddrDialog(true)">Edit</button>
+                <button class="btn btn-ghost" style="font-size:9px;padding:2px 6px;line-height:1.4" onclick="copyAddr()">Copy</button>
+              </div>
+            </div>
           </div>
           <div class="card-reward" id="cReward" style="display:none">
             Block reward: <strong id="cRewardVal">—</strong> ZEC
@@ -891,7 +888,7 @@ window.toggleSidebar=function(){
       </div>
 
       <div class="stack-footer">
-        ZEC Solo Miner v1.3.28 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
+        ZEC Solo Miner v1.3.29 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
       </div>
 
       <div class="donate-section-wrap" style="margin-top:0">
@@ -1302,7 +1299,6 @@ window.saveAddress = function(){
       if(d.ok){
         s('addrVal', d.address);
         s('cMinerAddrLuck', d.address);
-        g('scAddrRow').style.display = 'block';
         var dlg = g('addrDlg');
         if(dlg) dlg.style.display = 'none';
         toast('Address saved — restart Zebra to apply to block rewards');
@@ -1321,11 +1317,9 @@ function fetchAddress(){
       if(addr){
         s('addrVal', addr);
         s('cMinerAddrLuck', addr);
-        g('scAddrRow').style.display = 'block';
         var dlg = g('addrDlg');
         if(dlg) dlg.style.display = 'none';
       } else {
-        g('scAddrRow').style.display = 'none';
         openAddrDialog(false);
       }
     })
@@ -1745,6 +1739,11 @@ function updateSync(data){
   if(sc){
     if(synced){ sc.classList.add('synced'); sc.classList.remove('syncing'); }
     else { sc.classList.remove('synced'); sc.classList.add('syncing'); }
+  }
+  var syncC=g('syncCard');
+  if(syncC){
+    if(synced){ syncC.classList.remove('syncing'); }
+    else{ syncC.classList.add('syncing'); }
   }
 }
 
