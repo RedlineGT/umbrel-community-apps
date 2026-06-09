@@ -424,6 +424,10 @@ tbody tr:hover td{background:rgba(255,255,255,.013)}
 
 <script>
 window.sbNav=function(sec,el){
+  if(window.innerWidth<=640){
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sbOverlay').style.display='none';
+  }
   document.querySelectorAll('.sb-item').forEach(function(i){i.classList.remove('active');});
   if(el) el.classList.add('active');
   var dw=document.getElementById('donateWrap'),mc=document.getElementById('mainContent'),ls=document.getElementById('logSection');
@@ -446,8 +450,12 @@ window.sbNav=function(sec,el){
 };
 window.toggleSidebar=function(){
   var sb=document.getElementById('sidebar');
-  if(window.innerWidth<=640){sb.classList.toggle('open');}
-  else{sb.classList.toggle('collapsed');}
+  if(window.innerWidth<=640){
+    var isOpen=sb.classList.toggle('open');
+    document.getElementById('sbOverlay').style.display=isOpen?'block':'none';
+  } else {
+    sb.classList.toggle('collapsed');
+  }
 };
 </script>
 
@@ -477,6 +485,7 @@ window.toggleSidebar=function(){
   </div>
 </div>
 
+<div id="sbOverlay" onclick="toggleSidebar()" style="display:none;position:fixed;inset:0;z-index:199;background:rgba(0,0,0,.5)"></div>
 <aside class="sidebar" id="sidebar">
   <div class="sb-logo">
     <div class="sb-logo-icon" onclick="eggClick()">
@@ -514,7 +523,7 @@ window.toggleSidebar=function(){
   <div class="sb-bottom">
     <span id="nodePill" class="pill pill-sync"><span class="dot blink"></span>Connecting</span>
     <div class="sb-net" id="footerNet">Mainnet</div>
-    <div class="sb-version">ZEC Solo Miner v1.3.38</div>
+    <div class="sb-version">ZEC Solo Miner v1.3.39</div>
   </div>
 </aside>
 
@@ -654,6 +663,9 @@ window.toggleSidebar=function(){
                 <div id="scChainSize" style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:2px">—</div>
               </div>
               <button class="btn btn-ghost" style="font-size:9px;padding:2px 6px;line-height:1.4;flex-shrink:0" onclick="copyChainPath()">Copy</button>
+            </div>
+            <div style="margin-top:6px">
+              <button style="font-size:9px;padding:2px 8px;border-radius:6px;border:1px solid var(--red);background:none;color:var(--red);cursor:pointer;line-height:1.4" onclick="document.getElementById('resetChainDlg').style.display='flex'">Wipe &amp; Resync</button>
             </div>
           </div>
         </div>

@@ -32,8 +32,8 @@ const INJECT = `
     var _os = require('os');
     var _cp = require('child_process');
     var _dns = require('dns');
-    // Live log buffer — captures console output for the dashboard log viewer
-    var _logFile = '/config/nomp.log';
+    // Combined log written by log-collector sidecar (all containers, prefixed)
+    var _logFile = '/config/combined.log';
     var _logMaxLines = 500;
     app.disable('x-powered-by');
     app.use(function umbrelSecurity(req, res, next) {

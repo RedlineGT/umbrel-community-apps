@@ -115,7 +115,7 @@ services:
   # Stratum on 13333 (exposed — point your ASICs/GPUs here)
   # Web dashboard on 3300 (internal — served via Umbrel proxy)
   nomp:
-    image: ghcr.io/redlinegt/zmine-nomp:1.3.38
+    image: ghcr.io/redlinegt/zmine-nomp:1.3.39
     <<: *sec
     user: "1000:1000"
     cap_drop:
@@ -178,6 +178,43 @@ services:
       options:
         max-size: "5m"
         max-file: "2"
+
+  # ── Log aggregator — streams all container logs to /config/combined.log ─────
+  # Mounts the Docker socket (read-only) so it can follow each service's logs
+  # and write them with the standard "container_name  | message" prefix.
+  log-collector:
+    image: docker:cli
+    <<: *sec
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${APP_DATA_DIR}/config:/config
+    command:
+      - sh
+      - -c
+      - |
+        > /config/combined.log
+        follow() {
+          cname="$$1"
+          while true; do
+            docker logs -f "$$cname" 2>/dev/null | while IFS= read -r ln; do
+              printf '%s  | %s\n' "$$cname" "$$ln" >> /config/combined.log
+            done
+            sleep 2
+          done
+        }
+        follow zmine-zcash-solo-miner_nomp_1 &
+        follow zmine-zcash-solo-miner_zebra_1 &
+        follow zmine-zcash-solo-miner_miner_1 &
+        follow zmine-zcash-solo-miner_app_proxy_1 &
+        wait
+    networks:
+      - default
+    mem_limit: 64m
+    logging:
+      driver: json-file
+      options:
+        max-size: "1m"
+        max-file: "1"
 
 networks:
   default:
