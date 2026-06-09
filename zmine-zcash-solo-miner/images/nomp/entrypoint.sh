@@ -52,9 +52,14 @@ until nc -z "${REDIS_HOST}" 6379 2>/dev/null; do sleep 2; done
 echo "[nomp] Redis ready."
 
 # ── Wait for Zebra RPC ─────────────────────────────────────────────────────
+# nc -z only checks if the port is open; Zebra opens 8232 before it can serve
+# requests (drops connections while loading state). Probe with a real RPC call.
 echo "[nomp] Waiting for Zebra RPC at ${ZEBRA_HOST}:${ZEBRA_RPC_PORT}..."
 WAIT=0
-until nc -z "${ZEBRA_HOST}" "${ZEBRA_RPC_PORT}" 2>/dev/null; do
+until curl -sf --max-time 5 \
+    -X POST -H 'Content-Type: application/json' \
+    -d '{"jsonrpc":"2.0","id":1,"method":"getblockchaininfo","params":[]}' \
+    "http://${ZEBRA_HOST}:${ZEBRA_RPC_PORT}/" | grep -q '"result"' 2>/dev/null; do
     sleep 5; WAIT=$((WAIT+5))
     [ $((WAIT % 60)) -eq 0 ] && echo "[nomp] Still waiting for Zebra RPC (${WAIT}s)…"
 done
