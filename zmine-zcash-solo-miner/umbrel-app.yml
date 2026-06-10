@@ -4,7 +4,7 @@ name: Zcash Solo Miner
 tagline: Mine ZEC on mainnet with your own Zebra full node
 icon: https://raw.githubusercontent.com/RedlineGT/umbrel-community-apps/main/zmine-zcash-solo-miner/icon.png
 category: Finance
-version: "1.3.43"
+version: "1.3.44"
 port: 3300
 description: >-
   A complete, self-contained Zcash solo mining stack running entirely on your
