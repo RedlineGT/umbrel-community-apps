@@ -47,7 +47,7 @@ const INJECT = `
             "style-src 'self' 'unsafe-inline' data:",
             "font-src 'self' data:",
             "img-src 'self' data: https:",
-            "connect-src 'self' https://api.coingecko.com https://ip-api.com",
+            "connect-src 'self' https://api.coingecko.com",
             "frame-ancestors 'none'"
         ].join('; '));
         res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
@@ -195,11 +195,51 @@ const INJECT = `
     app.get('/api/umbrel/nodeinfo', function(req, res) {
         buildNodeInfo(function(err, data) { res.json(data || {}); });
     });
-    // Peer list for geo card — returns addr + direction for each connected peer
+    // Peer list with server-side geo — returns addr + direction + geo for each connected peer
+    var _geoCache = {};
+    function _peerIp(addr) {
+        if (addr.charAt(0) === '[') return addr.split(']:')[0].slice(1);
+        return addr.split(':')[0];
+    }
     app.get('/api/umbrel/peers', function(req, res) {
         zebraRpc('getpeerinfo', function(e, r) {
             if (e || !Array.isArray(r)) return res.json([]);
-            res.json(r.map(function(p) { return { addr: p.addr, inbound: !!p.inbound }; }));
+            var peers = r.map(function(p) { return { addr: p.addr, inbound: !!p.inbound }; });
+            var needed = [];
+            var seen = {};
+            peers.forEach(function(p) {
+                var ip = _peerIp(p.addr);
+                if (!_geoCache.hasOwnProperty(ip) && !seen[ip]) { needed.push(ip); seen[ip] = true; }
+            });
+            function attach() {
+                peers.forEach(function(p) { p.geo = _geoCache[_peerIp(p.addr)] || null; });
+                res.json(peers);
+            }
+            if (!needed.length) return attach();
+            var body = JSON.stringify(needed.slice(0, 100).map(function(ip) {
+                return { query: ip, fields: 'query,status,country,countryCode,city' };
+            }));
+            var _sent = false;
+            var req2 = require('http').request({
+                hostname: 'ip-api.com', path: '/batch?fields=query,status,country,countryCode,city',
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) }
+            }, function(r2) {
+                var data = '';
+                r2.on('data', function(c) { data += c; });
+                r2.on('end', function() {
+                    if (_sent) return; _sent = true;
+                    try {
+                        JSON.parse(data).forEach(function(g) {
+                            _geoCache[g.query] = g.status === 'success'
+                                ? { country: g.country, cc: g.countryCode, city: g.city } : null;
+                        });
+                    } catch(ex) {}
+                    attach();
+                });
+            });
+            req2.on('error', function() { if (_sent) return; _sent = true; attach(); });
+            req2.write(body);
+            req2.end();
         });
     });
     // Address GET — returns saved address and current network

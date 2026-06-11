@@ -582,7 +582,7 @@ window.sbNav=function(sec,el){
           <div id="scPeersRow" class="sc-row sc-row-addr" style="display:none;border-top:1px solid var(--border)">
             <div style="flex:1;min-width:0">
               <div class="sc-lbl" style="margin-bottom:5px">Network Peers</div>
-              <div id="peersList"></div>
+              <div id="peersList" style="max-height:200px;overflow-y:auto"></div>
             </div>
           </div>
         </div>
@@ -844,7 +844,7 @@ window.sbNav=function(sec,el){
       </div>
 
       <div class="stack-footer">
-        Zcash Solo Miner v1.3.47 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
+        Zcash Solo Miner v1.3.48 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
       </div>
 
       <div class="donate-section-wrap" style="margin-top:0">
@@ -2239,26 +2239,16 @@ function _pgRender(){
   }
   el.innerHTML=h;
 }
-function _pgGeolocate(ips){
-  var needed=ips.filter(function(ip){return !_PG[ip];});
-  if(!needed.length){_pgRender();return;}
-  var batch=needed.slice(0,100).map(function(ip){return {query:ip,fields:'query,status,country,countryCode,city'};});
-  fetch('https://ip-api.com/batch?fields=query,status,country,countryCode,city',{
-    method:'POST',body:JSON.stringify(batch)
-  }).then(function(r){return r.json();}).then(function(res){
-    for(var i=0;i<res.length;i++){
-      var r=res[i];
-      _PG[r.query]=r.status==='success'?{country:r.country,cc:r.countryCode,city:r.city}:{country:'',cc:'',city:''};
-    }
-    _pgRender();
-  }).catch(function(){_pgRender();});
-}
 function fetchNodePeers(){
   fetch('/api/umbrel/peers',{credentials:'same-origin'})
     .then(function(r){return r.json();})
     .then(function(peers){
       if(!Array.isArray(peers))return;
       _PG_peers=peers;
+      for(var i=0;i<peers.length;i++){
+        var ip=_pgIp(peers[i].addr);
+        if(peers[i].geo)_PG[ip]=peers[i].geo;
+      }
       var row=g('scPeersRow');
       if(row)row.style.display=peers.length>0?'':'none';
       var out=0,inn=0;
@@ -2268,8 +2258,7 @@ function fetchNodePeers(){
         :'';
       var subs=['syncPeersSub','scPeersInOut'];
       for(var j=0;j<subs.length;j++){var e=g(subs[j]);if(e)e.innerHTML=sub;}
-      var ips=peers.map(function(p){return _pgIp(p.addr);});
-      _pgGeolocate(ips);
+      _pgRender();
     }).catch(function(){});
 }
 /* ── Stratum peer latency → RTT column in workers table ─── */
