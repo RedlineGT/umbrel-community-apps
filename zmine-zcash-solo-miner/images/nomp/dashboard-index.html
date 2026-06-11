@@ -844,7 +844,7 @@ window.sbNav=function(sec,el){
       </div>
 
       <div class="stack-footer">
-        Zcash Solo Miner v1.3.46 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
+        Zcash Solo Miner v1.3.47 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
       </div>
 
       <div class="donate-section-wrap" style="margin-top:0">
@@ -915,200 +915,6 @@ window.sbNav=function(sec,el){
 </div>
 
 
-<script>
-/* ═══════════════════════════════════════════════════════════
-   MOCK DATA — local visual test only, auto-removed before build
-   ═══════════════════════════════════════════════════════════ */
-(function(){
-  var ADDR = 't1fgGy3CBkKJax8EH1RquQdPGPXPnDH5ig6';
-  var BASE_BLOCK = 2568000, EST_HEIGHT = 2573200;
-
-  /* diff history — generated once */
-  var _diffPts = (function(){
-    var pts=[], base=195000000, t=Date.now()-90*864e5;
-    for(var i=0;i<90;i++){
-      base*=(0.965+Math.random()*0.072);
-      base=Math.max(180000000,Math.min(300000000,base));
-      var d=new Date(t+i*864e5);
-      pts.push({date:d.toLocaleDateString('en-US',{month:'short',day:'numeric'}),diff:Math.round(base)});
-    }
-    pts[pts.length-1].diff=246500000; return pts;
-  })();
-
-  /* price history — generated once */
-  var _pricePts = (function(){
-    var arr=[],base=29,now=Date.now();
-    for(var i=89;i>=0;i--){
-      base*=(0.965+Math.random()*0.075);
-      base=Math.max(17,Math.min(55,base));
-      arr.push([now-i*864e5,+base.toFixed(2)]);
-    }
-    arr[arr.length-1][1]=31.42; return arr;
-  })();
-
-  /* live MOCKS object — refreshed every 2s by the timer below */
-  var MOCKS = {};
-
-  function refreshMocks() {
-    var t   = Date.now() / 1000;
-    var NOW = Math.floor(t);
-
-    /* sync cycles 68% -> 99.8% every 75s then resets */
-    var cyc  = (t % 75) / 75;
-    var prog = +(Math.min(0.68 + cyc * 0.32, 0.998)).toFixed(4);
-    var blk  = BASE_BLOCK + Math.floor(cyc * 2800);
-
-    /* workers — rig-2 drops for 10s every 60s */
-    var rig2off = (Math.floor(t) % 60) < 10;
-    var h1 = Math.round(1800 + Math.sin(t * 0.11) * 380);
-    var h2 = rig2off ? 0 : Math.round(900  + Math.sin(t * 0.08) * 190);
-    var h3 = Math.round(320  + Math.sin(t * 0.16) * 45);
-    var h4 = Math.round(12   + Math.sin(t * 0.22) * 3);
-    var poolHr = h1 + h2 + h3 + h4;
-    var wc = rig2off ? 3 : 4;
-    var s1 = (Math.floor(t * 0.17) % 8000) + 900;
-    var s2 = (Math.floor(t * 0.10) % 4500) + 400;
-    var s3 = (Math.floor(t * 0.05) % 1800) + 200;
-    var s4 = (Math.floor(t * 0.01) % 400)  + 50;
-    var luck   = Math.max(0.1, +(0.9  + Math.sin(t * 0.035) * 0.75).toFixed(2));
-    var netS   = +(21.4  + Math.sin(t * 0.045) * 3.2).toFixed(1);
-    var diff   = Math.round(246500000 + Math.sin(t * 0.025) * 12000000);
-    var peers  = Math.max(6, 10 + Math.round(Math.sin(t * 0.07) * 3));
-    var netSlp = Math.round(21400000 + Math.sin(t * 0.045) * 3200000);
-    var hasPending = (Math.floor(t / 45) % 3 === 0);
-
-    var ws = {};
-    ws[ADDR+'.asic-rig-1'] = {hashrate:h1, diff:96, shares:s1, invalidshares:2,  lastShare:NOW-Math.max(5,Math.floor(Math.abs(Math.sin(t*0.31))*85))};
-    if (!rig2off) ws[ADDR+'.asic-rig-2'] = {hashrate:h2, diff:48, shares:s2, invalidshares:1, lastShare:NOW-Math.max(5,Math.floor(Math.abs(Math.sin(t*0.21))*55))};
-    ws[ADDR+'.gpu-rig-1']  = {hashrate:h3, diff:24, shares:s3, invalidshares:0,  lastShare:NOW-Math.max(5,Math.floor(Math.abs(Math.sin(t*0.41))*65))};
-    ws[ADDR+'.cpu-miner']  = {hashrate:h4, diff:4,  shares:s4, invalidshares:0,  lastShare:NOW-Math.max(5,Math.floor(Math.abs(Math.sin(t*0.53))*110))};
-
-    MOCKS['/api/umbrel/nodeinfo'] = {
-      progress:prog, blocks:blk, estimatedHeight:EST_HEIGHT,
-      sizeOnDisk: Math.floor(CHAIN_BASE + cyc * 150000000),
-      peers:peers, difficulty:diff, networkSolps:netSlp, diffSource:'node'
-    };
-
-    MOCKS['/api/stats'] = { pools: { ZcashMining: {
-      hashrate:poolHr,
-      hashrateString: poolHr>=1000 ? (poolHr/1000).toFixed(1)+' kSol/s' : poolHr+' Sol/s',
-      workerCount:wc, minerCount:2, shareCount:s1+s2+s3+s4,
-      luckDays:luck, luckHours:+(luck*24).toFixed(1),
-      poolStats:{networkDiff:diff, networkConnections:peers,
-                 networkSols:netS, networkSolsString:netS+' MSol/s'},
-      blocks:{confirmed:2, pending:hasPending?1:0},
-      confirmed:{blocks:[
-        '0000000bab8cd8a3f2e7c9d1e0b2a4c6d8e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4:a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2:2568401:'+ADDR+'.asic-rig-1:'+(NOW-86400)+':confirmed',
-        '0000000123456789abcdef01234567890abcdef01234567890abcdef012345678:b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3:2548123:'+ADDR+'.asic-rig-1:'+(NOW-259200)+':confirmed'
-      ]},
-      pending:{blocks: hasPending ? [
-        '00000001def2345678abcdef0123456789abcdef0123456789abcdef01234567:c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4:2571034:'+ADDR+'.asic-rig-2:'+(NOW-3600)+':pending'
-      ] : []},
-      workers:ws
-    }}};
-
-    MOCKS['/api/umbrel/stratum-peers'] = { peers:[
-      {ip:'192.168.1.10',port:13333,host:'asic-rig-1.local',rttMs:+(0.42+Math.abs(Math.sin(t*0.29))*0.9).toFixed(2)},
-      {ip:'192.168.1.11',port:13333,host:'asic-rig-2.local',rttMs:+(1.83+Math.sin(t*0.19)*0.6).toFixed(2)},
-      {ip:'192.168.1.15',port:13333,host:null,              rttMs:+(0.15+Math.abs(Math.sin(t*0.51))*0.25).toFixed(2)},
-      {ip:'192.168.1.20',port:13333,host:'gpu-rig-1.local', rttMs:+(12.4+Math.sin(t*0.14)*3.1).toFixed(2)}
-    ]};
-
-    /* log lines grow over time */
-    var logBase = [
-      '[12:00:01] Zebra node connected — Mainnet',
-      '[12:00:01] Stratum server listening on :13333',
-      '[12:00:02] Pool initialized: ZcashMining',
-      '[12:00:05] Worker connected: asic-rig-1 (192.168.1.10)',
-      '[12:00:07] Worker connected: asic-rig-2 (192.168.1.11)',
-      '[12:00:09] Worker connected: gpu-rig-1 (192.168.1.20)',
-      '[12:00:14] Worker connected: cpu-miner (192.168.1.15)'
-    ];
-    var logExtra = ['Share accepted — asic-rig-1 diff:96','Share accepted — gpu-rig-1 diff:24',
-      'Share accepted — asic-rig-2 diff:48','Share rejected (stale) — cpu-miner',
-      'Share accepted — asic-rig-1 diff:96','Network peer: 185.220.101.1 connected',
-      'Share accepted — asic-rig-2 diff:48','Share accepted — asic-rig-1 diff:96',
-      'asic-rig-2 disconnected','asic-rig-2 reconnected',
-      'Share accepted — gpu-rig-1 diff:24','New block template — height '+(blk+1)];
-    var logLines = logBase.slice();
-    var lc = Math.floor(t * 0.4) % (logExtra.length + 1);
-    for (var li=0; li<Math.min(lc,logExtra.length); li++) logLines.push('['+new Date().toTimeString().slice(0,8)+'] '+logExtra[li]);
-    MOCKS['/api/umbrel/logs'] = {lines: logLines};
-  }
-
-  /* static endpoints */
-  var CHAIN_BASE = 48234567890;
-  MOCKS['/api/umbrel/config']  = {stratumPort:'13333',appName:'Zcash Solo Miner',chainPath:'/data/zebra/network/mainnet',poolAddress:ADDR};
-  MOCKS['/api/umbrel/news']    = {items:[
-    {title:'Zcash Foundation Announces NU6.2 Upgrade Progress',url:'https://z.cash',date:'Jun 8'},
-    {title:'ZEC/USD Trading Volume Hits 6-Month High on Binance',url:'https://coindesk.com',date:'Jun 7'},
-    {title:'Electric Coin Company Publishes New Privacy Report',url:'https://electriccoin.co',date:'Jun 6'},
-    {title:'Zcash Network Difficulty Reaches All-Time High',url:'https://z.cash',date:'Jun 5'},
-    {title:'Solo Mining ZEC: A Complete Guide for 2026',url:'https://theblock.co',date:'Jun 4'},
-    {title:'Zcash Shielded Transactions Now 78% of All On-Chain Activity',url:'https://decrypt.co',date:'Jun 3'}
-  ]};
-  MOCKS['/api/umbrel/diff-history'] = {points:_diffPts};
-  MOCKS['/api/umbrel/peers'] = [
-    {addr:'185.220.101.1:8233',inbound:false},{addr:'95.217.44.58:8233',inbound:true},
-    {addr:'23.137.57.100:8233',inbound:false},{addr:'139.99.96.250:8233',inbound:false},
-    {addr:'51.81.48.64:8233',inbound:true},   {addr:'176.9.24.106:8233',inbound:false},
-    {addr:'45.76.244.186:8233',inbound:true},  {addr:'5.9.29.8:8233',inbound:false},
-    {addr:'194.165.16.11:8233',inbound:false}, {addr:'91.107.192.23:8233',inbound:true},
-    {addr:'47.254.28.101:8233',inbound:false}, {addr:'172.104.214.130:8233',inbound:false}
-  ];
-  MOCKS['/api/umbrel/hostip']  = {ip:'192.168.1.100'};
-  MOCKS['/api/umbrel/network'] = {network:'Mainnet'};
-  MOCKS['/api/umbrel/address'] = {address:ADDR};
-
-  /* populate dynamic keys immediately, then keep refreshing */
-  refreshMocks();
-  setInterval(refreshMocks, 2000);
-
-  /* intercept fetch */
-  var _real = window.fetch;
-  window.fetch = function(url, opts) {
-    var p = typeof url==='string' ? url.split('?')[0] : '';
-    if (MOCKS[p] !== undefined) {
-      var snap = MOCKS[p];
-      return Promise.resolve({ok:true, json:function(){ return Promise.resolve(snap); }});
-    }
-    if (p.indexOf('coingecko.com') !== -1) {
-      var t2   = Date.now()/1000;
-      var isH  = p.indexOf('market_chart') !== -1;
-      var px   = +(31.42 + Math.sin(t2 * 0.007) * 5.1).toFixed(2);
-      var chg  = +(Math.sin(t2 * 0.005) * 4.8).toFixed(2);
-      var cg   = isH ? {prices:_pricePts} : {zcash:{usd:px,usd_24h_change:chg}};
-      return Promise.resolve({ok:true, json:function(){ return Promise.resolve(cg); }});
-    }
-    if (p.indexOf('ip-api.com') !== -1) {
-      var _geo = {
-        '185.220.101.1':  {country:'Germany',       countryCode:'DE', city:'Frankfurt'},
-        '95.217.44.58':   {country:'Finland',        countryCode:'FI', city:'Helsinki'},
-        '23.137.57.100':  {country:'United States',  countryCode:'US', city:'Chicago'},
-        '139.99.96.250':  {country:'Australia',      countryCode:'AU', city:'Sydney'},
-        '51.81.48.64':    {country:'United States',  countryCode:'US', city:'Ashburn'},
-        '176.9.24.106':   {country:'Germany',        countryCode:'DE', city:'Nuremberg'},
-        '45.76.244.186':  {country:'United States',  countryCode:'US', city:'Atlanta'},
-        '5.9.29.8':       {country:'Germany',        countryCode:'DE', city:'Falkenstein'},
-        '194.165.16.11':  {country:'Netherlands',    countryCode:'NL', city:'Amsterdam'},
-        '91.107.192.23':  {country:'Germany',        countryCode:'DE', city:'Nuremberg'},
-        '47.254.28.101':  {country:'Japan',          countryCode:'JP', city:'Tokyo'},
-        '172.104.214.130':{country:'Japan',          countryCode:'JP', city:'Tokyo'}
-      };
-      var _body = [];
-      try { _body = JSON.parse(opts && opts.body ? opts.body : '[]'); } catch(e){}
-      var _res = _body.map(function(q) {
-        var g = _geo[q.query];
-        return g ? {query:q.query, status:'success', country:g.country, countryCode:g.countryCode, city:g.city}
-                 : {query:q.query, status:'fail'};
-      });
-      return Promise.resolve({ok:true, json:function(){ return Promise.resolve(_res); }});
-    }
-    return _real ? _real.apply(this, arguments) : Promise.reject(new Error('no real fetch'));
-  };
-})();
-/* ═══════════════════════════════════════════════════════════ */
-</script>
 
 <script>
 !function(){'use strict';
@@ -1986,7 +1792,7 @@ function updateDiffVsPanel(netDiff, allBestMap, netDiffArg){
   Object.keys(allBestMap||{}).forEach(function(w){ if((allBestMap[w]||0) > best){ best = allBestMap[w]; bestW = w; } });
   if(best > 0){
     s('vsDiffBest', fmtN(best));
-    var short = bestW.length > 18 ? bestW.slice(0,8)+'\u2026'+bestW.slice(-6) : bestW;
+    var _dot=bestW.indexOf('.');var short=_dot!==-1?bestW.slice(_dot+1):bestW;
     s('vsDiffBestMiner', short ? '\u26CF\uFE0F '+short : '');
     // bar: left = net proportion (always 100%), right = best/net ratio capped at 50%
     var ratio = net > 0 ? Math.min(best / net, 0.5) : 0;
