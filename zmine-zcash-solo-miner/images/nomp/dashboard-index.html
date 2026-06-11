@@ -9,13 +9,12 @@
 :root{
   --bg:#000;--surf:#0d0d0d;--surf2:#131313;--surf3:#1a1a1a;
   --border:#1e1e1e;--border2:#2b2b2b;
-  --text:#f0f0f0;--text2:#8a8a8a;--text3:#474747;
+  --text:#f0f0f0;--text2:#8a8a8a;--text3:#555555;
   --zec:#F4B728;--zec-a:rgba(244,183,40,.09);--zec-b:rgba(244,183,40,.28);
   --green:#00D4AA;--green-a:rgba(0,212,170,.09);
   --blue:#4DA6FF;--blue-a:rgba(77,166,255,.09);
-  --orange:#FF8C42;--orange-a:rgba(255,140,66,.09);
+  --orange:#E8952A;--orange-a:rgba(232,149,42,.09);
   --red:#FF4545;--red-a:rgba(255,69,69,.09);
-  --sb-w:230px;
   --font:'Inter',system-ui,-apple-system,sans-serif;
   --mono:'SF Mono','JetBrains Mono','Fira Code','Consolas',monospace;
 }
@@ -23,57 +22,22 @@
 html{height:100%}
 body{
   height:100vh;background:var(--bg);color:var(--text);
-  font-family:var(--font);font-size:13px;line-height:1.5;
+  font-family:var(--font);font-size:12px;line-height:1.5;
   -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
   display:flex;overflow:hidden;
 }
-/* ── Sidebar ────────────────────────────────────────────── */
-.sidebar{
-  width:var(--sb-w);height:100vh;flex-shrink:0;
-  background:var(--surf);border-right:1px solid var(--border);
-  display:flex;flex-direction:column;
-  position:relative;z-index:100;
-  transition:width .25s ease;overflow:hidden;
-}
-.sidebar.collapsed{width:58px}
-.sb-logo{
-  display:flex;align-items:center;gap:11px;
-  padding:20px 16px 18px;border-bottom:1px solid var(--border);
-  white-space:nowrap;flex-shrink:0;
-}
-.sb-logo-icon{
-  width:34px;height:34px;border-radius:9px;flex-shrink:0;
-  background:var(--zec-a);border:1px solid var(--zec-b);
-  display:flex;align-items:center;justify-content:center;
-}
-.sb-logo-text{font-size:12px;font-weight:800;letter-spacing:2px;color:var(--zec)}
-.sidebar.collapsed .sb-logo-text{display:none}
-.sb-section-lbl{
-  font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
-  color:var(--text3);padding:14px 16px 5px;white-space:nowrap;flex-shrink:0;
-}
-.sidebar.collapsed .sb-section-lbl{display:none}
-.sb-nav{flex:1;padding:4px 0;overflow-y:auto;overflow-x:hidden}
-.sb-item{
-  display:flex;align-items:center;gap:12px;
-  padding:11px 16px;cursor:pointer;border:none;background:none;
-  color:var(--text2);font-family:var(--font);font-size:13px;font-weight:500;
-  white-space:nowrap;width:100%;text-align:left;
-  border-left:2px solid transparent;
-  transition:color .15s,background .15s,border-color .15s;
-}
-.sb-item:hover{color:var(--text);background:var(--surf2)}
-.sb-item.active{color:var(--zec);background:var(--zec-a);border-left-color:var(--zec)}
-.sb-item svg{flex-shrink:0}
-.sidebar.collapsed .sb-item span{display:none}
-.sb-bottom{
-  padding:14px 16px;border-top:1px solid var(--border);
-  flex-shrink:0;white-space:nowrap;overflow:hidden;
-}
-.sidebar.collapsed .sb-bottom{padding:10px}
-.sb-net{font-size:10px;color:var(--text3);margin-top:6px;font-weight:600;letter-spacing:.5px}
-.sb-version{font-size:9px;color:var(--text3);margin-top:3px;opacity:.45}
-.sidebar.collapsed .sb-net,.sidebar.collapsed .sb-version{display:none}
+/* ── Header nav / logo ───────────────────────────────── */
+.hdr-logo{display:flex;align-items:center;gap:10px;margin-right:8px;flex-shrink:0;cursor:pointer}
+.hdr-logo-icon{width:30px;height:30px;border-radius:8px;background:var(--zec-a);border:1px solid var(--zec-b);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.hdr-logo-text{font-size:12px;font-weight:800;letter-spacing:2px;color:var(--zec);white-space:nowrap}
+.hdr-sep{width:1px;height:22px;background:var(--border2);margin:0 8px;flex-shrink:0}
+.hdr-nav{display:flex;align-items:center;gap:2px}
+.hdr-nav-item{display:inline-flex;align-items:center;gap:5px;padding:6px 11px;cursor:pointer;border:none;background:none;color:var(--text2);font-family:var(--font);font-size:12px;font-weight:500;border-radius:7px;border-bottom:2px solid transparent;transition:color .15s,background .15s,border-color .15s;white-space:nowrap}
+.hdr-nav-item:hover{color:var(--text);background:var(--surf2)}
+.hdr-nav-item.active{color:var(--zec);background:var(--zec-a);border-bottom-color:var(--zec)}
+.hdr-act{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:7px;background:var(--surf2);border:1px solid var(--border);color:var(--text3);font-family:var(--font);font-size:12px;font-weight:600;letter-spacing:.2px;cursor:pointer;transition:background .15s,color .15s;text-decoration:none;white-space:nowrap}
+.hdr-act:hover{background:var(--surf3);color:var(--text)}
+.hdr-act.active{color:var(--zec);background:var(--zec-a);border-color:var(--zec-b)}
 /* ── Page wrap ──────────────────────────────────────────── */
 .page-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
 #syncBar{height:2px;flex-shrink:0;background:var(--surf3)}
@@ -87,19 +51,9 @@ body{
   border-bottom:1px solid var(--border);z-index:50;
 }
 .ph-left{display:flex;align-items:center;gap:12px}
-.sb-toggle{
-  width:32px;height:32px;border-radius:8px;
-  background:var(--surf2);border:1px solid var(--border);
-  color:var(--text2);cursor:pointer;display:flex;
-  align-items:center;justify-content:center;flex-shrink:0;
-  transition:background .15s,color .15s;
-}
-.sb-toggle:hover{background:var(--surf3);color:var(--text)}
-.ph-title{font-size:15px;font-weight:700;color:var(--text);line-height:1.2}
-.ph-sub{font-size:11px;color:var(--text3);margin-top:1px}
 .ph-right{display:flex;align-items:center;gap:14px;font-size:12px}
 #hdrZecPrice{
-  color:var(--zec);font-weight:700;font-size:13px;
+  color:var(--zec);font-weight:700;font-size:12px;
   background:var(--zec-a);border:1px solid var(--zec-b);
   padding:3px 10px;border-radius:20px;
 }
@@ -113,7 +67,7 @@ body{
   font-weight:700;letter-spacing:.4px;border:1px solid;cursor:default;
 }
 .pill-live {color:var(--green); border-color:rgba(0,212,170,.35); background:var(--green-a)}
-.pill-sync {color:var(--orange);border-color:rgba(255,140,66,.35);background:var(--orange-a)}
+.pill-sync {color:var(--orange);border-color:rgba(232,149,42,.35);background:var(--orange-a)}
 .pill-dead {color:var(--red);   border-color:rgba(255,69,69,.35); background:var(--red-a)}
 .dot{width:6px;height:6px;border-radius:50%;background:currentColor;display:inline-block}
 .dot.blink{animation:blink 2s ease-in-out infinite}
@@ -122,9 +76,9 @@ body{
 /* ── Info cards (sync / addr / stratum) in same row as stat cards ── */
 #syncCard{
   flex:1 1 220px;min-width:220px;
-  background:var(--surf);border:1px solid rgba(255,140,66,.4);
+  background:var(--surf);border:1px solid rgba(244,183,40,.35);
   border-radius:12px;padding:14px 16px;
-  display:flex;align-items:flex-start;gap:14px;
+  display:flex;flex-direction:column;
 }
 #addrBanner{
   flex:1 1 200px;min-width:200px;
@@ -143,16 +97,25 @@ body{
 .addr-lbl{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--zec);margin-bottom:4px}
 .addr-val{font-size:12px;color:var(--text);word-break:break-all;font-family:var(--mono)}
 /* ── Sync card internals ────────────────────────────────── */
-.sync-donut{flex-shrink:0}
-.sync-info{flex:1;min-width:130px;display:flex;flex-direction:column}
-.sync-lbl{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--orange);margin-bottom:6px}
-.sync-pct{font-size:22px;font-weight:900;color:var(--zec);line-height:1}
+.sync-lbl{font-size:12px;color:var(--zec);margin-bottom:0}
 .sync-sub{font-size:10px;color:var(--text2);margin-top:5px}
 .sync-peers{font-size:10px;color:var(--text3);margin-top:4px;display:flex;align-items:center;gap:5px}
 .sync-peers-dot{width:5px;height:5px;border-radius:50%;background:var(--green);flex-shrink:0}
+/* ── Sync block feed ─────────────────────────────────── */
+@keyframes sfIn{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:none}}
+@keyframes sfDn{from{transform:translateY(-34px)}to{transform:none}}
+@keyframes sfCubeSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.sync-donut{width:clamp(60px,8vw,104px);aspect-ratio:1/1;flex-shrink:0;margin-top:2px;animation:donutBreath 3s ease-in-out infinite;transform-origin:center}
+@keyframes donutBreath{0%,100%{transform:scale(1);filter:drop-shadow(0 0 3px rgba(244,183,40,.25))}50%{transform:scale(1.025);filter:drop-shadow(0 0 8px rgba(244,183,40,.5))}}
+.sfi{display:flex;align-items:center;gap:9px;padding:3px 0}
+.sfi.sf-new{animation:sfIn .35s cubic-bezier(0,.8,.3,1) forwards}
+.sfi.sf-dn{animation:sfDn .35s cubic-bezier(0,.8,.3,1) forwards}
+.sfi-icon{animation:sfCubeSpin 4s linear infinite;display:block}
+.peer-row{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--border)}
+.peer-row:last-child{border-bottom:none}
 /* ── Stratum banner label styles ── */
 .stratum-lbl{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--blue);margin-bottom:4px}
-.stratum-val{font-size:14px;color:var(--text);font-weight:700;letter-spacing:.5px}
+.stratum-val{font-size:15px;color:var(--text);font-weight:700;letter-spacing:.5px}
 .stratum-note{font-size:10px;margin-top:4px}
 .sc-row-addr{flex-wrap:nowrap;align-items:flex-start;padding-bottom:10px;margin-bottom:2px}
 /* ── Prune notice ───────────────────────────────────────── */
@@ -172,7 +135,7 @@ body{
 .ctrl-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .ctrl-label-col{flex:1;min-width:200px}
 .ctrl-title{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--text3);margin-bottom:3px;font-weight:600}
-.ctrl-desc{font-size:11px;color:var(--text2);line-height:1.4}
+.ctrl-desc{font-size:12px;color:var(--text2);line-height:1.4}
 .toggle-wrap{display:flex;align-items:center;gap:8px;flex-shrink:0}
 .toggle-wrap span{font-size:10px;color:var(--text2)}
 .toggle{position:relative;display:inline-block;width:44px;height:24px}
@@ -190,7 +153,7 @@ body{
 .vs-row{display:flex;align-items:center;gap:0;min-height:72px}
 .vs-side{flex:1;display:flex;flex-direction:column;gap:4px}
 .vs-side-lbl{font-size:8px;text-transform:uppercase;letter-spacing:1.5px;font-weight:700;opacity:.7}
-.vs-side-val{font-size:20px;font-weight:900;letter-spacing:-.5px;line-height:1}
+.vs-side-val{font-size:22px;font-weight:900;letter-spacing:-.5px;line-height:1}
 .vs-side-sub{font-size:9px;margin-top:2px;opacity:.65;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px}
 .vs-left{text-align:left}
 .vs-right{text-align:right;align-items:flex-end}
@@ -203,7 +166,7 @@ body{
 /* ── Stratum combined card ──────────────────────────────── */
 @keyframes breathe{0%,100%{box-shadow:0 0 0 0 rgba(0,212,170,0);border-color:var(--border)}50%{box-shadow:0 0 20px 5px rgba(0,212,170,.18);border-color:rgba(0,212,170,.5)}}
 @keyframes breatheSync{0%,100%{box-shadow:0 0 0 0 rgba(251,188,5,0);border-color:var(--border)}50%{box-shadow:0 0 20px 5px rgba(251,188,5,.22);border-color:rgba(251,188,5,.55)}}
-@keyframes breatheSyncOrange{0%,100%{box-shadow:0 0 0 0 rgba(251,188,5,0);border-color:rgba(255,140,66,.4)}50%{box-shadow:0 0 20px 5px rgba(251,188,5,.22);border-color:rgba(251,188,5,.55)}}
+@keyframes breatheSyncOrange{0%,100%{box-shadow:0 0 0 0 rgba(251,188,5,0);border-color:rgba(244,183,40,.35)}50%{box-shadow:0 0 20px 5px rgba(244,183,40,.22);border-color:rgba(251,188,5,.55)}}
 #syncCard.syncing{animation:breatheSyncOrange 3s ease-in-out infinite}
 .stratum-stat-card{flex:1 1 220px;min-width:220px;background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:14px 16px;transition:border-color .2s,transform .15s;cursor:default}
 .stratum-stat-card:hover{border-color:var(--border2);transform:translateY(-1px)}
@@ -211,27 +174,17 @@ body{
 .stratum-stat-card.syncing{animation:breatheSync 3s ease-in-out infinite}
 .sc-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)}
 .sc-row:last-child{border-bottom:none}
-.sc-lbl{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);font-weight:600}
+.sc-lbl{font-size:12px;color:var(--text2)}
 .sc-val{font-size:15px;font-weight:800;letter-spacing:-.3px}
-.sc-sub{font-size:9px;color:var(--text3);margin-top:1px}
+.sc-sub{font-size:10px;color:var(--text3);margin-top:1px}
 /* ── Stat cards ─────────────────────────────────────────── */
 .cards{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:14px;align-items:stretch}
 .card{flex:1 1 220px;min-width:220px;background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:14px 16px;transition:border-color .2s,transform .15s;cursor:default}
 .card:hover{border-color:var(--border2);transform:translateY(-1px)}
 .card-lbl{font-size:9px;text-transform:uppercase;letter-spacing:1.8px;color:var(--text3);margin-bottom:8px;font-weight:600}
 .card-val{font-size:22px;font-weight:800;letter-spacing:-.5px;line-height:1;color:var(--text)}
-.v-zec   {color:var(--zec)}
-.v-green {color:var(--green)}
-.v-blue  {color:var(--blue)}
 .card-sub{font-size:10px;color:var(--text2);margin-top:5px;min-height:14px}
 .compact-card{display:flex;flex-direction:column;gap:6px;min-height:230px}
-.card-metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
-.metric-item{background:var(--surf2);border:1px solid var(--border);border-radius:8px;padding:8px 10px}
-.metric-lbl{font-size:8px;text-transform:uppercase;letter-spacing:1.3px;color:var(--text3);font-weight:700;margin-bottom:3px}
-.metric-val{font-size:14px;font-weight:800;line-height:1.2;color:var(--text)}
-.metric-list{display:flex;flex-direction:column;gap:7px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
-.metric-row{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:10px;color:var(--text2)}
-.metric-row strong{font-size:12px;color:var(--text);font-family:var(--mono)}
 /* ── Two-col ────────────────────────────────────────────── */
 .two-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px}
 /* ── ZEC price ──────────────────────────────────────────── */
@@ -248,30 +201,21 @@ body{
 .spark-wrap{width:100%;height:72px}
 .spark-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--text3);margin-top:3px}
 /* ── Block reward & halving countdown ───────────────────── */
-.card-reward{font-size:10px;color:var(--text2);margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
-.card-reward strong{color:var(--zec);font-size:11px}
-.card-halving{font-size:10px;color:var(--text3);margin-top:6px;line-height:1.5}
-.card-halving strong{color:var(--text)}
+.card-reward{font-size:12px;color:var(--text2);margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+.card-reward strong{color:var(--zec)}
+.card-halving{font-size:12px;color:var(--text2);margin-top:6px;line-height:1.5}
+.card-halving strong{color:var(--zec)}
 .halv-bar{height:3px;background:var(--surf3);border-radius:2px;margin-top:5px;overflow:hidden}
 .halv-fill{height:100%;background:linear-gradient(90deg,var(--zec),var(--green));border-radius:2px;transition:width 1s ease}
-/* ── Diff retarget info ────────────────────────────── */
-.diff-retarget{font-size:10px;color:var(--text2);margin-top:8px;padding-top:8px;border-top:1px solid var(--border);line-height:1.6}
 .diff-proj-val{font-weight:700;color:var(--blue)}
 .diff-chg-up{color:var(--red);font-weight:700}
 .diff-chg-dn{color:var(--green);font-weight:700}
 .diff-trend-bar{height:3px;background:var(--surf3);border-radius:2px;margin-top:5px;overflow:hidden;position:relative}
 .diff-trend-fill{height:100%;border-radius:2px;transition:width .8s ease}
-/* ── Stratum latency panel ───────────────────────────── */
-#stratumLatency{margin-top:14px;background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:14px 16px}
-.lat-title{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--text3);font-weight:700;margin-bottom:10px}
-.lat-grid{display:flex;flex-wrap:wrap;gap:8px}
-.lat-row{display:flex;align-items:center;gap:8px;background:var(--surf2);border-radius:8px;padding:7px 12px;min-width:200px;flex:1 1 200px}
-.lat-ip{font-size:11px;font-family:monospace;color:var(--text);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lat-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;white-space:nowrap}
-.lat-good{color:var(--green);background:var(--green-a)}
-.lat-ok  {color:var(--zec);background:rgba(244,183,40,.12)}
-.lat-slow{color:var(--red);background:var(--red-a)}
-.lat-note{font-size:9px;color:var(--text3);margin-top:8px}
+/* ── RTT badge in workers table ──────────────────────── */
+.rtt-good{color:var(--green)}
+.rtt-ok  {color:var(--zec)}
+.rtt-slow{color:var(--red)}
 /* ── Block odds ─────────────────────────────────────────── */
 #oddsSection{background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
 .odds-title{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--text3);margin-bottom:12px;font-weight:700}
@@ -292,7 +236,7 @@ body{
 .tab-bar{display:flex;gap:0;margin-bottom:14px;border-bottom:1px solid var(--border)}
 .tab-btn{
   background:none;border:none;padding:9px 18px;
-  font-family:var(--font);font-size:11px;font-weight:600;
+  font-family:var(--font);font-size:12px;font-weight:600;
   letter-spacing:.5px;text-transform:uppercase;
   color:var(--text3);cursor:pointer;
   border-bottom:2px solid transparent;margin-bottom:-1px;
@@ -301,34 +245,31 @@ body{
 .tab-btn.active{color:var(--zec);border-bottom-color:var(--zec)}
 .tab-btn:hover:not(.active){color:var(--text)}
 /* ── Buttons ────────────────────────────────────────────── */
-.btn{display:inline-flex;align-items:center;gap:5px;border:none;border-radius:8px;cursor:pointer;font-family:var(--font);font-size:11px;font-weight:600;padding:7px 14px;transition:opacity .15s,background .15s;white-space:nowrap;letter-spacing:.2px}
+.btn{display:inline-flex;align-items:center;gap:5px;border:none;border-radius:8px;cursor:pointer;font-family:var(--font);font-size:12px;font-weight:600;padding:7px 14px;transition:opacity .15s,background .15s;white-space:nowrap;letter-spacing:.2px}
 .btn:hover{opacity:.82}
 .btn-gold {background:var(--zec);color:#000}
 .btn-ghost{background:var(--surf2);color:var(--text2);border:1px solid var(--border)}
 .btn-ghost:hover{color:var(--text);border-color:var(--border2)}
-.btn-warn {background:var(--red-a);color:var(--red);border:1px solid rgba(255,69,69,.3)}
+.btn-warn  {background:var(--red-a);color:var(--red);border:1px solid rgba(255,69,69,.3)}
+.btn-danger{background:var(--red);color:#fff;border:1px solid var(--red)}
 /* ── Search ─────────────────────────────────────────────── */
 .search{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
 .search-input{flex:1;min-width:220px;background:var(--surf);border:1px solid var(--border);border-radius:8px;padding:8px 14px;color:var(--text);font-family:var(--font);font-size:12px;outline:none;transition:border-color .2s}
 .search-input:focus{border-color:var(--zec)}
 .search-input::placeholder{color:var(--text3)}
 /* ── Tables ─────────────────────────────────────────────── */
-.tbl-wrap{background:var(--surf);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:24px}
+.tbl-wrap{background:var(--surf);border:1px solid var(--border);border-radius:12px;overflow-x:auto;overflow-y:hidden;margin-bottom:24px}
 table{width:100%;border-collapse:collapse}
 thead th{background:var(--surf2);padding:9px 14px;text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);font-weight:700;border-bottom:1px solid var(--border);white-space:nowrap}
 tbody td{padding:11px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
 tbody tr:last-child td{border-bottom:none}
 tbody tr:hover td{background:rgba(255,255,255,.013)}
-.wname{color:var(--zec);cursor:pointer;font-size:11px;font-family:var(--mono)}
+.wname{color:var(--zec);cursor:pointer;font-size:12px;font-family:var(--mono)}
 .wname:hover{text-decoration:underline}
-.wsuffix{color:var(--text3);font-size:11px;font-family:var(--mono)}
+.addr-warn{display:inline-flex;align-items:center;gap:3px;margin-left:5px;padding:1px 5px;border-radius:4px;font-size:9px;font-weight:700;font-family:var(--mono);background:rgba(232,149,42,.12);color:var(--orange);border:1px solid rgba(232,149,42,.28);cursor:default;vertical-align:middle;white-space:nowrap}
 .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:9px;font-weight:800;letter-spacing:.5px}
 .b-on {background:var(--green-a);color:var(--green)}
 .b-off{background:var(--orange-a);color:var(--orange)}
-.eff{display:flex;align-items:center;gap:8px}
-.eff-track{flex:1;height:3px;background:var(--surf3);border-radius:2px;overflow:hidden;min-width:48px}
-.eff-fill{height:100%;background:var(--green);border-radius:2px}
-.eff-pct{min-width:30px;text-align:right;color:var(--text2);font-size:10px}
 .dc-zero{color:var(--text3)}
 .dc-low {color:var(--text2)}
 .dc-med {color:var(--orange);font-weight:600}
@@ -336,14 +277,14 @@ tbody tr:hover td{background:rgba(255,255,255,.013)}
 .dc-block{color:var(--green);font-weight:900;animation:glow 1.5s ease-in-out infinite}
 @keyframes glow{0%,100%{text-shadow:0 0 6px var(--green)}50%{text-shadow:0 0 14px var(--green)}}
 .empty{text-align:center;padding:56px 16px;color:var(--text3)}
-.empty-ico{font-size:34px;margin-bottom:14px}
-.empty-sub{font-size:11px;margin-top:6px;color:var(--text3)}
-.bh-height{font-family:var(--mono);font-size:16px;font-weight:900;color:var(--zec)}
+.empty-ico{font-size:32px;margin-bottom:14px}
+.empty-sub{font-size:12px;margin-top:6px;color:var(--text3)}
+.bh-height{font-family:var(--mono);font-size:15px;font-weight:900;color:var(--zec)}
 .bh-height a{color:inherit;text-decoration:none}
 .bh-height a:hover{text-decoration:underline}
 .bh-hash{font-family:var(--mono);font-size:10px;color:var(--text2);cursor:pointer;white-space:nowrap}
 .bh-hash:hover{color:var(--text);text-decoration:underline}
-.bh-worker{font-size:11px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bh-worker{font-size:12px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .bh-status-conf{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:9px;font-weight:800;letter-spacing:.5px;background:var(--green-a);color:var(--green)}
 .bh-status-pend{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:9px;font-weight:800;letter-spacing:.5px;background:var(--orange-a);color:var(--orange)}
 .bh-time{font-size:10px;color:var(--text2);white-space:nowrap}
@@ -351,13 +292,13 @@ tbody tr:hover td{background:rgba(255,255,255,.013)}
 .dlg-overlay{position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.88);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px}
 .dlg-box{background:var(--surf);border:1px solid var(--border2);border-radius:14px;padding:28px 28px 22px;max-width:520px;width:100%}
 .dlg-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:8px}
-.dlg-body{font-size:11px;color:var(--text2);margin-bottom:16px;line-height:1.6}
+.dlg-body{font-size:12px;color:var(--text2);margin-bottom:16px;line-height:1.6}
 .dlg-input{width:100%;background:var(--surf2);border:1px solid var(--border2);border-radius:8px;padding:10px 14px;color:var(--text);font-family:var(--mono);font-size:12px;outline:none;transition:border-color .2s;margin-bottom:6px}
 .dlg-input:focus{border-color:var(--zec)}
 .dlg-error{font-size:10px;color:var(--red);min-height:16px;margin-bottom:10px}
 .dlg-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
 /* ── Toast ──────────────────────────────────────────────── */
-#toast{position:fixed;bottom:24px;right:24px;z-index:500;background:var(--surf2);border:1px solid var(--border2);border-radius:8px;padding:10px 18px;font-size:11px;pointer-events:none;transition:opacity .3s,transform .3s}
+#toast{position:fixed;bottom:24px;right:24px;z-index:500;background:var(--surf2);border:1px solid var(--border2);border-radius:8px;padding:10px 18px;font-size:12px;pointer-events:none;transition:opacity .3s,transform .3s}
 #toast.hide{opacity:0;transform:translateY(8px)}
 /* ── Donate ─────────────────────────────────────────────── */
 .donate-section-wrap{padding:24px 0}
@@ -369,29 +310,28 @@ tbody tr:hover td{background:rgba(255,255,255,.013)}
 .donate-coin.zec{color:var(--zec)}
 .donate-coin.bch{color:#0AC18E}
 .donate-qr canvas,.donate-qr img{display:block;border-radius:4px}
-.donate-addr{font-size:8.5px;color:var(--text2);word-break:break-all;text-align:center;max-width:190px;line-height:1.6;font-family:var(--mono)}
-.donate-copy{background:var(--surf3);border:1px solid var(--border2);border-radius:5px;color:var(--text2);font-family:var(--font);font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:4px 12px;cursor:pointer;transition:background .15s,color .15s}
+.donate-addr{font-size:9px;color:var(--text2);word-break:break-all;text-align:center;max-width:190px;line-height:1.6;font-family:var(--mono)}
+.donate-copy{background:var(--surf3);border:1px solid var(--border2);border-radius:5px;color:var(--text2);font-family:var(--font);font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:4px 0;min-width:72px;width:72px;text-align:center;cursor:pointer;transition:background .15s,color .15s}
 .donate-copy:hover{background:var(--surf2);color:var(--text)}
 /* ── Stack footer ───────────────────────────────────────── */
 .stack-footer{text-align:center;padding:18px 0 4px;color:var(--text3);font-size:10px;letter-spacing:.5px;border-top:1px solid var(--border);margin-top:14px}
 .stack-footer span{color:var(--text3)}
 /* ── News ticker ─────────────────────────────────────────── */
 #newsTicker{background:var(--surf);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px}
-.ticker-label{display:inline-flex;align-items:center;background:var(--zec);color:#000;font-size:8px;font-weight:900;letter-spacing:2px;text-transform:uppercase;padding:0 14px;white-space:nowrap;flex-shrink:0}
+.ticker-label{display:inline-flex;align-items:center;background:var(--zec);color:#000;font-size:9px;font-weight:900;letter-spacing:2px;text-transform:uppercase;padding:0 14px;white-space:nowrap;flex-shrink:0}
 .ticker-wrap{display:flex;align-items:center;overflow:hidden;flex:1;min-width:0}
 .ticker-inner{display:inline-flex;align-items:center;white-space:nowrap;will-change:transform}
 .ticker-inner.animate{animation:tickerScroll linear infinite}
 @keyframes tickerScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 .ticker-item{display:inline-flex;align-items:center;gap:6px;padding:0 24px 0 0}
-.ticker-item a{color:var(--text);font-size:11px;text-decoration:none;transition:color .15s}
+.ticker-item a{color:var(--text);font-size:12px;text-decoration:none;transition:color .15s}
 .ticker-item a:hover{color:var(--zec);text-decoration:underline}
 .ticker-sep{color:var(--text3);font-size:12px;padding-right:12px;line-height:1;flex-shrink:0}
 .ticker-date{font-size:9px;color:var(--text3);flex-shrink:0}
-.ticker-empty{font-size:11px;color:var(--text3);padding:0 18px;white-space:nowrap}
+.ticker-empty{font-size:12px;color:var(--text3);padding:0 18px;white-space:nowrap}
 [title]{cursor:help}
 /* ── Responsive ─────────────────────────────────────────── */
 @media(max-width:1000px){
-  :root{--sb-w:200px}
   .page-body{padding:12px 14px 24px}
   .hide-sm{display:none!important}
   .cards{flex-wrap:wrap}
@@ -401,16 +341,25 @@ tbody tr:hover td{background:rgba(255,255,255,.013)}
   .card{flex:1 1 140px}
   .two-col{grid-template-columns:1fr 1fr}
   .odds-grid{grid-template-columns:1fr 1fr}
+  /* header: hide logo text + date, shrink gaps */
+  .hdr-logo-text{display:none}
+  .page-header{padding:0 14px;gap:10px}
+  #hdrDate{display:none}
 }
 @media(max-width:640px){
   .cards{flex-direction:column}
   #syncCard,#addrBanner,#stratumBanner,.card{flex:none;min-width:0}
-  .sidebar{position:fixed;left:0;top:0;height:100vh;transform:translateX(-100%);z-index:200}
-  .sidebar.open{transform:none}
-  .page-wrap{width:100%}
   .card-val{font-size:18px}
   .two-col{grid-template-columns:1fr}
   .odds-grid{grid-template-columns:1fr}
+  /* header: icon-only nav, hide time/net label */
+  .hdr-nav-item span,.hdr-nav-item{font-size:0;padding:6px 8px;gap:0}
+  .hdr-nav-item svg{width:15px;height:15px}
+  .hdr-act{padding:5px 8px;font-size:0;gap:0}
+  .hdr-act svg{width:13px;height:13px;display:block}
+  #hdrTime,#hdrDate{display:none}
+  .hdr-sep{margin:0 4px}
+  .page-header{padding:0 10px;gap:6px}
 }
 @keyframes bfParticle{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--bfx),var(--bfy)) scale(0);opacity:0}}
 @keyframes bfBannerIn{from{bottom:-120px;opacity:0}to{bottom:28px;opacity:1}}
@@ -423,11 +372,7 @@ tbody tr:hover td{background:rgba(255,255,255,.013)}
 
 <script>
 window.sbNav=function(sec,el){
-  if(window.innerWidth<=640){
-    document.getElementById('sidebar').classList.remove('open');
-    document.getElementById('sbOverlay').style.display='none';
-  }
-  document.querySelectorAll('.sb-item').forEach(function(i){i.classList.remove('active');});
+  document.querySelectorAll('.hdr-nav-item,.hdr-act').forEach(function(i){i.classList.remove('active');});
   if(el) el.classList.add('active');
   var dw=document.getElementById('donateWrap'),mc=document.getElementById('mainContent'),ls=document.getElementById('logSection');
   if(ls) ls.style.display='none';
@@ -445,15 +390,6 @@ window.sbNav=function(sec,el){
     if(sec==='miners'&&window.switchTab){switchTab('miners');setTimeout(function(){var t=document.getElementById('tabBar');if(t)t.scrollIntoView({behavior:'smooth'});},100);}
     if(sec==='blocks'&&window.switchTab){switchTab('blocks');setTimeout(function(){var t=document.getElementById('tabBar');if(t)t.scrollIntoView({behavior:'smooth'});},100);}
     if(sec==='overview'){var pb=document.querySelector('.page-body');if(pb)pb.scrollTop=0;}
-  }
-};
-window.toggleSidebar=function(){
-  var sb=document.getElementById('sidebar');
-  if(window.innerWidth<=640){
-    var isOpen=sb.classList.toggle('open');
-    document.getElementById('sbOverlay').style.display=isOpen?'block':'none';
-  } else {
-    sb.classList.toggle('collapsed');
   }
 };
 </script>
@@ -479,66 +415,46 @@ window.toggleSidebar=function(){
     <div class="dlg-body">This will delete all downloaded chain data. Zebra will re-sync from scratch (2–3 days on first run).<br><br>After confirming, <strong>restart the Zebra service</strong> in Umbrel to apply the wipe.</div>
     <div class="dlg-actions">
       <button class="btn btn-ghost" onclick="document.getElementById('resetChainDlg').style.display='none'">Cancel</button>
-      <button class="btn" style="background:var(--red);color:#fff;border-color:var(--red)" onclick="doResetChain()">Wipe &amp; Resync</button>
+      <button class="btn btn-danger" onclick="doResetChain()">Wipe &amp; Resync</button>
     </div>
   </div>
 </div>
 
-<div id="sbOverlay" onclick="toggleSidebar()" style="display:none;position:fixed;inset:0;z-index:199;background:rgba(0,0,0,.5)"></div>
-<aside class="sidebar" id="sidebar">
-  <div class="sb-logo">
-    <div class="sb-logo-icon" onclick="eggClick()">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-        <circle cx="12" cy="12" r="10" stroke="#F4B728" stroke-width="1.5"/>
-        <path d="M7 8h10L7 16h10" stroke="#F4B728" stroke-width="2.5" stroke-linecap="round"/>
-      </svg>
-    </div>
-    <span class="sb-logo-text" id="sbLogoText">ZEC MINER</span>
-  </div>
-  <div class="sb-section-lbl">Main Menu</div>
-  <nav class="sb-nav">
-    <button class="sb-item active" id="sbOverview" onclick="sbNav('overview',this)">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-      <span>Overview</span>
-    </button>
-    <button class="sb-item" id="sbMiners" onclick="sbNav('miners',this)">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-      <span>Miners</span>
-    </button>
-    <button class="sb-item" id="sbBlocks" onclick="sbNav('blocks',this)">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
-      <span>Blocks Found</span>
-    </button>
-    <button class="sb-item" id="sbLog" onclick="sbNav('log',this)">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-      <span>Log</span>
-    </button>
-    <div class="sb-section-lbl" style="margin-top:6px">Support</div>
-    <button class="sb-item" id="sbDonate" onclick="sbNav('donate',this)">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-      <span>Donate</span>
-    </button>
-  </nav>
-  <div class="sb-bottom">
-    <span id="nodePill" class="pill pill-sync"><span class="dot blink"></span>Connecting</span>
-    <div class="sb-net" id="footerNet">Mainnet</div>
-    <div class="sb-version">ZEC Solo Miner v1.3.44</div>
-  </div>
-</aside>
 
 <div class="page-wrap">
   <div id="syncBar"><div id="syncFill"></div></div>
   <header class="page-header">
     <div class="ph-left">
-      <button class="sb-toggle" onclick="toggleSidebar()" title="Toggle sidebar">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-      </button>
-      <div>
-        <div class="ph-title">Dashboard</div>
-        <div class="ph-sub" id="hdrPeers">— peers</div>
+      <div class="hdr-logo" onclick="eggClick()">
+        <div class="hdr-logo-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="#F4B728" stroke-width="1.5"/>
+            <path d="M7 8h10L7 16h10" stroke="#F4B728" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="hdr-logo-text" id="sbLogoText">ZCASH SOLO MINER</span>
       </div>
+      <div class="hdr-sep"></div>
+      <nav class="hdr-nav">
+        <button class="hdr-nav-item active" id="sbOverview" onclick="sbNav('overview',this)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Overview
+        </button>
+        <button class="hdr-nav-item" id="sbMiners" onclick="sbNav('miners',this)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          Miners
+        </button>
+        <button class="hdr-nav-item" id="sbBlocks" onclick="sbNav('blocks',this)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
+          Blocks
+        </button>
+      </nav>
     </div>
     <div class="ph-right">
+      <span id="nodePill" class="pill pill-sync"><span class="dot blink"></span>Connecting</span>
+      <a href="/guide.html" class="hdr-act" title="Dashboard Guide"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>Guide</a>
+      <button class="hdr-act" id="sbLog" onclick="sbNav('log',this)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Log</button>
+      <button class="hdr-act" id="sbDonate" onclick="sbNav('donate',this)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>Donate</button>
       <span id="hdrZecPrice" style="display:none"></span>
       <div style="text-align:right;line-height:1.3">
         <div id="hdrTime" style="color:var(--text3);font-size:12px;font-weight:600">—</div>
@@ -581,39 +497,39 @@ window.toggleSidebar=function(){
       <div class="cards">
 
         <div id="syncCard" style="display:none">
-          <div class="sync-donut">
-            <svg width="68" height="68" viewBox="0 0 80 80">
-              <circle cx="40" cy="40" r="30" fill="none" stroke="#1e1e1e" stroke-width="8"/>
-              <circle id="syncArc" cx="40" cy="40" r="30" fill="none" stroke="#F4B728" stroke-width="8"
-                stroke-dasharray="0 188.5" stroke-linecap="round"
-                transform="rotate(-90 40 40)"
-                style="transition:stroke-dasharray 2s ease"/>
-              <text id="syncPctTxt" x="40" y="44" text-anchor="middle"
-                fill="#f0f0f0" font-size="11" font-family="Inter,sans-serif">0%</text>
+          <!-- label + big% + info LEFT | donut RIGHT -->
+          <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px">
+            <div style="flex:1;min-width:0">
+              <div class="sync-lbl" style="margin-bottom:4px">Blockchain Sync</div>
+              <div id="syncBlkInfo" class="sync-sub" style="margin-top:3px;margin-bottom:5px">Connecting…</div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <div class="sync-peers" style="margin:0"><span class="sync-peers-dot"></span><span id="syncPeers">— peers</span></div>
+                <div class="sync-peers" style="margin:0"><span class="sync-peers-dot" style="background:var(--blue)"></span><span id="syncSize">— chain</span></div>
+              </div>
+              <div id="syncPeersSub" style="font-size:10px;color:var(--text3);margin-top:3px"></div>
+            </div>
+            <svg class="sync-donut" viewBox="0 0 56 56">
+              <circle cx="28" cy="28" r="22" fill="none" stroke="var(--surf3)" stroke-width="3"/>
+              <circle id="syncArc" cx="28" cy="28" r="22" fill="none" stroke="#F4B728" stroke-width="3" stroke-linecap="round" stroke-dasharray="0 138.23" transform="rotate(-90 28 28)"/>
+              <text id="syncPctTxt" x="28" y="32" text-anchor="middle" style="font-size:9px;fill:var(--text2);font-family:var(--font);font-weight:600">—</text>
             </svg>
           </div>
-          <div class="sync-info">
-            <div class="sync-lbl">Blockchain Sync</div>
-            <div id="syncPctBig" class="sync-pct">—</div>
-            <div id="syncBlkInfo" class="sync-sub">Downloading chain data…</div>
-            <div class="sync-peers"><span class="sync-peers-dot"></span><span id="syncPeers">— peers</span></div>
-            <div class="sync-peers" style="margin-top:2px"><span class="sync-peers-dot" style="background:var(--blue)"></span><span id="syncSize">— chain size</span></div>
-            <button style="margin-top:auto;font-size:9px;padding:3px 8px;border-radius:6px;border:1px solid var(--red);background:none;color:var(--red);cursor:pointer;line-height:1.4" onclick="document.getElementById('resetChainDlg').style.display='flex'">Wipe &amp; Resync</button>
+          <div style="border-top:1px solid var(--border);padding-top:8px;flex:1;display:flex;flex-direction:column;overflow:hidden">
+            <div style="font-size:12px;color:var(--text2);margin-bottom:6px">Latest Synced</div>
+            <div id="syncBlockFeed" style="flex:1;overflow-y:auto"></div>
+          </div>
+          <div style="padding-top:6px;border-top:1px solid var(--border);margin-top:auto">
+            <button onclick="document.getElementById('resetChainDlg').style.display='flex'" style="width:100%;display:flex;align-items:center;gap:7px;background:none;border:none;padding:5px 7px;border-radius:6px;cursor:pointer;color:var(--text3);font-size:10px;letter-spacing:.2px;transition:color .15s,background .15s;text-align:left" onmouseover="this.style.color='var(--red)';this.style.background='rgba(255,77,77,.06)'" onmouseout="this.style.color='var(--text3)';this.style.background='none'">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;opacity:.7"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <span style="flex:1">Wipe chain data &amp; resync</span>
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:.4"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
           </div>
         </div>
 
-        <div id="addrBanner" style="display:none">
-          <div>
-            <div class="addr-lbl">Mining Receiving Address</div>
-            <div class="addr-val" id="addrVal">—</div>
-          </div>
-        </div>
-
-        <!-- hidden sinks so existing JS writes don't error -->
-        <span id="cWorkers" style="display:none"></span>
-        <span id="cMiners" style="display:none"></span>
-        <span id="cPeers" style="display:none"></span>
-        <!-- hidden sink for old stratumNetLabel + stratumNote used by initStratum() -->
+        <!-- addrVal: hidden address store; JS reads/writes the mining address here -->
+        <span id="addrVal" style="display:none">—</span>
+        <!-- hidden sink: initStratum() reads currentNetwork from this span -->
         <span id="stratumNetLabel" style="display:none">Mainnet</span>
 
         <!-- ── Combined Stratum card — placed first ── -->
@@ -621,16 +537,19 @@ window.toggleSidebar=function(){
           <!-- Card header: title left, peers count right -->
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
             <div class="vs-card-lbl" style="margin-bottom:0">Stratum</div>
-            <div style="display:flex;align-items:center;gap:5px">
-              <span style="font-size:15px;font-weight:800;color:var(--green)" id="scPeersHdr">—</span>
-              <span style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px" id="scPeersSub">peers</span>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px">
+              <div style="display:flex;align-items:center;gap:5px">
+                <span style="font-size:15px;font-weight:800;color:var(--green)" id="scPeersHdr">—</span>
+                <span style="font-size:10px;color:var(--text3)" id="scPeersSub">network peers</span>
+              </div>
+              <div id="scPeersInOut" style="font-size:9px;color:var(--text3)"></div>
             </div>
           </div>
           <!-- Stratum address row -->
           <div class="sc-row sc-row-addr">
             <div style="flex:1;min-width:0">
               <div class="sc-lbl">Point miners here (<span id="scStratumNet">Mainnet</span>)</div>
-              <div class="sc-val" style="color:var(--zec);font-size:13px;white-space:nowrap;overflow:hidden" id="stratumVal">—</div>
+              <div class="sc-val" style="color:var(--zec);font-size:12px;white-space:nowrap;overflow:hidden" id="stratumVal">—</div>
               <div class="sc-sub" id="stratumNote" style="color:var(--orange)">● Waiting for sync</div>
             </div>
             <button class="btn btn-ghost" style="flex-shrink:0;margin-left:8px" onclick="copyStratum()">Copy</button>
@@ -650,15 +569,21 @@ window.toggleSidebar=function(){
             <div class="sc-val" style="color:var(--zec)" id="scConns">—</div>
           </div>
           <!-- hidden sinks -->
-          <span id="scPeers" style="display:none"></span>
           <!-- Chain storage info -->
           <div id="scChainRow" class="sc-row sc-row-addr" style="display:none;border-top:1px solid var(--border)">
             <div style="flex:1;min-width:0">
               <div class="sc-lbl">Chain Storage</div>
-              <div class="sc-val" id="scChainPath" style="font-size:13px;font-family:var(--mono);color:var(--text2);white-space:nowrap;overflow:hidden">—</div>
+              <div class="sc-val" id="scChainPath" style="font-size:12px;font-family:var(--mono);color:var(--text2);white-space:nowrap;overflow:hidden">—</div>
               <div class="sc-sub" id="scChainSize">—</div>
             </div>
             <button class="btn btn-ghost" style="flex-shrink:0;margin-left:8px" onclick="copyChainPath()">Copy</button>
+          </div>
+          <!-- Network peers geo list -->
+          <div id="scPeersRow" class="sc-row sc-row-addr" style="display:none;border-top:1px solid var(--border)">
+            <div style="flex:1;min-width:0">
+              <div class="sc-lbl" style="margin-bottom:5px">Network Peers</div>
+              <div id="peersList"></div>
+            </div>
           </div>
         </div>
 
@@ -666,7 +591,7 @@ window.toggleSidebar=function(){
         <div class="vs-card" id="vsDiffCard">
           <div class="vs-card-lbl">Network vs Your Fleet</div>
 
-          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.2px;color:var(--text3);margin-bottom:6px;font-weight:600">Difficulty</div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:6px">Difficulty</div>
           <div class="vs-row">
             <div class="vs-side vs-left">
               <div class="vs-side-lbl" style="color:var(--blue)">Network</div>
@@ -684,6 +609,7 @@ window.toggleSidebar=function(){
               <div class="vs-side-sub" style="color:var(--zec)" id="vsDiffBestMiner"></div>
             </div>
           </div>
+          <div class="vs-bar-wrap"><div class="vs-bar-l" id="vsDiffBarL" style="background:var(--blue);width:50%"></div><div class="vs-bar-r" id="vsDiffBarR" style="background:var(--zec);width:50%"></div></div>
           <div id="cDiffRetarget" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:10px;color:var(--text2);line-height:1.6">
             <div>Projected next: <span class="diff-proj-val" id="cDiffProj">—</span> <span id="cDiffChgBadge"></span></div>
             <div id="cDiffChgSub" style="font-size:9px;color:var(--text3)"></div>
@@ -711,11 +637,12 @@ window.toggleSidebar=function(){
               <div class="vs-side-sub" style="color:var(--zec)" id="vsHashPoolSub">—</div>
             </div>
           </div>
-          <div style="font-size:9px;color:var(--text3);margin-top:6px" id="vsHashShare"></div>
+          <div class="vs-bar-wrap"><div class="vs-bar-l" id="vsHashBarL" style="background:var(--blue);width:50%"></div><div class="vs-bar-r" id="vsHashBarR" style="background:var(--zec);width:50%"></div></div>
+          <div style="font-size:10px;color:var(--text3);margin-top:6px" id="vsHashShare"></div>
 
           <div style="border-top:1px solid var(--border);margin:12px 0 8px"></div>
-          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.2px;color:var(--text3);margin-bottom:5px;font-weight:600">Share Cadence</div>
-          <div style="font-size:13px;font-weight:700;color:var(--text)" id="vsFleetAvgInterval">—</div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:5px">Share Cadence</div>
+          <div style="font-size:12px;font-weight:700;color:var(--text)" id="vsFleetAvgInterval">—</div>
           <div style="font-size:10px;color:var(--zec);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="vsFleetFastestMiner"></div>
         </div>
 
@@ -726,7 +653,7 @@ window.toggleSidebar=function(){
           <div class="card-sub" id="cLuckSub">at current hash rate</div>
           <div style="margin-top:6px;padding-top:8px;border-top:1px solid var(--border)">
             <div class="metric-lbl" style="margin-bottom:4px">Blocks Found</div>
-            <div style="font-size:20px;font-weight:800;color:var(--zec);line-height:1" id="cBlocks">0</div>
+            <div style="font-size:22px;font-weight:800;color:var(--zec);line-height:1" id="cBlocks">0</div>
             <div style="font-size:10px;color:var(--text2);margin-top:5px"><span id="cPending">0</span> pending</div>
           </div>
           <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
@@ -734,8 +661,8 @@ window.toggleSidebar=function(){
             <div style="display:flex;flex-direction:column;gap:4px">
               <div style="font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;font-family:var(--mono);width:100%" id="cMinerAddrLuck">—</div>
               <div style="display:flex;gap:4px">
-                <button class="btn btn-ghost" style="font-size:9px;padding:2px 6px;line-height:1.4" onclick="openAddrDialog(true)">Edit</button>
-                <button class="btn btn-ghost" style="font-size:9px;padding:2px 6px;line-height:1.4" onclick="copyAddr()">Copy</button>
+                <button class="btn btn-ghost" onclick="openAddrDialog(true)">Edit</button>
+                <button class="btn btn-ghost" onclick="copyAddr()">Copy</button>
               </div>
             </div>
           </div>
@@ -878,24 +805,17 @@ window.toggleSidebar=function(){
                 <th>Worker / Address</th>
                 <th>Status</th>
                 <th>Hash Rate</th>
-                <th title="Difficulty of shares seen in current stats window">Cur. Diff</th>
-                <th class="hide-sm" title="Highest difficulty share seen since this page loaded">Session Best</th>
+                <th title="This worker's share of total fleet hashrate">Fleet %</th>
+                <th title="Rejected shares as % of total submitted">Rej %</th>
+                <th>Last Share</th>
                 <th title="Highest difficulty share ever seen (stored locally)">All-Time Best</th>
-                <th title="All-Time Best as % of current network difficulty">% of Block</th>
-                <th class="hide-sm" title="Total valid shares submitted">Submitted</th>
-                <th class="hide-sm" title="Total invalid/rejected shares">Rejected</th>
-                <th class="hide-sm" title="Rejected shares as % of total">Rej %</th>
-                <th class="hide-sm">Last Share</th>
-                <th class="hide-sm" title="Expected time between shares = current difficulty ÷ hashrate. Lower = faster submission cadence.">Avg Interval</th>
+                <th class="hide-sm" title="All-Time Best as % of current network difficulty">% of Block</th>
+                <th class="hide-sm" title="Temperature — requires direct miner API (coming soon)">℃</th>
+                <th class="hide-sm" title="Efficiency (Sol/W) — requires direct miner API (coming soon)">Sol/W</th>
               </tr>
             </thead>
             <tbody id="tbody"></tbody>
           </table>
-        </div>
-        <div id="stratumLatency" style="display:none">
-          <div class="lat-title">Stratum Connection Latency (TCP RTT per IP)</div>
-          <div class="lat-grid" id="latGrid"></div>
-          <div class="lat-note" id="latNote"></div>
         </div>
       </div>
 
@@ -913,8 +833,8 @@ window.toggleSidebar=function(){
                 <th>Height</th>
                 <th>Status</th>
                 <th>Miner / Worker</th>
-                <th>Block Hash <span style="color:var(--text3);font-weight:400;font-size:8px">(click to copy)</span></th>
-                <th class="hide-sm">Coinbase TX <span style="color:var(--text3);font-weight:400;font-size:8px">(click to copy)</span></th>
+                <th>Block Hash <span style="color:var(--text3);font-weight:400;font-size:9px">(click to copy)</span></th>
+                <th class="hide-sm">Coinbase TX <span style="color:var(--text3);font-weight:400;font-size:9px">(click to copy)</span></th>
                 <th>Found</th>
               </tr>
             </thead>
@@ -924,7 +844,7 @@ window.toggleSidebar=function(){
       </div>
 
       <div class="stack-footer">
-        ZEC Solo Miner v1.3.31 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
+        Zcash Solo Miner v1.3.44 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
       </div>
 
       <div class="donate-section-wrap" style="margin-top:0">
@@ -996,6 +916,201 @@ window.toggleSidebar=function(){
 
 
 <script>
+/* ═══════════════════════════════════════════════════════════
+   MOCK DATA — local visual test only, auto-removed before build
+   ═══════════════════════════════════════════════════════════ */
+(function(){
+  var ADDR = 't1fgGy3CBkKJax8EH1RquQdPGPXPnDH5ig6';
+  var BASE_BLOCK = 2568000, EST_HEIGHT = 2573200;
+
+  /* diff history — generated once */
+  var _diffPts = (function(){
+    var pts=[], base=195000000, t=Date.now()-90*864e5;
+    for(var i=0;i<90;i++){
+      base*=(0.965+Math.random()*0.072);
+      base=Math.max(180000000,Math.min(300000000,base));
+      var d=new Date(t+i*864e5);
+      pts.push({date:d.toLocaleDateString('en-US',{month:'short',day:'numeric'}),diff:Math.round(base)});
+    }
+    pts[pts.length-1].diff=246500000; return pts;
+  })();
+
+  /* price history — generated once */
+  var _pricePts = (function(){
+    var arr=[],base=29,now=Date.now();
+    for(var i=89;i>=0;i--){
+      base*=(0.965+Math.random()*0.075);
+      base=Math.max(17,Math.min(55,base));
+      arr.push([now-i*864e5,+base.toFixed(2)]);
+    }
+    arr[arr.length-1][1]=31.42; return arr;
+  })();
+
+  /* live MOCKS object — refreshed every 2s by the timer below */
+  var MOCKS = {};
+
+  function refreshMocks() {
+    var t   = Date.now() / 1000;
+    var NOW = Math.floor(t);
+
+    /* sync cycles 68% -> 99.8% every 75s then resets */
+    var cyc  = (t % 75) / 75;
+    var prog = +(Math.min(0.68 + cyc * 0.32, 0.998)).toFixed(4);
+    var blk  = BASE_BLOCK + Math.floor(cyc * 2800);
+
+    /* workers — rig-2 drops for 10s every 60s */
+    var rig2off = (Math.floor(t) % 60) < 10;
+    var h1 = Math.round(1800 + Math.sin(t * 0.11) * 380);
+    var h2 = rig2off ? 0 : Math.round(900  + Math.sin(t * 0.08) * 190);
+    var h3 = Math.round(320  + Math.sin(t * 0.16) * 45);
+    var h4 = Math.round(12   + Math.sin(t * 0.22) * 3);
+    var poolHr = h1 + h2 + h3 + h4;
+    var wc = rig2off ? 3 : 4;
+    var s1 = (Math.floor(t * 0.17) % 8000) + 900;
+    var s2 = (Math.floor(t * 0.10) % 4500) + 400;
+    var s3 = (Math.floor(t * 0.05) % 1800) + 200;
+    var s4 = (Math.floor(t * 0.01) % 400)  + 50;
+    var luck   = Math.max(0.1, +(0.9  + Math.sin(t * 0.035) * 0.75).toFixed(2));
+    var netS   = +(21.4  + Math.sin(t * 0.045) * 3.2).toFixed(1);
+    var diff   = Math.round(246500000 + Math.sin(t * 0.025) * 12000000);
+    var peers  = Math.max(6, 10 + Math.round(Math.sin(t * 0.07) * 3));
+    var netSlp = Math.round(21400000 + Math.sin(t * 0.045) * 3200000);
+    var hasPending = (Math.floor(t / 45) % 3 === 0);
+
+    var ws = {};
+    ws[ADDR+'.asic-rig-1'] = {hashrate:h1, diff:96, shares:s1, invalidshares:2,  lastShare:NOW-Math.max(5,Math.floor(Math.abs(Math.sin(t*0.31))*85))};
+    if (!rig2off) ws[ADDR+'.asic-rig-2'] = {hashrate:h2, diff:48, shares:s2, invalidshares:1, lastShare:NOW-Math.max(5,Math.floor(Math.abs(Math.sin(t*0.21))*55))};
+    ws[ADDR+'.gpu-rig-1']  = {hashrate:h3, diff:24, shares:s3, invalidshares:0,  lastShare:NOW-Math.max(5,Math.floor(Math.abs(Math.sin(t*0.41))*65))};
+    ws[ADDR+'.cpu-miner']  = {hashrate:h4, diff:4,  shares:s4, invalidshares:0,  lastShare:NOW-Math.max(5,Math.floor(Math.abs(Math.sin(t*0.53))*110))};
+
+    MOCKS['/api/umbrel/nodeinfo'] = {
+      progress:prog, blocks:blk, estimatedHeight:EST_HEIGHT,
+      sizeOnDisk: Math.floor(CHAIN_BASE + cyc * 150000000),
+      peers:peers, difficulty:diff, networkSolps:netSlp, diffSource:'node'
+    };
+
+    MOCKS['/api/stats'] = { pools: { ZcashMining: {
+      hashrate:poolHr,
+      hashrateString: poolHr>=1000 ? (poolHr/1000).toFixed(1)+' kSol/s' : poolHr+' Sol/s',
+      workerCount:wc, minerCount:2, shareCount:s1+s2+s3+s4,
+      luckDays:luck, luckHours:+(luck*24).toFixed(1),
+      poolStats:{networkDiff:diff, networkConnections:peers,
+                 networkSols:netS, networkSolsString:netS+' MSol/s'},
+      blocks:{confirmed:2, pending:hasPending?1:0},
+      confirmed:{blocks:[
+        '0000000bab8cd8a3f2e7c9d1e0b2a4c6d8e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4:a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2:2568401:'+ADDR+'.asic-rig-1:'+(NOW-86400)+':confirmed',
+        '0000000123456789abcdef01234567890abcdef01234567890abcdef012345678:b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3:2548123:'+ADDR+'.asic-rig-1:'+(NOW-259200)+':confirmed'
+      ]},
+      pending:{blocks: hasPending ? [
+        '00000001def2345678abcdef0123456789abcdef0123456789abcdef01234567:c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4:2571034:'+ADDR+'.asic-rig-2:'+(NOW-3600)+':pending'
+      ] : []},
+      workers:ws
+    }}};
+
+    MOCKS['/api/umbrel/stratum-peers'] = { peers:[
+      {ip:'192.168.1.10',port:13333,host:'asic-rig-1.local',rttMs:+(0.42+Math.abs(Math.sin(t*0.29))*0.9).toFixed(2)},
+      {ip:'192.168.1.11',port:13333,host:'asic-rig-2.local',rttMs:+(1.83+Math.sin(t*0.19)*0.6).toFixed(2)},
+      {ip:'192.168.1.15',port:13333,host:null,              rttMs:+(0.15+Math.abs(Math.sin(t*0.51))*0.25).toFixed(2)},
+      {ip:'192.168.1.20',port:13333,host:'gpu-rig-1.local', rttMs:+(12.4+Math.sin(t*0.14)*3.1).toFixed(2)}
+    ]};
+
+    /* log lines grow over time */
+    var logBase = [
+      '[12:00:01] Zebra node connected — Mainnet',
+      '[12:00:01] Stratum server listening on :13333',
+      '[12:00:02] Pool initialized: ZcashMining',
+      '[12:00:05] Worker connected: asic-rig-1 (192.168.1.10)',
+      '[12:00:07] Worker connected: asic-rig-2 (192.168.1.11)',
+      '[12:00:09] Worker connected: gpu-rig-1 (192.168.1.20)',
+      '[12:00:14] Worker connected: cpu-miner (192.168.1.15)'
+    ];
+    var logExtra = ['Share accepted — asic-rig-1 diff:96','Share accepted — gpu-rig-1 diff:24',
+      'Share accepted — asic-rig-2 diff:48','Share rejected (stale) — cpu-miner',
+      'Share accepted — asic-rig-1 diff:96','Network peer: 185.220.101.1 connected',
+      'Share accepted — asic-rig-2 diff:48','Share accepted — asic-rig-1 diff:96',
+      'asic-rig-2 disconnected','asic-rig-2 reconnected',
+      'Share accepted — gpu-rig-1 diff:24','New block template — height '+(blk+1)];
+    var logLines = logBase.slice();
+    var lc = Math.floor(t * 0.4) % (logExtra.length + 1);
+    for (var li=0; li<Math.min(lc,logExtra.length); li++) logLines.push('['+new Date().toTimeString().slice(0,8)+'] '+logExtra[li]);
+    MOCKS['/api/umbrel/logs'] = {lines: logLines};
+  }
+
+  /* static endpoints */
+  var CHAIN_BASE = 48234567890;
+  MOCKS['/api/umbrel/config']  = {stratumPort:'13333',appName:'Zcash Solo Miner',chainPath:'/data/zebra/network/mainnet',poolAddress:ADDR};
+  MOCKS['/api/umbrel/news']    = {items:[
+    {title:'Zcash Foundation Announces NU6.2 Upgrade Progress',url:'https://z.cash',date:'Jun 8'},
+    {title:'ZEC/USD Trading Volume Hits 6-Month High on Binance',url:'https://coindesk.com',date:'Jun 7'},
+    {title:'Electric Coin Company Publishes New Privacy Report',url:'https://electriccoin.co',date:'Jun 6'},
+    {title:'Zcash Network Difficulty Reaches All-Time High',url:'https://z.cash',date:'Jun 5'},
+    {title:'Solo Mining ZEC: A Complete Guide for 2026',url:'https://theblock.co',date:'Jun 4'},
+    {title:'Zcash Shielded Transactions Now 78% of All On-Chain Activity',url:'https://decrypt.co',date:'Jun 3'}
+  ]};
+  MOCKS['/api/umbrel/diff-history'] = {points:_diffPts};
+  MOCKS['/api/umbrel/peers'] = [
+    {addr:'185.220.101.1:8233',inbound:false},{addr:'95.217.44.58:8233',inbound:true},
+    {addr:'23.137.57.100:8233',inbound:false},{addr:'139.99.96.250:8233',inbound:false},
+    {addr:'51.81.48.64:8233',inbound:true},   {addr:'176.9.24.106:8233',inbound:false},
+    {addr:'45.76.244.186:8233',inbound:true},  {addr:'5.9.29.8:8233',inbound:false},
+    {addr:'194.165.16.11:8233',inbound:false}, {addr:'91.107.192.23:8233',inbound:true},
+    {addr:'47.254.28.101:8233',inbound:false}, {addr:'172.104.214.130:8233',inbound:false}
+  ];
+  MOCKS['/api/umbrel/hostip']  = {ip:'192.168.1.100'};
+  MOCKS['/api/umbrel/network'] = {network:'Mainnet'};
+  MOCKS['/api/umbrel/address'] = {address:ADDR};
+
+  /* populate dynamic keys immediately, then keep refreshing */
+  refreshMocks();
+  setInterval(refreshMocks, 2000);
+
+  /* intercept fetch */
+  var _real = window.fetch;
+  window.fetch = function(url, opts) {
+    var p = typeof url==='string' ? url.split('?')[0] : '';
+    if (MOCKS[p] !== undefined) {
+      var snap = MOCKS[p];
+      return Promise.resolve({ok:true, json:function(){ return Promise.resolve(snap); }});
+    }
+    if (p.indexOf('coingecko.com') !== -1) {
+      var t2   = Date.now()/1000;
+      var isH  = p.indexOf('market_chart') !== -1;
+      var px   = +(31.42 + Math.sin(t2 * 0.007) * 5.1).toFixed(2);
+      var chg  = +(Math.sin(t2 * 0.005) * 4.8).toFixed(2);
+      var cg   = isH ? {prices:_pricePts} : {zcash:{usd:px,usd_24h_change:chg}};
+      return Promise.resolve({ok:true, json:function(){ return Promise.resolve(cg); }});
+    }
+    if (p.indexOf('ip-api.com') !== -1) {
+      var _geo = {
+        '185.220.101.1':  {country:'Germany',       countryCode:'DE', city:'Frankfurt'},
+        '95.217.44.58':   {country:'Finland',        countryCode:'FI', city:'Helsinki'},
+        '23.137.57.100':  {country:'United States',  countryCode:'US', city:'Chicago'},
+        '139.99.96.250':  {country:'Australia',      countryCode:'AU', city:'Sydney'},
+        '51.81.48.64':    {country:'United States',  countryCode:'US', city:'Ashburn'},
+        '176.9.24.106':   {country:'Germany',        countryCode:'DE', city:'Nuremberg'},
+        '45.76.244.186':  {country:'United States',  countryCode:'US', city:'Atlanta'},
+        '5.9.29.8':       {country:'Germany',        countryCode:'DE', city:'Falkenstein'},
+        '194.165.16.11':  {country:'Netherlands',    countryCode:'NL', city:'Amsterdam'},
+        '91.107.192.23':  {country:'Germany',        countryCode:'DE', city:'Nuremberg'},
+        '47.254.28.101':  {country:'Japan',          countryCode:'JP', city:'Tokyo'},
+        '172.104.214.130':{country:'Japan',          countryCode:'JP', city:'Tokyo'}
+      };
+      var _body = [];
+      try { _body = JSON.parse(opts && opts.body ? opts.body : '[]'); } catch(e){}
+      var _res = _body.map(function(q) {
+        var g = _geo[q.query];
+        return g ? {query:q.query, status:'success', country:g.country, countryCode:g.countryCode, city:g.city}
+                 : {query:q.query, status:'fail'};
+      });
+      return Promise.resolve({ok:true, json:function(){ return Promise.resolve(_res); }});
+    }
+    return _real ? _real.apply(this, arguments) : Promise.reject(new Error('no real fetch'));
+  };
+})();
+/* ═══════════════════════════════════════════════════════════ */
+</script>
+
+<script>
 !function(){'use strict';
 /* ── Config ────────────────────────────────────────────── */
 var POLL = 10000;
@@ -1048,7 +1163,7 @@ function triggerBlockFound(reward) {
 function spawnParticles() {
   var cx = window.innerWidth / 2, cy = window.innerHeight / 2;
   var maxDist = Math.min(window.innerWidth, window.innerHeight) * 0.52;
-  var colors = ['#FBbc05','#FFd555','#FFea99','#FFFFFF','#FF8C42','#FF4545','#4DA6FF'];
+  var colors = ['#FBbc05','#FFd555','#FFea99','#FFFFFF','#E8952A','#FF4545','#4DA6FF'];
   var COUNT = 120;
   function burst(delay, ox, oy) {
     for (var i = 0; i < COUNT; i++) {
@@ -1099,7 +1214,7 @@ function showBlockBanner(reward) {
     'padding:18px 32px;text-align:center;z-index:9998;min-width:300px;' +
     'animation:bfBannerIn .4s cubic-bezier(.22,1,.36,1) forwards,bfGlow 1.8s ease-in-out .4s 6 alternate';
   el.innerHTML =
-    '<div style="font-size:11px;letter-spacing:3px;color:var(--text3);text-transform:uppercase;margin-bottom:6px">Block Found</div>' +
+    '<div style="font-size:12px;letter-spacing:3px;color:var(--text3);text-transform:uppercase;margin-bottom:6px">Block Found</div>' +
     '<div style="font-size:26px;font-weight:900;color:var(--zec);line-height:1;letter-spacing:1px">+' + (reward || '—') + ' ZEC</div>' +
     '<div style="font-size:10px;color:var(--text3);margin-top:8px">Reward sent to your mining address</div>';
   document.body.appendChild(el);
@@ -1115,6 +1230,7 @@ var sessBest   = {};        // { worker: maxDiff } — resets on page load
 var allBest    = {};        // { worker: maxDiff } — persisted
 var lastNetDiff = 0;
 var cachedNetPeers = 0;    // best known peer count from Zebra direct RPC
+var cachedNI = null;       // last nodeinfo response — used by poll() fallback
 var cachedPoolHashrate = 0; // Sol/s — aggregate pool hashrate from s-nomp
 var cachedNetHashrate  = 0; // Sol/s — network hashrate from Zebra netinfo
 var priceSamples = []; // [{t, p}] rolling 60-min window for drop detection
@@ -1192,10 +1308,8 @@ function updateFleetCadence(workers){
   var fastest=items.reduce(function(a,x){ return x.interval<a.interval?x:a; });
   s('vsFleetAvgInterval', fmtInterval(avg, 1)+' fleet avg');
   var dot=fastest.wk.indexOf('.');
-  var addr=dot!==-1?fastest.wk.slice(0,dot):fastest.wk;
-  var trail=dot!==-1?fastest.wk.slice(dot):'';
-  var short=addr.length>18?addr.slice(0,9)+'…'+addr.slice(-4):addr;
-  s('vsFleetFastestMiner','⚡ '+short+trail+' ('+fmtInterval(fastest.interval,1)+')');
+  var wname=dot!==-1?fastest.wk.slice(dot+1):fastest.wk;
+  s('vsFleetFastestMiner','⚡ '+wname+' ('+fmtInterval(fastest.interval,1)+')');
 }
 function pctOfBlock(diff, netDiff){
   if(!diff||!netDiff) return '—';
@@ -1283,7 +1397,7 @@ function trackDiff(w,d){
   if(!sessBest[w]||d>sessBest[w]) sessBest[w]=d;
   if(!allBest[w] ||d>allBest[w] ){
     allBest[w]=d;
-    localStorage.setItem('zmf.atb',JSON.stringify(allBest));
+    try { localStorage.setItem('zmf.atb',JSON.stringify(allBest)); } catch(e){} /* QuotaExceededError when disk full — must not throw */
   }
 }
 
@@ -1291,43 +1405,138 @@ function trackDiff(w,d){
 var cachedWorkers={}; var cachedNetDiff=0;
 function renderNow(){ renderWorkers(cachedWorkers,cachedNetDiff); }
 
+/* ── Peer info + worker tracking helpers ───────────────────────────── */
+var _peerInfoMap={};
+var _workerConnectTime={};
+var _hashrateSamples={};
+var _rejSamples={};
+
+function _normHost(h){
+  return (h||'').toLowerCase().replace(/\.(local|lan|home|internal|localdomain|corp)$/,'').trim();
+}
+function _peerForWorker(wk){
+  var dot=wk.indexOf('.'); if(dot===-1) return null;
+  var suf=wk.slice(dot+1).toLowerCase(); if(!suf) return null;
+  if(_peerInfoMap[suf]) return _peerInfoMap[suf];
+  var ks=Object.keys(_peerInfoMap);
+  for(var i=0;i<ks.length;i++){
+    if(ks[i]&&(suf===ks[i]||suf.indexOf(ks[i])===0||ks[i].indexOf(suf)===0))
+      return _peerInfoMap[ks[i]];
+  }
+  return null;
+}
+function _rttCell(peer){
+  var rtt=peer?peer.rttMs:null;
+  if(rtt===null||rtt===undefined)
+    return '<td class="hide-sm" style="color:var(--text3);font-size:10px">—</td>';
+  var str=rtt<1?rtt.toFixed(3)+' ms':rtt.toFixed(2)+' ms';
+  var cls=rtt<20?'rtt-good':rtt<80?'rtt-ok':'rtt-slow';
+  return '<td class="hide-sm '+cls+'" style="font-weight:700;font-family:var(--mono);font-size:10px">'+str+'</td>';
+}
+function _trackWorkerConnect(keys,workers){
+  var now=Date.now();
+  keys.forEach(function(k){ if(!_workerConnectTime[k]) _workerConnectTime[k]=now; });
+  Object.keys(_workerConnectTime).forEach(function(k){ if(!workers[k]) delete _workerConnectTime[k]; });
+}
+function fmtUptime(wk){
+  var t=_workerConnectTime[wk]; if(!t) return '';
+  var sec=Math.floor((Date.now()-t)/1000);
+  if(sec<60) return sec+'s';
+  var m=Math.floor(sec/60); if(m<60) return m+'m';
+  var h=Math.floor(m/60),rm=m%60;
+  return h+'h'+(rm?' '+rm+'m':'');
+}
+function _rejTrend(wk, rejPct){
+  if(!_rejSamples[wk]) _rejSamples[wk]=[];
+  _rejSamples[wk].push(rejPct);
+  if(_rejSamples[wk].length>6) _rejSamples[wk].shift();
+  var s=_rejSamples[wk]; if(s.length<4) return '';
+  var recent=(s[s.length-1]+s[s.length-2])/2;
+  var older=(s[0]+s[1])/2;
+  if(recent<0.3&&older<0.3) return '';
+  var d=recent-older;
+  if(d>0.5) return ' <span style="color:var(--red);font-size:9px" title="Rejection rate increasing">&#8593;</span>';
+  if(d<-0.5) return ' <span style="color:var(--green);font-size:9px" title="Rejection rate improving">&#8595;</span>';
+  return '';
+}
+function _hashTrend(wk,hr){
+  if(!_hashrateSamples[wk]) _hashrateSamples[wk]=[];
+  _hashrateSamples[wk].push(hr);
+  if(_hashrateSamples[wk].length>6) _hashrateSamples[wk].shift();
+  var s=_hashrateSamples[wk]; if(s.length<4) return '';
+  var recent=(s[s.length-1]+s[s.length-2])/2;
+  var older=(s[0]+s[1])/2; if(older<1) return '';
+  var d=(recent-older)/older;
+  if(d>0.05) return ' <span style="color:var(--green);font-size:9px" title="Trending up">&#8593;</span>';
+  if(d<-0.05) return ' <span style="color:var(--red);font-size:9px" title="Trending down">&#8595;</span>';
+  return '';
+}
+
 /* ── Workers table renderer ────────────────────────────── */
 function renderWorkers(workers, netDiff){
   cachedWorkers=workers; cachedNetDiff=netDiff;
   var tbody=g('tbody');
-  var keys=Object.keys(workers);
+  var allKeys=Object.keys(workers);
+  _trackWorkerConnect(allKeys, workers);
+  var keys=allKeys.slice();
   if(filterAddr){
     var fa=filterAddr.toLowerCase();
     keys=keys.filter(function(k){ return k.toLowerCase().indexOf(fa)!==-1; });
   }
   if(!keys.length){
     var msg=filterAddr?'No workers match this filter':'No workers connected';
-    tbody.innerHTML='<tr><td colspan="12"><div class="empty">'
-      +'<div class="empty-ico">⛏</div>'
+    tbody.innerHTML='<tr><td colspan="11"><div class="empty">'
+      +'<div class="empty-ico">&#9935;</div>'
       +'<div>'+msg+'</div>'
       +'<div class="empty-sub">Point your ASIC or GPU miner at the Stratum port shown above</div>'
       +'</div></td></tr>';
     return;
   }
+  /* fleet % denominator — use ALL keys, not filtered subset */
+  var totalFleetHash=0;
+  allKeys.forEach(function(k){ totalFleetHash+=parseFloat(workers[k].hashrate)||0; });
+
+  /* configured mining address — used to flag workers mining to a different wallet */
+  var _miningAddr=(g('addrVal')?g('addrVal').textContent.trim():'');
+  var _miningAddrKnown=_miningAddr&&_miningAddr!=='—';
+
   var html='';
   keys.forEach(function(wk){
     var w=workers[wk];
+    var hr=parseFloat(w.hashrate)||0;
     var d=parseFloat(w.diff)||0;
     trackDiff(wk,d);
-    var sb=sessBest[wk]||0;
     var ab=allBest[wk]||0;
+    var sb=sessBest[wk]||0;
     var valid=parseFloat(w.shares)||0;
     var inv=Math.abs(parseFloat(w.invalidshares)||0);
     var total=valid+inv;
     var rejPct=total>0?(inv/total*100):0;
     var rejColor=rejPct===0?'var(--green)':rejPct<5?'var(--zec)':'var(--red)';
+    var rejTrend=_rejTrend(wk,rejPct);
     var online=isOnline(w.lastShare);
 
     /* split address / worker-name suffix */
     var dot=wk.indexOf('.');
-    var addr =dot!==-1?wk.slice(0,dot):wk;
-    var trail=dot!==-1?wk.slice(dot):'';
-    var short=addr.length>22?addr.slice(0,11)+'…'+addr.slice(-5):addr;
+    var addr=dot!==-1?wk.slice(0,dot):wk;
+    var lastDot=wk.lastIndexOf('.');
+    var workerName=lastDot!==-1?wk.slice(lastDot+1):wk;
+    var addrMismatch=_miningAddrKnown&&addr!==_miningAddr;
+
+    /* peer info for IP sub-line + RTT */
+    var peer=_peerForWorker(wk);
+    var peerLabel=peer?(peer.host?_normHost(peer.host):peer.ip):'';
+
+    /* fleet % */
+    var fleetPct=totalFleetHash>0?((hr/totalFleetHash)*100).toFixed(1)+'%':'—';
+    var fpRatio=totalFleetHash>0?hr/totalFleetHash:0;
+    var fleetColor=fpRatio>0.4?'var(--zec)':fpRatio>0.15?'var(--text)':'var(--text3)';
+
+    /* hashrate trend */
+    var trend=_hashTrend(wk,hr);
+
+    /* uptime */
+    var uptime=fmtUptime(wk);
 
     var badge=online
       ?'<span class="badge b-on"><span class="dot"></span>Online</span>'
@@ -1335,25 +1544,39 @@ function renderWorkers(workers, netDiff){
 
     var abPct=pctOfBlock(ab,netDiff);
     var abCls=diffCls(ab,netDiff);
-    var sbCls=diffCls(sb,netDiff);
-    var  dCls=diffCls(d ,netDiff);
-
     var abTitle='All-time best: '+ab+' / Network diff: '+netDiff+' = '+abPct;
+    var lastShareColor=online?'var(--text2)':'var(--orange)';
 
     html+='<tr>'
-      +'<td><span class="wname" title="'+esc(wk)+'" data-addr="'+esc(addr)+'" onclick="quickFilter(this.dataset.addr)">'
-      +esc(short)+'</span><span class="wsuffix">'+esc(trail)+'</span></td>'
-      +'<td>'+badge+'</td>'
-      +'<td style="color:var(--green);font-weight:700">'+fmtH(w.hashrate)+'</td>'
-      +'<td class="'+dCls+'">'+fmtN(d)+'</td>'
-      +'<td class="hide-sm '+sbCls+'">'+fmtN(sb)+'</td>'
-      +'<td class="'+abCls+'" title="'+esc(abTitle)+'">'+fmtN(ab)+'</td>'
-      +'<td style="font-size:10px;color:var(--text2)" title="'+esc(abTitle)+'">'+esc(abPct)+'</td>'
-      +'<td class="hide-sm" style="color:var(--text2)">'+fmtNum(valid)+'</td>'
-      +'<td class="hide-sm" style="color:var(--text2)">'+fmtNum(inv)+'</td>'
-      +'<td class="hide-sm" style="color:'+rejColor+';font-weight:700">'+( total>0 ? rejPct.toFixed(1)+'%' : '—' )+'</td>'
-      +'<td class="hide-sm" style="color:var(--text2)">'+timeAgo(w.lastShare)+'</td>'
-      +'<td class="hide-sm" style="color:var(--text2);font-family:var(--mono)">'+fmtInterval(d,parseFloat(w.hashrate)||0)+'</td>'
+      /* Worker / Address + resolved IP sub-line */
+      +'<td>'
+        +'<span class="wname" title="'+esc(wk)+'" data-addr="'+esc(addr)+'" onclick="quickFilter(this.dataset.addr)">'+esc(workerName)+'</span>'
+        +(addrMismatch?'<span class="addr-warn" title="Reward address mismatch — this worker is mining to '+esc(addr)+' but the pool is configured for '+esc(_miningAddr)+'. Block rewards from this worker will not go to your wallet.">⚠ addr</span>':'')
+        +(peerLabel?'<div style="font-size:9px;color:var(--text3);font-family:var(--mono);margin-top:1px">'+esc(peerLabel)+(peer&&peer.rttMs!=null?(function(r){var s=r<1?r.toFixed(3)+' ms':r.toFixed(2)+' ms';var c=r<20?'var(--green)':r<80?'var(--zec)':'var(--red)';return ' <span style="color:'+c+'">'+s+'</span>';})(peer.rttMs):'')+'</div>':'')
+      +'</td>'
+      /* Status + uptime */
+      +'<td>'
+        +badge
+        +(uptime?'<div style="font-size:9px;color:var(--text3);margin-top:2px">'+uptime+'</div>':'')
+      +'</td>'
+      /* Hash Rate + trend */
+      +'<td style="color:var(--green);font-weight:700">'+fmtH(w.hashrate)+trend+'</td>'
+      /* Fleet % */
+      +'<td style="color:'+fleetColor+';font-weight:700;font-size:12px">'+fleetPct+'</td>'
+      /* Rej % + trend */
+      +'<td style="color:'+rejColor+';font-weight:700">'+(total>0?rejPct.toFixed(1)+'%':'—')+rejTrend+'</td>'
+      /* Last Share */
+      +'<td style="color:'+lastShareColor+'">'+timeAgo(w.lastShare)+'</td>'
+      /* All-Time Best + session best sub-line */
+      +'<td class="'+abCls+'" title="'+esc(abTitle)+'">'+fmtN(ab)
+        +(sb>0?'<div style="font-size:9px;color:var(--text3);margin-top:1px">session: '+fmtN(sb)+'</div>':'')
+      +'</td>'
+      /* % of Block */
+      +'<td class="hide-sm" style="font-size:10px;color:var(--text2)" title="'+esc(abTitle)+'">'+esc(abPct)+'</td>'
+      /* Temp — placeholder for future direct miner API */
+      +'<td class="hide-sm" style="color:var(--text3);font-size:10px" title="Temperature — requires direct miner API (coming soon)">—</td>'
+      /* Sol/W — placeholder for future direct miner API */
+      +'<td class="hide-sm" style="color:var(--text3);font-size:10px" title="Efficiency (Sol/W) — requires direct miner API (coming soon)">—</td>'
       +'</tr>';
   });
   tbody.innerHTML=html;
@@ -1380,8 +1603,6 @@ function fetchNetwork(){
       }
       s('footerNet', currentNetwork);
       s('stackFooterNet', currentNetwork);
-      var ps = g('cPeersSub');
-      if(ps) ps.textContent = 'Zcash '+currentNetwork.toLowerCase()+' nodes';
       var snl = g('stratumNetLabel');
       if(snl) snl.textContent = currentNetwork;
       var scn = g('scStratumNet');
@@ -1493,6 +1714,58 @@ function fetchAddress(){
 }
 
 /* ── Main poll ─────────────────────────────────────────── */
+
+function fetchNodeInfo(){
+  /* Single Zebra fetch — replaces separate /sync + /netinfo calls */
+  fetch('/api/umbrel/nodeinfo',{credentials:'same-origin'})
+    .then(function(r){ return r.json(); })
+    .then(function(ni){
+      cachedNI=ni;
+      updateSync(ni);
+      /* Difficulty */
+      if(ni.difficulty > 0){
+        lastNetDiff = ni.difficulty;
+        s('cDiff', fmtN(ni.difficulty));
+        var diffLbl = document.getElementById('cDiffSrc');
+        if(diffLbl) diffLbl.textContent = ni.diffSource === 'whattomine' ? '(live)' : '(from node)';
+      }
+      if(ni.networkSolps > 0){
+        cachedNetHashrate = ni.networkSolps;
+        s('cNetHash', fmtH(ni.networkSolps));
+        updateHashVsPanel(cachedNetHashrate, cachedPoolHashrate);
+      }
+      if(ni.difficulty > 0){
+        updateDiffVsPanel(ni.difficulty, allBest);
+        var diffLbl = document.getElementById('vsDiffNetSrc');
+        if(diffLbl) diffLbl.textContent = ni.diffSource === 'whattomine' ? '(live)' : '(from node)';
+      }
+      if(ni.difficulty > 0 && ni.networkSolps > 0){
+        updateDiffRetarget(ni.difficulty, ni.networkSolps);
+      }
+      if(ni.peers >= 0){
+        cachedNetPeers = ni.peers;
+        if(ni.peers > 0){
+          s('hdrPeers', ni.peers + (ni.peers === 1 ? ' peer' : ' peers'));
+          s('syncPeers', ni.peers + (ni.peers === 1 ? ' peer' : ' peers') + ' connected');
+          updateStratumCard(undefined, undefined, ni.peers, undefined);
+        }
+        var syncing = g('syncCard').style.display !== 'none';
+        var pill = g('nodePill');
+        var curCls = pill.className || '';
+        if(curCls.indexOf('pill-live') === -1 || ni.peers > 0){
+          if(syncing){
+            setPill(pill,'pill-sync','Syncing',true);
+          } else if(ni.peers >= 8){
+            setPill(pill,'pill-live',currentNetwork,true);
+          } else if(ni.peers > 0){
+            setPill(pill,'pill-sync','Syncing',true);
+          }
+        }
+      }
+    })
+    .catch(function(){});
+}
+
 function poll(){
   var spin=g('spinner'); spin.classList.add('active');
   fetch('/api/stats',{credentials:'same-origin'})
@@ -1538,7 +1811,6 @@ function poll(){
         g('syncFill').style.width='4%';
       }
       s('hdrPeers',peers+(peers===1?' peer':' peers'));
-      s('cPeers',peers);
       s('syncPeers',peers+(peers===1?' peer':' peers')+' connected');
 
       /* Cards — only write diff/nethash from s-nomp when non-zero to avoid
@@ -1548,10 +1820,6 @@ function poll(){
       if(poolSols>0) s('cNetHash',ps.networkSolsString||fmtH(poolSols*1e6));
       s('cPoolHash',pool.hashrateString||fmtH(pool.hashrate||0));
       s('cRound',(pool.shareCount||0)+' shares this round');
-      s('cWorkers',pool.workerCount||0);
-      s('cMiners',(pool.minerCount||0)+' miner'+((pool.minerCount||0)===1?'':'s'));
-      s('cPeers',peers);
-      s('syncPeers',peers+(peers===1?' peer':' peers')+' connected');
       s('cBlocks',confirmed);
       if (_prevConfirmed >= 0 && confirmed > _prevConfirmed) {
         var rew = g('cRewardVal') ? g('cRewardVal').textContent : '';
@@ -1566,7 +1834,7 @@ function poll(){
         :'at current hash rate');
 
       cachedPoolHashrate = parseFloat(pool.hashrate) || 0;
-      renderWorkers(pool.workers||{}, netDiff);
+      try{ renderWorkers(pool.workers||{}, netDiff); }catch(e){ /* isolate render errors — don't abort the rest of poll() */ var _et=g('tbody'); if(_et) _et.innerHTML='<tr><td colspan="11" style="color:red;padding:10px">ERROR: '+String(e)+'</td></tr>'; }
       updateFleetCadence(pool.workers||{});
       updateOdds();
       renderBlocks(pool);
@@ -1582,77 +1850,15 @@ function poll(){
       /* /api/stats failed — pool is still initialising or crashed.
          Probe Zebra directly before declaring an error so we don't
          show a red pill when the node itself is perfectly healthy. */
-      fetch('/api/umbrel/sync',{credentials:'same-origin'})
-        .then(function(r){ return r.json(); })
-        .then(function(zd){
-          var pill=g('nodePill');
-          var prog=parseFloat(zd.progress)||0;
-          if(prog>0){
-            /* Zebra is alive — pool is just not ready yet */
-            if(prog<0.999){
-              setPill(pill,'pill-sync','Syncing',true);
-            } else {
-              setPill(pill,'pill-sync','Pool starting\u2026',true);
-            }
-          } else {
-            setPill(pill,'pill-dead','Error',false);
-          }
-        })
-        .catch(function(){
-          /* Both /api/stats and /api/umbrel/sync failed — truly offline */
-          var pill=g('nodePill');
-          setPill(pill,'pill-dead','Offline',false);
-        });
+      /* Use last nodeinfo cache — avoids a redundant HTTP round-trip */
+      var pill=g('nodePill');
+      if(cachedNI&&cachedNI.progress>0){
+        setPill(pill,cachedNI.progress<0.999?'pill-sync':'pill-sync',
+          cachedNI.progress<0.999?'Syncing':'Pool starting…',true);
+      } else {
+        setPill(pill,'pill-dead','Offline',false);
+      }
     });
-
-  /* Single Zebra fetch — replaces separate /sync + /netinfo calls */
-  fetch('/api/umbrel/nodeinfo',{credentials:'same-origin'})
-    .then(function(r){ return r.json(); })
-    .then(function(ni){
-      updateSync(ni);
-      /* Difficulty */
-      if(ni.difficulty > 0){
-        lastNetDiff = ni.difficulty;
-        s('cDiff', fmtN(ni.difficulty));
-        var diffLbl = document.getElementById('cDiffSrc');
-        if(diffLbl) diffLbl.textContent = ni.diffSource === 'whattomine' ? '(live)' : '(from node)';
-      }
-      if(ni.networkSolps > 0){
-        cachedNetHashrate = ni.networkSolps;
-        s('cNetHash', fmtH(ni.networkSolps));
-        updateHashVsPanel(cachedNetHashrate, cachedPoolHashrate);
-      }
-      if(ni.difficulty > 0){
-        updateDiffVsPanel(ni.difficulty, allBest);
-        var diffLbl = document.getElementById('vsDiffNetSrc');
-        if(diffLbl) diffLbl.textContent = ni.diffSource === 'whattomine' ? '(live)' : '(from node)';
-      }
-      if(ni.difficulty > 0 && ni.networkSolps > 0){
-        updateDiffRetarget(ni.difficulty, ni.networkSolps);
-      }
-      if(ni.peers >= 0){
-        cachedNetPeers = ni.peers;
-        if(ni.peers > 0){
-          s('cPeers', ni.peers);
-          s('hdrPeers', ni.peers + (ni.peers === 1 ? ' peer' : ' peers'));
-          s('syncPeers', ni.peers + (ni.peers === 1 ? ' peer' : ' peers') + ' connected');
-          updateStratumCard(undefined, undefined, ni.peers, undefined);
-        }
-        var syncing = g('syncCard').style.display !== 'none';
-        var pill = g('nodePill');
-        var curCls = pill.className || '';
-        if(curCls.indexOf('pill-live') === -1 || ni.peers > 0){
-          if(syncing){
-            setPill(pill,'pill-sync','Syncing',true);
-          } else if(ni.peers >= 8){
-            setPill(pill,'pill-live',currentNetwork,true);
-          } else if(ni.peers > 0){
-            setPill(pill,'pill-sync','Syncing',true);
-          }
-        }
-      }
-    })
-    .catch(function(){});
 }
 
 /* ── Tab switching ─────────────────────────────────────── */
@@ -1813,11 +2019,11 @@ function updateHashVsPanel(netSolps, poolSolps, shareCount){
 }
 function updateStratumCard(workers, miners, peers, conns){
   if(workers !== undefined){ s('scWorkers', workers); }
-  if(miners  !== undefined){ s('scMiners',  miners + (miners===1?'':'')); }
-  if(peers   !== undefined){ s('scPeers', peers); s('scPeersHdr', peers); }
+  if(miners  !== undefined){ s('scMiners',  miners === 1 ? '1 miner' : miners + ' miners'); }
+  if(peers   !== undefined){ s('scPeersHdr', peers); }
   if(conns   !== undefined){ s('scConns',   conns !== null ? conns : '\u2014'); }
   var peerSub = g('scPeersSub');
-  if(peerSub) peerSub.textContent = currentNetwork + ' nodes';
+  if(peerSub) peerSub.textContent = 'network peers';
 }
 
 /* ── Diff retarget projection ──────────────────────────── */
@@ -1876,8 +2082,62 @@ function updateHalvingInfo(blockHeight){
   var he=g('cHalving'); if(he) he.style.display='';
 }
 
-/* ── Sync progress renderer ────────────────────────────── */
-var CIRC=188.5; // 2 * Math.PI * 30
+/* ── Sync block feed ──────────────────────────────────── */
+var _SF=[],_SF_sz=0,_SF_blk=0;
+var _SF_GENESIS=1477692000,_SF_BT=75;
+function _sfCube(){
+  return '<svg class="sfi-icon" viewBox="0 0 20 20" width="16" height="16">'+
+    '<polygon points="10,2 18,7 10,12 2,7" style="fill:#F4B728"/>'+
+    '<polygon points="2,7 10,12 10,18 2,13" style="fill:rgba(110,75,0,0.9)"/>'+
+    '<polygon points="18,7 10,12 10,18 18,13" style="fill:rgba(244,183,40,0.45)"/>'+
+    '</svg>';
+}
+function _sfAge(num){
+  var d=Math.floor(Date.now()/1000)-(_SF_GENESIS+num*_SF_BT);
+  if(d<0)return '?';
+  var y=Math.floor(d/31536000);if(y>=1)return y+(y===1?' yr':' yrs')+' ago';
+  var mo=Math.floor(d/2592000);if(mo>=1)return mo+(mo===1?' mo':' mos')+' ago';
+  var dy=Math.floor(d/86400);if(dy>=1)return dy+'d ago';
+  var h=Math.floor(d/3600);if(h>=1)return h+'h ago';
+  return Math.floor(d/60)+'m ago';
+}
+function _sfRender(newEntry){
+  var el=g('syncBlockFeed');if(!el)return;
+  var h='';
+  for(var i=0;i<_SF.length;i++){
+    var e=_SF[i];
+    var cls='sfi'+(newEntry?(i===0?' sf-new':' sf-dn'):'');
+    h+='<div class="'+cls+'">'+
+      '<div style="width:28px;height:28px;border-radius:50%;background:rgba(244,183,40,.09);flex-shrink:0;display:flex;align-items:center;justify-content:center">'+_sfCube()+'</div>'+
+      '<div style="flex:1;min-width:0">'+
+        '<div style="font-size:12px;font-weight:600;color:#f0f0f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Block '+e.num.toLocaleString()+'</div>'+
+        '<div style="font-size:10px;color:#8a8a8a">~'+e.kb+' KB avg</div>'+
+      '</div>'+
+      '<div style="font-size:9px;color:#474747;white-space:nowrap;flex-shrink:0">'+_sfAge(e.num)+'</div>'+
+      '</div>';
+  }
+  el.innerHTML=h;
+}
+function _sgUpdate(pct,blk,est,sz){
+  _SF_sz=sz||_SF_sz;
+  var avgKB=blk>0&&_SF_sz>0?Math.round(_SF_sz/blk/1024):28;
+  var bar=g('syncFill');
+  if(bar)bar.style.width=Math.min(pct,100).toFixed(2)+'%';
+  if(blk>0&&blk!==_SF_blk){
+    _SF_blk=blk;
+    _SF.unshift({num:blk,kb:avgKB});
+    if(_SF.length===1&&blk>4){
+      var gaps=[5,11,18,27,38,51,66,83,101,121,143,167,193,221,251];
+      for(var i=0;i<gaps.length;i++){
+        _SF.push({num:blk-gaps[i],kb:avgKB});
+      }
+    }
+    if(_SF.length>16)_SF.length=16;
+    _sfRender(true);
+  } else {
+    _sfRender(false);
+  }
+}
 function updateSync(data){
   var p=parseFloat(data.progress)||0;
   var pct=p*100;
@@ -1887,13 +2147,14 @@ function updateSync(data){
   var blk=parseInt(data.blocks)||0;
   if(blk>0) updateHalvingInfo(blk);
   if(!synced){
-    var filled=(pct/100)*CIRC;
-    g('syncArc').setAttribute('stroke-dasharray',filled.toFixed(1)+' '+CIRC);
-    g('syncPctTxt').textContent=pct.toFixed(1)+'%';
     s('syncPctBig',pct.toFixed(2)+'%');
+    var _arc=g('syncArc');
+    if(_arc){var _c=138.23,_f=(_c*pct/100);_arc.setAttribute('stroke-dasharray',_f.toFixed(2)+' '+(_c-_f).toFixed(2));}
+    var _pt=g('syncPctTxt');if(_pt)_pt.textContent=pct.toFixed(1)+'%';
     var est=parseInt(data.estimatedHeight)||0;
-    s('syncBlkInfo',blk&&est?'Block '+blk.toLocaleString()+' / ~'+est.toLocaleString():'Downloading…');
     var sz=parseInt(data.sizeOnDisk)||0;
+    _sgUpdate(pct,blk,est,sz);
+    s('syncBlkInfo',blk&&est?'Block '+blk.toLocaleString()+' / ~'+est.toLocaleString():'Downloading…');
     if(sz>0){
       var gb=(sz/1073741824);
       var szStr = gb>=1?gb.toFixed(2)+' GB':Math.round(sz/1048576)+' MB';
@@ -2135,43 +2396,91 @@ function updateOdds(){
     s('oddsFleetRejSub', 'of total shares');
   }
 }
-/* ── Stratum peer latency ───────────────────────────────── */
+/* ── Network peer geo card ─────────────────────────────── */
+var _PG={},_PG_peers=[];
+function _pgIp(addr){
+  if(addr.charAt(0)==='[')return addr.split(']:')[0].slice(1);
+  return addr.split(':')[0];
+}
+function _pgFlag(cc){
+  if(!cc||cc.length!==2)return '🌐';
+  return String.fromCodePoint(0x1F1E6+cc.charCodeAt(0)-65)+
+         String.fromCodePoint(0x1F1E6+cc.charCodeAt(1)-65);
+}
+function _pgRender(){
+  var el=g('peersList');if(!el)return;
+  if(!_PG_peers.length){
+    el.innerHTML='<div style="font-size:10px;color:var(--text3);padding:4px 0">No peers connected</div>';
+    return;
+  }
+  var h='';
+  for(var i=0;i<_PG_peers.length;i++){
+    var p=_PG_peers[i];
+    var ip=_pgIp(p.addr);
+    var geo=_PG[ip];
+    var flag=geo&&geo.cc?_pgFlag(geo.cc):'🌐';
+    var place=geo?(geo.city?geo.city+', '+geo.cc:geo.country||geo.cc):'';
+    var label=place||ip;
+    var dirClr=p.inbound?'var(--blue)':'var(--green)';
+    var dirTxt=p.inbound?'↙ in':'↗ out';
+    h+='<div class="peer-row">'+
+      '<span style="font-size:15px;line-height:1;flex-shrink:0">'+flag+'</span>'+
+      '<div style="flex:1;min-width:0">'+
+        '<div style="font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+label+'</div>'+
+      '</div>'+
+      '<span style="font-size:9px;color:'+dirClr+';flex-shrink:0">'+dirTxt+'</span>'+
+      '</div>';
+  }
+  el.innerHTML=h;
+}
+function _pgGeolocate(ips){
+  var needed=ips.filter(function(ip){return !_PG[ip];});
+  if(!needed.length){_pgRender();return;}
+  var batch=needed.slice(0,100).map(function(ip){return {query:ip,fields:'query,status,country,countryCode,city'};});
+  fetch('https://ip-api.com/batch?fields=query,status,country,countryCode,city',{
+    method:'POST',body:JSON.stringify(batch)
+  }).then(function(r){return r.json();}).then(function(res){
+    for(var i=0;i<res.length;i++){
+      var r=res[i];
+      _PG[r.query]=r.status==='success'?{country:r.country,cc:r.countryCode,city:r.city}:{country:'',cc:'',city:''};
+    }
+    _pgRender();
+  }).catch(function(){_pgRender();});
+}
+function fetchNodePeers(){
+  fetch('/api/umbrel/peers',{credentials:'same-origin'})
+    .then(function(r){return r.json();})
+    .then(function(peers){
+      if(!Array.isArray(peers))return;
+      _PG_peers=peers;
+      var row=g('scPeersRow');
+      if(row)row.style.display=peers.length>0?'':'none';
+      var out=0,inn=0;
+      for(var i=0;i<peers.length;i++){if(peers[i].inbound)inn++;else out++;}
+      var sub=peers.length>0
+        ?'<span style="color:var(--green)">↗ '+out+'</span> out  <span style="color:var(--blue)">↙ '+inn+'</span> in'
+        :'';
+      var subs=['syncPeersSub','scPeersInOut'];
+      for(var j=0;j<subs.length;j++){var e=g(subs[j]);if(e)e.innerHTML=sub;}
+      var ips=peers.map(function(p){return _pgIp(p.addr);});
+      _pgGeolocate(ips);
+    }).catch(function(){});
+}
+/* ── Stratum peer latency → RTT column in workers table ─── */
 function fetchStratumPeers(){
   fetch('/api/umbrel/stratum-peers',{credentials:'same-origin'})
     .then(function(r){ return r.json(); })
     .then(function(d){
       var peers = d.peers || [];
-      var panel = g('stratumLatency');
-      var grid  = g('latGrid');
-      var note  = g('latNote');
-      if(!panel||!grid) return;
-      if(peers.length === 0){
-        panel.style.display = 'none';
-        return;
-      }
-      panel.style.display = '';
-      var localCount = 0;
-      var html = peers.map(function(p){
-        var rtt = p.rttMs;
-        var rttStr = rtt === null ? 'n/a' : rtt < 1 ? rtt.toFixed(3)+' ms' : rtt.toFixed(2)+' ms';
-        var cls = 'lat-ok';
-        if(rtt !== null){
-          if(rtt < 1) { cls = 'lat-good'; localCount++; }
-          else if(rtt < 20) cls = 'lat-good';
-          else if(rtt < 80) cls = 'lat-ok';
-          else cls = 'lat-slow';
-        }
-        return '<div class="lat-row">'
-          +'<span class="lat-ip" title="'+escHtml(p.host ? p.ip+(p.port?':'+p.port:'') : '')+'">'+escHtml(p.host || p.ip+(p.port?':'+p.port:''))+'</span>'
-          +'<span class="lat-badge '+cls+'">'+escHtml(rttStr)+'</span>'
-          +'</div>';
-      }).join('');
-      grid.innerHTML = html;
-      var noteStr = peers.length+' connection'+(peers.length===1?'':'s');
-      if(localCount > 0) noteStr += ' \u00b7 '+localCount+' local (Docker/same-host \u2014 RTT < 1ms is normal)';
-      note.textContent = noteStr;
-      // feed stratum combined card
       updateStratumCard(undefined, undefined, undefined, peers.length);
+      var map = {};
+      peers.forEach(function(p){
+        var entry={ip:p.ip,host:p.host,rttMs:p.rttMs};
+        if(p.host){ var nh=_normHost(p.host); if(nh) map[nh]=entry; }
+        if(p.ip) map[p.ip]=entry;
+      });
+      _peerInfoMap = map;
+      if(Object.keys(cachedWorkers).length) renderWorkers(cachedWorkers, cachedNetDiff);
     })
     .catch(function(){});
 }
@@ -2236,8 +2545,12 @@ setInterval(fetchZecHistory, 300000);
 setInterval(fetchDiffHistory, 21600000);
 fetchNews();
 setInterval(fetchNews, 600000);
+fetchNodeInfo();
+setInterval(fetchNodeInfo, 30000);
 fetchStratumPeers();
-setInterval(fetchStratumPeers, 15000);
+setInterval(fetchStratumPeers, 30000);
+fetchNodePeers();
+setInterval(fetchNodePeers, 120000);
 }();
 
 /* ── Donation QR codes ─────────────────────────────────── */

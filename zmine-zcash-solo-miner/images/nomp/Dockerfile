@@ -85,6 +85,7 @@ RUN node /tmp/patch-dumpprivkey.js && rm /tmp/patch-dumpprivkey.js
 
 # ── Replace website/index.html with OLED dark dashboard ──────────────────
 COPY dashboard-index.html /app/website/index.html
+COPY guide.html /app/website/guide.html
 
 # ── Native library search path for equihashverify ────────────────────────
 ENV LD_LIBRARY_PATH="/app/node_modules/stratum-pool/node_modules/equihashverify/build/Release:/app/node_modules/equihashverify/build/Release"
@@ -100,7 +101,7 @@ RUN chmod 755 /usr/local/bin/nomp-entrypoint.sh
 
 USER 1000:1000
 
-EXPOSE 3333 3300
+EXPOSE 13333 3300
 
 ENTRYPOINT ["/usr/local/bin/nomp-entrypoint.sh"]
 CMD ["node", "init.js"]

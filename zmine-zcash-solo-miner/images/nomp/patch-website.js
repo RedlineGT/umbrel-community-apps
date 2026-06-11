@@ -47,7 +47,7 @@ const INJECT = `
             "style-src 'self' 'unsafe-inline' data:",
             "font-src 'self' data:",
             "img-src 'self' data: https:",
-            "connect-src 'self' https://api.coingecko.com",
+            "connect-src 'self' https://api.coingecko.com https://ip-api.com",
             "frame-ancestors 'none'"
         ].join('; '));
         res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
@@ -195,15 +195,11 @@ const INJECT = `
     app.get('/api/umbrel/nodeinfo', function(req, res) {
         buildNodeInfo(function(err, data) { res.json(data || {}); });
     });
-    // Legacy aliases — kept for backward compat, served from same cache
-    app.get('/api/umbrel/sync', function(req, res) {
-        buildNodeInfo(function(err, d) {
-            res.json(d ? { progress: d.progress, blocks: d.blocks, estimatedHeight: d.estimatedHeight, sizeOnDisk: d.sizeOnDisk } : { progress:0, blocks:0, estimatedHeight:0, sizeOnDisk:0 });
-        });
-    });
-    app.get('/api/umbrel/netinfo', function(req, res) {
-        buildNodeInfo(function(err, d) {
-            res.json(d ? { difficulty: d.difficulty, networkSolps: d.networkSolps, peers: d.peers, diffSource: d.diffSource } : { difficulty:0, networkSolps:0, peers:0, diffSource:'zebra' });
+    // Peer list for geo card — returns addr + direction for each connected peer
+    app.get('/api/umbrel/peers', function(req, res) {
+        zebraRpc('getpeerinfo', function(e, r) {
+            if (e || !Array.isArray(r)) return res.json([]);
+            res.json(r.map(function(p) { return { addr: p.addr, inbound: !!p.inbound }; }));
         });
     });
     // Address GET — returns saved address and current network
@@ -564,6 +560,9 @@ const INJECT = `
         res.setHeader('Content-Disposition', 'attachment; filename="zmine-log.txt"');
         try { res.send(_fs.readFileSync(_logFile, 'utf8')); }
         catch(e) { res.send(''); }
+    });
+    app.get('/dashboard-index.html', function(req, res) {
+        res.sendFile(require('path').join(__dirname, '../website/index.html'));
     });
     // end umbrel:patched
 `;
