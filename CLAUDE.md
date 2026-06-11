@@ -30,6 +30,10 @@
 - Fish shell only — no bash heredocs, no `VAR=value` assignment syntax
 - Use `set VAR value` for variables in fish scripts
 
+## UI Rules
+
+- **Never show scrollbars** — always use `*::-webkit-scrollbar{display:none}` + `*{scrollbar-width:none;-ms-overflow-style:none}` as global CSS. Do not add visible scrollbars to any element.
+
 ## Code Rules
 
 - Node.js 10.24.1 in nomp image: no `fs.rm()` — use `execFile('rm', ['-rf', ...])`
