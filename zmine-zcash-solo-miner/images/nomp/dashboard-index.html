@@ -845,7 +845,7 @@ window.sbNav=function(sec,el){
       </div>
 
       <div class="stack-footer">
-        Zcash Solo Miner v1.3.49 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
+        Zcash Solo Miner v1.3.50 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
       </div>
 
       <div class="donate-section-wrap" style="margin-top:0">
@@ -1035,6 +1035,7 @@ function showBlockBanner(reward) {
 var filterAddr = localStorage.getItem('zmf.filter') || '';
 var sessBest   = {};        // { worker: maxDiff } — resets on page load
 var allBest    = {};        // { worker: maxDiff } — persisted
+var _lastWc = 0;
 var lastNetDiff = 0;
 var cachedNetPeers = 0;    // best known peer count from Zebra direct RPC
 var cachedNI = null;       // last nodeinfo response — used by poll() fallback
@@ -1648,6 +1649,7 @@ function poll(){
       // VS panels
       var wc = parseInt(pool.workerCount)||0;
       var mc = parseInt(pool.minerCount)||0;
+      _lastWc = wc;
       updateDiffVsPanel(netDiff, allBest);
       updateHashVsPanel(cachedNetHashrate, cachedPoolHashrate, pool.shareCount||0);
       updateStratumCard(wc, mc, peers, null);
@@ -1791,7 +1793,7 @@ function updateDiffVsPanel(netDiff, allBestMap, netDiffArg){
   // best share across fleet
   var best = 0, bestW = '';
   Object.keys(allBestMap||{}).forEach(function(w){ if((allBestMap[w]||0) > best){ best = allBestMap[w]; bestW = w; } });
-  if(best > 0){
+  if(best > 0 && _lastWc > 0){
     s('vsDiffBest', fmtN(best));
     var _dot=bestW.indexOf('.');var short=_dot!==-1?bestW.slice(_dot+1):bestW;
     s('vsDiffBestMiner', short ? '\u26CF\uFE0F '+short : '');
@@ -1803,8 +1805,11 @@ function updateDiffVsPanel(netDiff, allBestMap, netDiffArg){
     var rb = g('vsDiffBarR'); if(rb) rb.style.width = rPct + '%';
   } else {
     s('vsDiffBest', '\u2014');
-    s('vsDiffBestMiner', 'no shares yet');
+    s('vsDiffBestMiner', _lastWc > 0 ? 'no shares yet' : 'no miners online');
+    var _lb2=g('vsDiffBarL'); if(_lb2) _lb2.style.width='100%';
+    var _rb2=g('vsDiffBarR'); if(_rb2) _rb2.style.width='0%';
   }
+  _fixCardHeights();
 }
 function updateHashVsPanel(netSolps, poolSolps, shareCount){
   if(netSolps > 0) s('vsHashNet', fmtH(netSolps));
@@ -1860,6 +1865,7 @@ function updateDiffRetarget(curDiff, networkSolps){
   s('cDiffProj', fmtN(projected));
   s('cDiffChgSub', 'Based on '+fmtH(networkSolps)+' net sol/s · 75s target');
   var el = g('cDiffRetarget'); if(el) el.style.display='';
+  _fixCardHeights();
 }
 
 /* ── Halving countdown ─────────────────────────────────── */
@@ -1892,6 +1898,23 @@ function updateHalvingInfo(blockHeight){
 /* ── Sync block feed ──────────────────────────────────── */
 var _syncHistory=[];
 function _fmtDur(s){var d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60),p=[];if(d>0)p.push(d+"d");if(h>0)p.push(h+"h");if(m>0||!p.length)p.push(m+"m");return p.join(" ");}
+var _fchTimer=null;
+function _fixCardHeights(){
+  clearTimeout(_fchTimer);
+  _fchTimer=setTimeout(function(){
+    var ref=g('vsDiffCard');if(!ref)return;
+    var h=ref.offsetHeight;if(h<100)return;
+    var ids=['syncCard','stratumCard','cLuckCard'];
+    for(var i=0;i<ids.length;i++){
+      var c=g(ids[i]);
+      if(!c||c.style.display==='none')continue;
+      c.style.height=h+'px';
+      c.style.boxSizing='border-box';
+      c.style.overflowY='auto';
+    }
+  },200);
+}
+window.addEventListener('resize',_fixCardHeights);
 var _SF=[],_SF_sz=0,_SF_blk=0;
 var _SF_GENESIS=1477692000,_SF_BT=75;
 function _sfCube(){
@@ -2001,6 +2024,7 @@ function updateSync(data){
     if(synced){ syncC.classList.remove('syncing'); }
     else{ syncC.classList.add('syncing'); }
   }
+  _fixCardHeights();
 }
 
 /* ── ZEC price fetch ──────────────────────────────────────────────────── */

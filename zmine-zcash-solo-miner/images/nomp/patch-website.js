@@ -217,11 +217,11 @@ const INJECT = `
             }
             if (!needed.length) return attach();
             var body = JSON.stringify(needed.slice(0, 100).map(function(ip) {
-                return { query: ip, fields: 'query,status,country,countryCode,region,city' };
+                return { query: ip, fields: 'query,status,country,countryCode,regionName,city' };
             }));
             var _sent = false;
             var req2 = require('http').request({
-                hostname: 'ip-api.com', path: '/batch?fields=query,status,country,countryCode,region,city',
+                hostname: 'ip-api.com', path: '/batch?fields=query,status,country,countryCode,regionName,city',
                 method: 'POST', headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) }
             }, function(r2) {
                 var data = '';
@@ -231,7 +231,7 @@ const INJECT = `
                     try {
                         JSON.parse(data).forEach(function(g) {
                             _geoCache[g.query] = g.status === 'success'
-                                ? { country: g.country, cc: g.countryCode, region: g.region, city: g.city } : null;
+                                ? { country: g.country, cc: g.countryCode, region: g.regionName, city: g.city } : null;
                         });
                     } catch(ex) {}
                     attach();
