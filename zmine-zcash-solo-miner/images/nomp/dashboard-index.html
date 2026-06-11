@@ -112,7 +112,7 @@ body{
 .sfi.sf-dn{animation:sfDn .35s cubic-bezier(0,.8,.3,1) forwards}
 .sfi-icon{animation:sfCubeSpin 4s linear infinite;display:block}
 .peer-row{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--border)}
-.peer-row:last-child{border-bottom:none}
+.peer-row:last-child{border-bottom:none}#peersList::-webkit-scrollbar{display:none}
 /* ── Stratum banner label styles ── */
 .stratum-lbl{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--blue);margin-bottom:4px}
 .stratum-val{font-size:15px;color:var(--text);font-weight:700;letter-spacing:.5px}
@@ -178,7 +178,7 @@ body{
 .sc-val{font-size:15px;font-weight:800;letter-spacing:-.3px}
 .sc-sub{font-size:10px;color:var(--text3);margin-top:1px}
 /* ── Stat cards ─────────────────────────────────────────── */
-.cards{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:14px;align-items:stretch}
+.cards{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:14px;align-items:flex-start}
 .card{flex:1 1 220px;min-width:220px;background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:14px 16px;transition:border-color .2s,transform .15s;cursor:default}
 .card:hover{border-color:var(--border2);transform:translateY(-1px)}
 .card-lbl{font-size:9px;text-transform:uppercase;letter-spacing:1.8px;color:var(--text3);margin-bottom:8px;font-weight:600}
@@ -507,6 +507,7 @@ window.sbNav=function(sec,el){
                 <div class="sync-peers" style="margin:0"><span class="sync-peers-dot" style="background:var(--blue)"></span><span id="syncSize">— chain</span></div>
               </div>
               <div id="syncPeersSub" style="font-size:10px;color:var(--text3);margin-top:3px"></div>
+              <div id="syncSpeedEta" style="display:none;font-size:10px;color:var(--text3);margin-top:4px;white-space:nowrap"></div>
             </div>
             <svg class="sync-donut" viewBox="0 0 56 56">
               <circle cx="28" cy="28" r="22" fill="none" stroke="var(--surf3)" stroke-width="3"/>
@@ -582,7 +583,7 @@ window.sbNav=function(sec,el){
           <div id="scPeersRow" class="sc-row sc-row-addr" style="display:none;border-top:1px solid var(--border)">
             <div style="flex:1;min-width:0">
               <div class="sc-lbl" style="margin-bottom:5px">Network Peers</div>
-              <div id="peersList" style="max-height:200px;overflow-y:auto"></div>
+              <div id="peersList" style="max-height:200px;overflow-y:auto;scrollbar-width:none;-ms-overflow-style:none"></div>
             </div>
           </div>
         </div>
@@ -844,7 +845,7 @@ window.sbNav=function(sec,el){
       </div>
 
       <div class="stack-footer">
-        Zcash Solo Miner v1.3.48 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
+        Zcash Solo Miner v1.3.49 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
       </div>
 
       <div class="donate-section-wrap" style="margin-top:0">
@@ -1889,6 +1890,8 @@ function updateHalvingInfo(blockHeight){
 }
 
 /* ── Sync block feed ──────────────────────────────────── */
+var _syncHistory=[];
+function _fmtDur(s){var d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60),p=[];if(d>0)p.push(d+"d");if(h>0)p.push(h+"h");if(m>0||!p.length)p.push(m+"m");return p.join(" ");}
 var _SF=[],_SF_sz=0,_SF_blk=0;
 var _SF_GENESIS=1477692000,_SF_BT=75;
 function _sfCube(){
@@ -1966,6 +1969,19 @@ function updateSync(data){
       var szStr = gb>=1?gb.toFixed(2)+' GB':Math.round(sz/1048576)+' MB';
       s('syncSize', szStr+' chain size');
       s('scChainSize', szStr);
+    }
+    var _ssel=g('syncSpeedEta');
+    if(_ssel&&sz>0){
+      var _now=Date.now();
+      _syncHistory.push({ts:_now,sz:sz,p:p});
+      if(_syncHistory.length>40)_syncHistory.shift();
+      var _old=_syncHistory[0],_dtMs=_now-_old.ts;
+      if(_syncHistory.length>=2&&_dtMs>=60000){
+        var _dSz=sz-_old.sz,_dP=p-_old.p,_dtS=_dtMs/1000,_pts=[];
+        if(_dSz>0){var _bps=_dSz/_dtS;_pts.push(_bps>=1048576?(_bps/1048576).toFixed(1)+' MB/s':Math.round(_bps/1024)+' KB/s');}
+        if(_dP>0){var _sL=Math.round((1-p)*_dtS/_dP);_pts.push('ETA '+_fmtDur(_sL));}
+        if(_pts.length){_ssel.textContent=_pts.join(' · ');_ssel.style.display='';}
+      }
     }
   }
   var note=g('stratumNote');
@@ -2225,7 +2241,7 @@ function _pgRender(){
     var ip=_pgIp(p.addr);
     var geo=_PG[ip];
     var flag=geo&&geo.cc?_pgFlag(geo.cc):'🌐';
-    var place=geo?(geo.city?geo.city+', '+geo.cc:geo.country||geo.cc):'';
+    var place=geo?(geo.city?geo.city+(geo.region?', '+geo.region:'')+', '+geo.cc:geo.country||geo.cc):'';
     var label=place||ip;
     var dirClr=p.inbound?'var(--blue)':'var(--green)';
     var dirTxt=p.inbound?'↙ in':'↗ out';
