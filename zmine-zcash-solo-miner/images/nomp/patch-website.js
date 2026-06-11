@@ -204,7 +204,7 @@ const INJECT = `
     app.get('/api/umbrel/peers', function(req, res) {
         zebraRpc('getpeerinfo', function(e, r) {
             if (e || !Array.isArray(r)) return res.json([]);
-            var peers = r.map(function(p) { return { addr: p.addr, inbound: !!p.inbound }; });
+            var peers = r.map(function(p) { return { addr: p.addr, inbound: !!p.inbound, subver: p.subver||'', lastrecv: p.lastrecv||0, connection_state: p.connection_state||'' }; });
             var needed = [];
             var seen = {};
             peers.forEach(function(p) {

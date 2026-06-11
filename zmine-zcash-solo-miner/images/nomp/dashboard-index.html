@@ -113,7 +113,7 @@ body{
 .sfi.sf-new{animation:sfIn .35s cubic-bezier(0,.8,.3,1) forwards}
 .sfi.sf-dn{animation:sfDn .35s cubic-bezier(0,.8,.3,1) forwards}
 .sfi-icon{animation:sfCubeSpin 4s linear infinite;display:block}
-.peer-row{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--border)}
+.peer-row{display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)}
 .peer-row:last-child{border-bottom:none}#peersList::-webkit-scrollbar{display:none}
 /* ── Stratum banner label styles ── */
 .stratum-lbl{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--blue);margin-bottom:4px}
@@ -351,6 +351,7 @@ tbody tr:hover td{background:rgba(255,255,255,.013)}
 @media(max-width:640px){
   .cards{flex-direction:column}
   #syncCard,#addrBanner,#stratumBanner,.card{flex:none;min-width:0}
+  #stratumCard,#vsDiffCard,#cLuckCard{flex:none;min-width:0;width:100%}
   .card-val{font-size:18px}
   .two-col{grid-template-columns:1fr}
   .odds-grid{grid-template-columns:1fr}
@@ -361,7 +362,9 @@ tbody tr:hover td{background:rgba(255,255,255,.013)}
   .hdr-act svg{width:13px;height:13px;display:block}
   #hdrTime,#hdrDate{display:none}
   .hdr-sep{margin:0 4px}
-  .page-header{padding:0 10px;gap:6px}
+  .page-header{padding:6px 10px;gap:6px;height:auto;min-height:44px;flex-wrap:wrap}
+  .ph-left{flex-wrap:wrap;gap:6px}
+  .ph-right{flex-wrap:wrap;gap:6px;justify-content:flex-end}
 }
 @keyframes bfParticle{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--bfx),var(--bfy)) scale(0);opacity:0}}
 @keyframes bfBannerIn{from{bottom:-120px;opacity:0}to{bottom:28px;opacity:1}}
@@ -640,8 +643,7 @@ window.sbNav=function(sec,el){
               <div class="vs-side-sub" style="color:var(--zec)" id="vsHashPoolSub">—</div>
             </div>
           </div>
-          <div class="vs-bar-wrap"><div class="vs-bar-l" id="vsHashBarL" style="background:var(--blue);width:50%"></div><div class="vs-bar-r" id="vsHashBarR" style="background:var(--zec);width:50%"></div></div>
-          <div style="font-size:10px;color:var(--text3);margin-top:6px" id="vsHashShare"></div>
+
 
           <div style="border-top:1px solid var(--border);margin:12px 0 8px"></div>
           <div style="font-size:12px;color:var(--text2);margin-bottom:5px">Share Cadence</div>
@@ -847,7 +849,7 @@ window.sbNav=function(sec,el){
       </div>
 
       <div class="stack-footer">
-        Zcash Solo Miner v1.3.51 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
+        Zcash Solo Miner v1.3.53 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
       </div>
 
       <div class="donate-section-wrap" style="margin-top:0">
@@ -1557,7 +1559,7 @@ function fetchNodeInfo(){
         if(ni.peers > 0){
           s('hdrPeers', ni.peers + (ni.peers === 1 ? ' peer' : ' peers'));
           s('syncPeers', ni.peers + (ni.peers === 1 ? ' peer' : ' peers') + ' connected');
-          updateStratumCard(undefined, undefined, ni.peers, undefined);
+          updateStratumCard(undefined, undefined, undefined, undefined);
         }
         var syncing = g('syncCard').style.display !== 'none';
         var pill = g('nodePill');
@@ -1654,7 +1656,7 @@ function poll(){
       _lastWc = wc;
       updateDiffVsPanel(netDiff, allBest);
       updateHashVsPanel(cachedNetHashrate, cachedPoolHashrate, pool.shareCount||0);
-      updateStratumCard(wc, mc, peers, null);
+      updateStratumCard(wc, mc, undefined, null);
     })
     .catch(function(){
       spin.classList.remove('active');
@@ -1904,6 +1906,10 @@ var _fchTimer=null;
 function _fixCardHeights(){
   clearTimeout(_fchTimer);
   _fchTimer=setTimeout(function(){
+    if(window.innerWidth<640){
+      ['syncCard','stratumCard','cLuckCard'].forEach(function(id){var c=g(id);if(c){c.style.height='';c.style.overflowY='';}});
+      return;
+    }
     var ref=g('vsDiffCard');if(!ref)return;
     var h=ref.offsetHeight;if(h<100)return;
     var ids=['syncCard','stratumCard','cLuckCard'];
@@ -1912,7 +1918,7 @@ function _fixCardHeights(){
       if(!c||c.style.display==='none')continue;
       c.style.height=h+'px';
       c.style.boxSizing='border-box';
-      c.style.overflowY='auto';
+      c.style.overflowY=ids[i]==='stratumCard'?'hidden':'auto';
     }
   },200);
 }
@@ -2255,6 +2261,28 @@ function _pgFlag(cc){
   return String.fromCodePoint(0x1F1E6+cc.charCodeAt(0)-65)+
          String.fromCodePoint(0x1F1E6+cc.charCodeAt(1)-65);
 }
+function _pgClient(sv){
+  if(!sv)return'';
+  var m=sv.match(/^\/([^:\/]+)[:/]([^\/]+)\//);
+  return m?m[1]+' '+m[2]:sv.replace(/^\/|\/$/g,'');
+}
+function _pgAge(ts){
+  if(!ts)return'';
+  var s=Math.floor(Date.now()/1000)-ts;
+  if(s<0)return'now';
+  if(s<60)return s+'s ago';
+  if(s<3600)return Math.floor(s/60)+'m ago';
+  return Math.floor(s/3600)+'h ago';
+}
+function _pgAgeClr(ts){
+  if(!ts)return'var(--text3)';
+  var s=Math.floor(Date.now()/1000)-ts;
+  return s<30?'var(--green)':s<300?'var(--text2)':'var(--text3)';
+}
+function _pgClientClr(sv){
+  if(!sv)return'var(--text3)';
+  return/zebra/i.test(sv)?'var(--zec)':/zcashd/i.test(sv)?'var(--blue)':'var(--text3)';
+}
 function _pgRender(){
   var el=g('peersList');if(!el)return;
   if(!_PG_peers.length){
@@ -2270,13 +2298,21 @@ function _pgRender(){
     var place=geo?(geo.city?geo.city+(geo.region?', '+geo.region:'')+', '+geo.cc:geo.country||geo.cc):'';
     var label=place||ip;
     var dirClr=p.inbound?'var(--blue)':'var(--green)';
-    var dirTxt=p.inbound?'↙ in':'↗ out';
+    var client=_pgClient(p.subver||'');
+    var clientClr=_pgClientClr(p.subver||'');
+    var age=_pgAge(p.lastrecv||0);
+    var ageClr=_pgAgeClr(p.lastrecv||0);
     h+='<div class="peer-row">'+
-      '<span style="font-size:15px;line-height:1;flex-shrink:0">'+flag+'</span>'+
+      '<span style="font-size:15px;line-height:1.2;flex-shrink:0;margin-top:1px">'+flag+'</span>'+
       '<div style="flex:1;min-width:0">'+
-        '<div style="font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+label+'</div>'+
+        '<div style="font-size:11px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500">'+label+'</div>'+
+        '<div style="display:flex;align-items:center;gap:5px;margin-top:2px">'+
+          (client?'<span style="font-size:10px;font-weight:600;color:'+clientClr+'">'+client+'</span>':'')+
+          (client&&age?'<span style="font-size:9px;color:var(--border2);line-height:1">·</span>':'')+
+          (age?'<span style="font-size:10px;color:'+ageClr+'">'+age+'</span>':'')+
+        '</div>'+
       '</div>'+
-      '<span style="font-size:9px;color:'+dirClr+';flex-shrink:0">'+dirTxt+'</span>'+
+      '<span style="font-size:9px;color:'+dirClr+';flex-shrink:0;font-weight:700;margin-top:1px">'+(p.inbound?'↙':'↗')+'</span>'+
       '</div>';
   }
   el.innerHTML=h;
@@ -2286,17 +2322,22 @@ function fetchNodePeers(){
     .then(function(r){return r.json();})
     .then(function(peers){
       if(!Array.isArray(peers))return;
-      _PG_peers=peers;
-      for(var i=0;i<peers.length;i++){
-        var ip=_pgIp(peers[i].addr);
-        if(peers[i].geo)_PG[ip]=peers[i].geo;
+      _PG_peers=peers.filter(function(p){
+        var st=(p.connection_state||'').toLowerCase();
+        return !st||st==='established';
+      });
+      for(var i=0;i<_PG_peers.length;i++){
+        var ip=_pgIp(_PG_peers[i].addr);
+        if(_PG_peers[i].geo)_PG[ip]=_PG_peers[i].geo;
       }
+      var n=_PG_peers.length;
+      s('scPeersHdr',n||'—');
       var row=g('scPeersRow');
-      if(row)row.style.display=peers.length>0?'':'none';
+      if(row)row.style.display=n>0?'':'none';
       var out=0,inn=0;
-      for(var i=0;i<peers.length;i++){if(peers[i].inbound)inn++;else out++;}
-      var sub=peers.length>0
-        ?'<span style="color:var(--green)">↗ '+out+'</span> out  <span style="color:var(--blue)">↙ '+inn+'</span> in'
+      for(var i=0;i<n;i++){if(_PG_peers[i].inbound)inn++;else out++;}
+      var sub=n>0
+        ?'<span style="color:var(--green)">↗ '+out+'</span> out <span style="color:var(--blue)">↙ '+inn+'</span> in'
         :'';
       var subs=['syncPeersSub','scPeersInOut'];
       for(var j=0;j<subs.length;j++){var e=g(subs[j]);if(e)e.innerHTML=sub;}
