@@ -350,7 +350,7 @@ tbody tr:hover td{background:rgba(255,255,255,.013)}
 }
 @media(max-width:640px){
   .cards{flex-direction:column}
-  #syncCard,#addrBanner,#stratumBanner,.card{flex:none;min-width:0}
+  #syncCard,#addrBanner,#stratumBanner,.card{flex:none;min-width:0;width:100%}
   #stratumCard,#vsDiffCard,#cLuckCard{flex:none;min-width:0;width:100%}
   .card-val{font-size:18px}
   .two-col{grid-template-columns:1fr}
@@ -360,11 +360,11 @@ tbody tr:hover td{background:rgba(255,255,255,.013)}
   .hdr-nav-item svg{width:15px;height:15px}
   .hdr-act{padding:5px 8px;font-size:0;gap:0}
   .hdr-act svg{width:13px;height:13px;display:block}
-  #hdrTime,#hdrDate{display:none}
-  .hdr-sep{margin:0 4px}
-  .page-header{padding:6px 10px;gap:6px;height:auto;min-height:44px;flex-wrap:wrap}
-  .ph-left{flex-wrap:wrap;gap:6px}
-  .ph-right{flex-wrap:wrap;gap:6px;justify-content:flex-end}
+  #hdrDate{display:none}
+  #sbGuide,#sbDonate{display:none}
+  .hdr-sep{display:none}
+  .page-header{padding:0 8px;gap:4px}
+  .ph-right{gap:6px}
 }
 @keyframes bfParticle{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--bfx),var(--bfy)) scale(0);opacity:0}}
 @keyframes bfBannerIn{from{bottom:-120px;opacity:0}to{bottom:28px;opacity:1}}
@@ -457,7 +457,7 @@ window.sbNav=function(sec,el){
     </div>
     <div class="ph-right">
       <span id="nodePill" class="pill pill-sync"><span class="dot blink"></span>Connecting</span>
-      <a href="/guide.html" class="hdr-act" title="Dashboard Guide"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>Guide</a>
+      <a href="/guide.html" class="hdr-act" id="sbGuide" title="Dashboard Guide"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>Guide</a>
       <button class="hdr-act" id="sbLog" onclick="sbNav('log',this)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Log</button>
       <button class="hdr-act" id="sbDonate" onclick="sbNav('donate',this)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>Donate</button>
       <span id="hdrZecPrice" style="display:none"></span>
@@ -849,7 +849,7 @@ window.sbNav=function(sec,el){
       </div>
 
       <div class="stack-footer">
-        Zcash Solo Miner v1.3.53 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
+        Zcash Solo Miner v1.3.54 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
       </div>
 
       <div class="donate-section-wrap" style="margin-top:0">
