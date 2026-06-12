@@ -850,7 +850,7 @@ window.sbNav=function(sec,el){
       </div>
 
       <div class="stack-footer">
-        Zcash Solo Miner v1.3.56 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
+        Zcash Solo Miner v1.3.57 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
       </div>
 
       <div class="donate-section-wrap" style="margin-top:0">
@@ -1623,8 +1623,8 @@ function poll(){
         setPill(pill,'pill-dead','Offline',false);
         g('syncFill').style.width='4%';
       }
-      s('hdrPeers',peers+(peers===1?' peer':' peers'));
-      s('syncPeers',peers+(peers===1?' peer':' peers')+' connected');
+      s('hdrPeers',cachedNetPeers+(cachedNetPeers===1?' peer':' peers'));
+      s('syncPeers',cachedNetPeers+(cachedNetPeers===1?' peer':' peers')+' connected');
 
       /* Cards — only write diff/nethash from s-nomp when non-zero to avoid
          flashing while the Zebra netinfo fetch is still in-flight */
