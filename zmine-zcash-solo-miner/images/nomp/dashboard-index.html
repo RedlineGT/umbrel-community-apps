@@ -349,22 +349,23 @@ tbody tr:hover td{background:rgba(255,255,255,.013)}
   #hdrDate{display:none}
 }
 @media(max-width:640px){
-  .cards{flex-direction:column}
+  .cards{flex-direction:column;align-items:stretch}
   #syncCard,#addrBanner,#stratumBanner,.card{flex:none;min-width:0;width:100%}
   #stratumCard,#vsDiffCard,#cLuckCard{flex:none;min-width:0;width:100%}
+  #syncCard{max-height:300px;overflow:hidden}
   .card-val{font-size:18px}
   .two-col{grid-template-columns:1fr}
   .odds-grid{grid-template-columns:1fr}
-  /* header: icon-only nav, hide time/net label */
+  /* header: icon-only, horizontally scrollable — finger-swipe to see right side */
   .hdr-nav-item span,.hdr-nav-item{font-size:0;padding:6px 8px;gap:0}
   .hdr-nav-item svg{width:15px;height:15px}
   .hdr-act{padding:5px 8px;font-size:0;gap:0}
   .hdr-act svg{width:13px;height:13px;display:block}
   #hdrDate{display:none}
-  #sbGuide,#sbDonate{display:none}
-  .hdr-sep{display:none}
-  .page-header{padding:0 8px;gap:4px}
-  .ph-right{gap:6px}
+  .hdr-sep{margin:0 4px;flex-shrink:0}
+  .page-header{padding:0 10px;gap:6px;overflow-x:auto;flex-wrap:nowrap}
+  .ph-left{flex-shrink:0;gap:4px}
+  .ph-right{flex-shrink:0;gap:8px}
 }
 @keyframes bfParticle{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--bfx),var(--bfy)) scale(0);opacity:0}}
 @keyframes bfBannerIn{from{bottom:-120px;opacity:0}to{bottom:28px;opacity:1}}
@@ -849,7 +850,7 @@ window.sbNav=function(sec,el){
       </div>
 
       <div class="stack-footer">
-        Zcash Solo Miner v1.3.54 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
+        Zcash Solo Miner v1.3.55 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
       </div>
 
       <div class="donate-section-wrap" style="margin-top:0">
@@ -2322,10 +2323,7 @@ function fetchNodePeers(){
     .then(function(r){return r.json();})
     .then(function(peers){
       if(!Array.isArray(peers))return;
-      _PG_peers=peers.filter(function(p){
-        var st=(p.connection_state||'').toLowerCase();
-        return !st||st==='established';
-      });
+      _PG_peers=peers;
       for(var i=0;i<_PG_peers.length;i++){
         var ip=_pgIp(_PG_peers[i].addr);
         if(_PG_peers[i].geo)_PG[ip]=_PG_peers[i].geo;
