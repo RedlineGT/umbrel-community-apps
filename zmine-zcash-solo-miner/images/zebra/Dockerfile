@@ -4,7 +4,7 @@
 # variables at container start, then hands off to the official entrypoint
 # (which handles setpriv privilege-dropping and CONFIG_FILE_PATH support).
 
-FROM zfnd/zebra:5.1.0
+FROM zfnd/zebra:5.1.1
 
 # The official image is based on debian:trixie-slim and already has:
 #   - zebrad at /usr/local/bin/zebrad
