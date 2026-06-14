@@ -73,7 +73,7 @@ tx_cost_limit = 80000000
 [network]
 network = "${NETWORK}"
 listen_addr = "0.0.0.0:${P2P_PORT}"
-peerset_initial_target_size = 50
+peerset_initial_target_size = 25
 ${PEERS_TOML}
 
 [rpc]
@@ -88,7 +88,7 @@ ephemeral = false
 
 [sync]
 checkpoint_verify_concurrency_limit = 1000
-download_concurrency_limit = 50
+download_concurrency_limit = 25
 full_verify_concurrency_limit = 5
 parallel_cpu_threads = 0
 
