@@ -69,10 +69,11 @@ const INJECT = `
     var _nodeCache = { ts: 0, data: null };
     var ZEBRA_HOST = process.env.ZEBRA_HOST || 'zebra';
     var ZEBRA_PORT = parseInt(process.env.ZEBRA_RPC_PORT) || 8232;
-    function zebraRpc(method, cb) {
+    function zebraRpc(method, params, cb) {
+        if (typeof params === 'function') { cb = params; params = []; }
         var _called = false;
         function once(e, r) { if (_called) return; _called = true; cb(e, r); }
-        var body = JSON.stringify({"jsonrpc":"2.0","id":1,"method":method,"params":[]});
+        var body = JSON.stringify({"jsonrpc":"2.0","id":1,"method":method,"params":params});
         var opts = {
             host: ZEBRA_HOST, port: ZEBRA_PORT, path: '/', method: 'POST',
             headers: {'Content-Type':'application/json','Content-Length':Buffer.byteLength(body)}
@@ -139,7 +140,7 @@ const INJECT = `
         var now = Date.now();
         if (_nodeCache.data && now - _nodeCache.ts < 8000) return cb(null, _nodeCache.data);
         var result = { progress:0, blocks:0, estimatedHeight:0, sizeOnDisk:0,
-                       difficulty:0, networkSolps:0, peers:0, diffSource:'zebra' };
+                       difficulty:0, networkSolps:0, peers:0, diffSource:'zebra', lastBlockTime:0 };
         var done = 0, zebraProgress = 0, zebraDiff = 0, zebraSolps = 0;
         function finish() {
             if (++done < 3) return;
@@ -179,6 +180,13 @@ const INJECT = `
                 result.blocks          = parseInt(r.blocks) || 0;
                 result.estimatedHeight = parseInt(r.estimatedheight) || 0;
                 result.sizeOnDisk      = parseInt(r.size_on_disk) || 0;
+                if (r.bestblockhash) {
+                    zebraRpc('getblockheader', [r.bestblockhash, true], function(e2, hdr) {
+                        if (!e2 && hdr && hdr.time) result.lastBlockTime = hdr.time;
+                        finish();
+                    });
+                    return;
+                }
             }
             finish();
         });
