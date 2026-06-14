@@ -559,9 +559,9 @@ const INJECT = `
                         var dateM  = /<pubDate>([\\s\\S]*?)<\\/pubDate>/.exec(block);
                         if (!titleM || !linkM) continue;
                         var title = titleM[1].trim()
+                            .replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&apos;/g,"'")
                             .replace(/&#x([0-9a-fA-F]+);/g,function(m,h){return String.fromCharCode(parseInt(h,16));})
-                            .replace(/&#(\d+);/g,function(m,d){return String.fromCharCode(parseInt(d,10));})
-                            .replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&apos;/g,"'");
+                            .replace(/&#(\d+);/g,function(m,d){return String.fromCharCode(parseInt(d,10));});
                         var url = linkM[1].trim().replace(/&amp;/g,'&');
                         if (!url || url.indexOf('https://') !== 0) continue;
                         var pub = dateM ? new Date(dateM[1].trim()).getTime() : now;
