@@ -851,7 +851,7 @@ window.sbNav=function(sec,el){
       </div>
 
       <div class="stack-footer">
-        Zcash Solo Miner v1.3.63 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
+        Zcash Solo Miner v1.3.64 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
       </div>
 
       <div class="donate-section-wrap" style="margin-top:0">
@@ -2332,6 +2332,8 @@ function fetchNodePeers(){
       }
       var n=_PG_peers.length;
       s('scPeersHdr',n||'—');
+      cachedNetPeers=n;
+      if(n>0)s('syncPeers',n+(n===1?' peer':' peers')+' connected');
       var row=g('scPeersRow');
       if(row)row.style.display=n>0?'':'none';
       var out=0,inn=0;
