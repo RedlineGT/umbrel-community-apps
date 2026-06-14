@@ -1603,12 +1603,12 @@ function poll(){
 
       var ps=pool.poolStats||{};
       var netDiff =parseFloat(ps.networkDiff)||0;
-      /* s-nomp's networkConnections is often stale/zero; use the best known
-         value from Zebra's direct getpeerinfo (cachedNetPeers) if higher */
-      var peers   =Math.max(parseInt(ps.networkConnections)||0, cachedNetPeers);
+      // cachedNetPeers is authoritative (live from Zebra); s-nomp's networkConnections is always stale
+      var peers   =cachedNetPeers;
       var confirmed=parseInt((pool.blocks||{}).confirmed)||0;
       var pending  =parseInt((pool.blocks||{}).pending)||0;
-      if(netDiff>0) lastNetDiff=netDiff;
+      // Only seed lastNetDiff from s-nomp at startup before Zebra has responded
+      if(netDiff>0 && lastNetDiff===0) lastNetDiff=netDiff;
 
       /* Node status pill */
       var pill=g('nodePill');
@@ -1627,11 +1627,10 @@ function poll(){
       s('hdrPeers',cachedNetPeers+(cachedNetPeers===1?' peer':' peers'));
       s('syncPeers',cachedNetPeers+(cachedNetPeers===1?' peer':' peers')+' connected');
 
-      /* Cards — only write diff/nethash from s-nomp when non-zero to avoid
-         flashing while the Zebra netinfo fetch is still in-flight */
-      if(netDiff>0) s('cDiff', fmtN(netDiff));
+      // Zebra owns cDiff/cNetHash (via fetchNodeInfo); s-nomp values are startup fallbacks only
+      if(lastNetDiff>0) s('cDiff', fmtN(lastNetDiff)); else if(netDiff>0) s('cDiff', fmtN(netDiff));
       var poolSols=parseFloat(ps.networkSols);
-      if(poolSols>0) s('cNetHash',ps.networkSolsString||fmtH(poolSols*1e6));
+      if(cachedNetHashrate>0) s('cNetHash',fmtH(cachedNetHashrate)); else if(poolSols>0) s('cNetHash',ps.networkSolsString||fmtH(poolSols*1e6));
       s('cPoolHash',pool.hashrateString||fmtH(pool.hashrate||0));
       s('cRound',(pool.shareCount||0)+' shares this round');
       s('cBlocks',confirmed);
@@ -1656,7 +1655,7 @@ function poll(){
       var wc = parseInt(pool.workerCount)||0;
       var mc = parseInt(pool.minerCount)||0;
       _lastWc = wc;
-      updateDiffVsPanel(netDiff, allBest);
+      updateDiffVsPanel(lastNetDiff||netDiff, allBest);
       updateHashVsPanel(cachedNetHashrate, cachedPoolHashrate, pool.shareCount||0);
       updateStratumCard(wc, mc, undefined, null);
     })

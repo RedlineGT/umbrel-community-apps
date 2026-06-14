@@ -66,7 +66,7 @@ const INJECT = `
     // Makes 3 parallel RPCs (getblockchaininfo + getmininginfo + getpeerinfo),
     // with an 8-second server-side cache so back-to-back dashboard polls
     // never cause duplicate RPC traffic.
-    var _nodeCache = { ts: 0, data: null };
+    var _nodeCache = { ts: 0, data: { progress:0, blocks:0, estimatedHeight:0, sizeOnDisk:0, difficulty:0, networkSolps:0, peers:0, peerList:[], peerListTs:0, diffSource:'zebra', lastBlockTime:0 } };
     var ZEBRA_HOST = process.env.ZEBRA_HOST || 'zebra';
     var ZEBRA_PORT = parseInt(process.env.ZEBRA_RPC_PORT) || 8232;
     function zebraRpc(method, params, cb) {
@@ -147,6 +147,7 @@ const INJECT = `
             // All 3 RPC calls finished (possibly via timeout). If Zebra was too slow
             // and returned nothing useful, serve stale cache rather than zeros.
             if (result.progress === 0 && _nodeCache.data) {
+                if (result.peers > 0) { _nodeCache.data.peers = result.peers; _nodeCache.data.peerList = result.peerList; _nodeCache.data.peerListTs = result.peerListTs; }
                 return cb(null, _nodeCache.data);
             }
             result.difficulty = zebraDiff;
@@ -195,7 +196,7 @@ const INJECT = `
             finish();
         });
         zebraRpc('getpeerinfo', function(e, r) {
-            if (!e && Array.isArray(r)) result.peers = r.length;
+            if (!e && Array.isArray(r)) { result.peers = r.length; result.peerList = r; result.peerListTs = Date.now(); }
             finish();
         });
     }
@@ -209,45 +210,60 @@ const INJECT = `
         if (addr.charAt(0) === '[') return addr.split(']:')[0].slice(1);
         return addr.split(':')[0];
     }
+    // Shared helper: map raw getpeerinfo array to enriched peer objects and attach geo from _geoCache.
+    // New IPs are looked up via ip-api.com batch and cached in _geoCache for the life of the process.
+    function _servePeersWithGeo(rawList, res) {
+        if (!Array.isArray(rawList) || !rawList.length) return res.json([]);
+        var peers = rawList.map(function(p) { return { addr: p.addr, inbound: !!p.inbound, subver: p.subver||'', lastrecv: p.lastrecv||0, connection_state: p.connection_state||'' }; });
+        var needed = [], seen = {};
+        peers.forEach(function(p) {
+            var ip = _peerIp(p.addr);
+            if (!_geoCache.hasOwnProperty(ip) && !seen[ip]) { needed.push(ip); seen[ip] = true; }
+        });
+        function attach() {
+            peers.forEach(function(p) { p.geo = _geoCache[_peerIp(p.addr)] || null; });
+            res.json(peers);
+        }
+        if (!needed.length) return attach();
+        var body = JSON.stringify(needed.slice(0, 100).map(function(ip) {
+            return { query: ip, fields: 'query,status,country,countryCode,regionName,city' };
+        }));
+        var _sent = false;
+        var req2 = require('http').request({
+            hostname: 'ip-api.com', path: '/batch?fields=query,status,country,countryCode,regionName,city',
+            method: 'POST', headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) }
+        }, function(r2) {
+            var data = '';
+            r2.on('data', function(c) { data += c; });
+            r2.on('end', function() {
+                if (_sent) return; _sent = true;
+                try {
+                    JSON.parse(data).forEach(function(g) {
+                        _geoCache[g.query] = g.status === 'success'
+                            ? { country: g.country, cc: g.countryCode, region: g.regionName, city: g.city } : null;
+                    });
+                } catch(ex) {}
+                attach();
+            });
+        });
+        req2.on('error', function() { if (_sent) return; _sent = true; attach(); });
+        req2.write(body);
+        req2.end();
+    }
     app.get('/api/umbrel/peers', function(req, res) {
+        // Reuse the peer list already fetched by buildNodeInfo if it is < 30s old,
+        // avoiding a redundant getpeerinfo RPC call when both endpoints are polled.
+        var cached = _nodeCache.data;
+        if (cached && Array.isArray(cached.peerList) && cached.peerList.length && cached.peerListTs && Date.now() - cached.peerListTs < 30000) {
+            return _servePeersWithGeo(cached.peerList, res);
+        }
         zebraRpc('getpeerinfo', function(e, r) {
-            if (e || !Array.isArray(r)) return res.json([]);
-            var peers = r.map(function(p) { return { addr: p.addr, inbound: !!p.inbound, subver: p.subver||'', lastrecv: p.lastrecv||0, connection_state: p.connection_state||'' }; });
-            var needed = [];
-            var seen = {};
-            peers.forEach(function(p) {
-                var ip = _peerIp(p.addr);
-                if (!_geoCache.hasOwnProperty(ip) && !seen[ip]) { needed.push(ip); seen[ip] = true; }
-            });
-            function attach() {
-                peers.forEach(function(p) { p.geo = _geoCache[_peerIp(p.addr)] || null; });
-                res.json(peers);
+            if (!e && Array.isArray(r) && _nodeCache.data) {
+                _nodeCache.data.peerList = r;
+                _nodeCache.data.peers = r.length;
+                _nodeCache.data.peerListTs = Date.now();
             }
-            if (!needed.length) return attach();
-            var body = JSON.stringify(needed.slice(0, 100).map(function(ip) {
-                return { query: ip, fields: 'query,status,country,countryCode,regionName,city' };
-            }));
-            var _sent = false;
-            var req2 = require('http').request({
-                hostname: 'ip-api.com', path: '/batch?fields=query,status,country,countryCode,regionName,city',
-                method: 'POST', headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) }
-            }, function(r2) {
-                var data = '';
-                r2.on('data', function(c) { data += c; });
-                r2.on('end', function() {
-                    if (_sent) return; _sent = true;
-                    try {
-                        JSON.parse(data).forEach(function(g) {
-                            _geoCache[g.query] = g.status === 'success'
-                                ? { country: g.country, cc: g.countryCode, region: g.regionName, city: g.city } : null;
-                        });
-                    } catch(ex) {}
-                    attach();
-                });
-            });
-            req2.on('error', function() { if (_sent) return; _sent = true; attach(); });
-            req2.write(body);
-            req2.end();
+            _servePeersWithGeo(e ? [] : r, res);
         });
     });
     // Address GET — returns saved address and current network
