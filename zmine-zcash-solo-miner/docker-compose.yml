@@ -42,7 +42,7 @@ services:
   # RPC on 8232 (internal Docker network only)
   # P2P on 8233 (exposed — helps network health, safe to open)
   zebra:
-    image: ghcr.io/redlinegt/zmine-zebra:1.3.60
+    image: ghcr.io/redlinegt/zmine-zebra:1.3.61
     <<: *sec
     # cap_drop intentionally omitted: the official Zebra entrypoint uses
     # setpriv to drop from root→zebra user, which requires CAP_SETUID/SETGID.
@@ -56,6 +56,11 @@ services:
     ports:
       - "8233:8233"
     # RPC port 8232 is intentionally NOT exposed — unauthenticated, internal only
+    sysctls:
+      # Docker containers get their own network namespace and do not inherit
+      # host sysctl changes made after container creation. This must be set
+      # here so Zebra achieves full block-download throughput on every start.
+      net.ipv4.tcp_slow_start_after_idle: "0"
     networks:
       - default
     mem_limit: 4g
@@ -115,7 +120,7 @@ services:
   # Stratum on 13333 (exposed — point your ASICs/GPUs here)
   # Web dashboard on 3300 (internal — served via Umbrel proxy)
   nomp:
-    image: ghcr.io/redlinegt/zmine-nomp:1.3.60
+    image: ghcr.io/redlinegt/zmine-nomp:1.3.61
     <<: *sec
     user: "1000:1000"
     cap_drop:
