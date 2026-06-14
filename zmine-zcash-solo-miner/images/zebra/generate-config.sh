@@ -35,7 +35,6 @@ else
     "dnsseed.z.cash:8233",
     "dnsseed.str4d.xyz:8233",
     "mainnet.seeder.zfnd.org:8233",
-    "mainnet.is.yolo.money:8233",
 ]'
 fi
 
@@ -73,7 +72,7 @@ tx_cost_limit = 80000000
 [network]
 network = "${NETWORK}"
 listen_addr = "0.0.0.0:${P2P_PORT}"
-peerset_initial_target_size = 25
+peerset_initial_target_size = 50
 ${PEERS_TOML}
 
 [rpc]
@@ -126,10 +125,11 @@ export ZEBRA_RPC__COOKIE_DIR="${DATA_DIR}/rpc"
 
 echo "[zebra-config] Handing off to official Zebra entrypoint..."
 
-# Clear the peer address book on every startup to prevent stale/degraded peer
-# sets from causing sync stalls in the post-NU5 full-verifier zone.
-# This runs as root (before setpriv), so it can remove zebra-user-owned files.
-# The cache is container-internal (not mounted), so clearing it costs nothing.
-rm -rf /home/zebra/.cache/zebra/network/ 2>/dev/null || true
+# Ensure the peer cache directory is writable by the zebra user (uid 10001).
+# This runs as root before setpriv, so we can create and chown it here.
+# The directory is mounted as a persistent volume so the peer database survives
+# container restarts and grows over time — critical for reliable peer discovery.
+mkdir -p /home/zebra/.cache/zebra/network/
+chown -R 10001:10001 /home/zebra/.cache/zebra/ 2>/dev/null || true
 
 exec /usr/local/bin/entrypoint.sh "$@"
