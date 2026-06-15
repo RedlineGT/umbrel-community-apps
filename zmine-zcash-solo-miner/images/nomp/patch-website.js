@@ -202,7 +202,11 @@ const INJECT = `
     }
     // Primary unified endpoint
     app.get('/api/umbrel/nodeinfo', function(req, res) {
-        buildNodeInfo(function(err, data) { res.json(data || {}); });
+        buildNodeInfo(function(err, data) {
+            var out = data || {};
+            if (data && _nodeCache.ts) out.dataTs = _nodeCache.ts;
+            res.json(out);
+        });
     });
     // Peer list with server-side geo — returns addr + direction + geo for each connected peer
     var _geoCache = {};

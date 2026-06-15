@@ -509,6 +509,7 @@ window.sbNav=function(sec,el){
               <div class="sync-lbl" style="margin-bottom:4px">Blockchain Sync</div>
               <div id="syncBlkInfo" class="sync-sub" style="margin-top:3px;margin-bottom:2px">Connecting…</div>
               <div id="syncLastBlock" style="font-size:10px;color:var(--text3);margin-bottom:5px;display:none"></div>
+              <div id="syncStaleWarn" style="font-size:10px;color:var(--orange);margin-bottom:5px;display:none"></div>
               <div style="display:flex;align-items:center;gap:8px">
                 <div class="sync-peers" style="margin:0"><span class="sync-peers-dot"></span><span id="syncPeers">— peers</span></div>
                 <div class="sync-peers" style="margin:0"><span class="sync-peers-dot" style="background:var(--blue)"></span><span id="syncSize">— chain</span></div>
@@ -851,7 +852,7 @@ window.sbNav=function(sec,el){
       </div>
 
       <div class="stack-footer">
-        Zcash Solo Miner v1.3.65 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
+        Zcash Solo Miner v1.3.66 &nbsp;·&nbsp; Zebra v5+ (NU6.2) &nbsp;·&nbsp; <span id="stackFooterNet">Mainnet</span> &nbsp;·&nbsp; Equihash 200,9 &nbsp;·&nbsp; s-nomp &nbsp;·&nbsp; nheqminer (Tromp)
       </div>
 
       <div class="donate-section-wrap" style="margin-top:0">
@@ -1997,6 +1998,7 @@ function updateSync(data){
     _sgUpdate(pct,blk,est,sz);
     s('syncBlkInfo',blk&&est?'Block '+blk.toLocaleString()+' / ~'+est.toLocaleString():'Downloading…');
     var _slb=g('syncLastBlock');if(_slb){if(data.lastBlockTime){_slb.textContent='Last block '+timeAgo(data.lastBlockTime);_slb.style.display='';}else{_slb.style.display='none';}}
+    var _ssw=g('syncStaleWarn');if(_ssw){var _ageMs=data.dataTs?(Date.now()-data.dataTs):0;if(_ageMs>120000){var _ageMins=Math.round(_ageMs/60000);_ssw.textContent='⚠ Node data last updated '+_ageMins+'m ago (RPC slow)';_ssw.style.display='';}else{_ssw.style.display='none';}}
     if(sz>0){
       var gb=(sz/1073741824);
       var szStr = gb>=1?gb.toFixed(2)+' GB':Math.round(sz/1048576)+' MB';
