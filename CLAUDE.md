@@ -19,6 +19,12 @@
 
 **A hook in `~/.claude/settings.json` will block any `git push`, `docker push`, or version-bump `sed` command if this dialog was skipped.**
 
+**Docker image push rule — every version bump must push ALL images:**
+- `zmine-zebra:X.Y.Z` — always push, even if Dockerfile unchanged (retag from previous version)
+- `zmine-nomp:X.Y.Z` — always push
+- `zmine-miner` — only bump/push if its Dockerfile or source changed
+- Never leave a version tag referenced in `docker-compose.yml` that doesn't exist on ghcr.io — Umbrel will fail with `manifest unknown` at install time
+
 ## Commit Rules
 
 - Never add `Co-Authored-By` trailers — user does not want Claude on GitHub contributors

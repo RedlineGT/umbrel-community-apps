@@ -1,0 +1,12 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "bash /home/nahin/.claude/hooks/session-start.sh && echo '[zmine repo] — memory and error log loaded'",
+        "timeout": 10,
+        "statusMessage": "Loading zmine project rules..."
+      }
+    ]
+  }
+}
