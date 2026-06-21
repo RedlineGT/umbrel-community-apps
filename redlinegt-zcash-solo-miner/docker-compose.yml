@@ -35,14 +35,14 @@ services:
   # Routes Umbrel UI traffic to the s-nomp dashboard on port 3300.
   app_proxy:
     environment:
-      APP_HOST: zmine-zcash-solo-miner_nomp_1
+      APP_HOST: redlinegt-zcash-solo-miner_nomp_1
       APP_PORT: 3300
 
   # ── Zebra — Zcash mainnet full node (NU5 / NU6 / NU6.2) ──────────────
   # RPC on 8232 (internal Docker network only)
   # P2P on 8233 (exposed — helps network health, safe to open)
   zebra:
-    image: ghcr.io/redlinegt/zmine-zebra:1.3.66
+    image: ghcr.io/redlinegt/redlinegt-zebra:1.3.66
     <<: *sec
     # cap_drop intentionally omitted: the official Zebra entrypoint uses
     # setpriv to drop from root→zebra user, which requires CAP_SETUID/SETGID.
@@ -121,7 +121,7 @@ services:
   # Stratum on 13333 (exposed — point your ASICs/GPUs here)
   # Web dashboard on 3300 (internal — served via Umbrel proxy)
   nomp:
-    image: ghcr.io/redlinegt/zmine-nomp:1.3.66
+    image: ghcr.io/redlinegt/redlinegt-nomp:1.3.66
     <<: *sec
     user: "1000:1000"
     cap_drop:
@@ -163,7 +163,7 @@ services:
   # Very low hash-rate; useful for testing connectivity.
   # Set CPU_THREADS=0 in the env to disable entirely.
   miner:
-    image: ghcr.io/redlinegt/zmine-miner:1.3.23
+    image: ghcr.io/redlinegt/redlinegt-miner:1.3.23
     <<: *sec
     user: "1000:1000"
     cap_drop:
@@ -208,10 +208,10 @@ services:
             sleep 2
           done
         }
-        follow zmine-zcash-solo-miner_nomp_1 &
-        follow zmine-zcash-solo-miner_zebra_1 &
-        follow zmine-zcash-solo-miner_miner_1 &
-        follow zmine-zcash-solo-miner_app_proxy_1 &
+        follow redlinegt-zcash-solo-miner_nomp_1 &
+        follow redlinegt-zcash-solo-miner_zebra_1 &
+        follow redlinegt-zcash-solo-miner_miner_1 &
+        follow redlinegt-zcash-solo-miner_app_proxy_1 &
         wait
     networks:
       - default
