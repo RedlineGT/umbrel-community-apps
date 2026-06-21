@@ -7,15 +7,12 @@ services:
       APP_PORT: 8080
 
   app:
-    build:
-      context: https://github.com/kercre123/wire-pod.git
-      dockerfile: dockerfile
-    user: "1000:1000"
-    restart: unless-stopped
+    image: ghcr.io/redlinegt/wire-pod:1.0.0@sha256:224bc28014f6eb5ccb2e373605f13be4dde9e5cae414f6699e18bb10e49d9259
+    restart: on-failure
     ports:
-      - "${APP_WIRE_POD_HTTP_PORT}:80"
-      - "${APP_WIRE_POD_HTTPS_PORT}:443"
-      - "${APP_WIRE_POD_8084_PORT}:8084"
+      - "80:80"
+      - "443:443"
+      - "8084:8084"
     volumes:
       - ${APP_DATA_DIR}/data:/data
     environment:
@@ -24,5 +21,3 @@ services:
       WIREPOD_STT_SERVICE: "vosk"
       WIREPOD_STT_LANGUAGE: "en-US"
       WIREPOD_USE_INBUILT_BLE: "false"
-      # Uncomment and set these for optional features:
-      # WIREPOD_PICOVOICE_APIKEY: ""
