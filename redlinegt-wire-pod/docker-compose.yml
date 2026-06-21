@@ -3,15 +3,13 @@ version: "3.7"
 services:
   app_proxy:
     environment:
-      APP_HOST: redlinegt-wire-pod_app_1
+      APP_HOST: app
       APP_PORT: 8080
 
   app:
     image: ghcr.io/redlinegt/wire-pod:1.0.0@sha256:224bc28014f6eb5ccb2e373605f13be4dde9e5cae414f6699e18bb10e49d9259
     restart: on-failure
     ports:
-      - "80:80"
-      - "443:443"
       - "8084:8084"
     volumes:
       - ${APP_DATA_DIR}/data:/data

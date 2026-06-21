@@ -4,7 +4,7 @@ name: Wire Pod
 tagline: Vector robot voice command server
 icon: https://raw.githubusercontent.com/RedlineGT/umbrel-community-apps/main/redlinegt-wire-pod/icon.png
 category: robotics
-version: "1.0.2"
+version: "1.0.3"
 port: 8080
 description: >-
   Wire Pod is a free, fully-featured server software for the Anki Vector robot, originally created by kercre123.
@@ -33,7 +33,7 @@ gallery:
   - https://raw.githubusercontent.com/RedlineGT/umbrel-community-apps/main/redlinegt-wire-pod/screenshot3.png
 
 releaseNotes: >-
-  v1.0.2: Fixed Docker networking — added explicit bridge network so app_proxy can resolve the app container hostname.
+  v1.0.3: Switch APP_HOST to service name, remove conflicting port 80/443 bindings that clash with Umbrel proxy.
 
 dependencies: []
 path: ""
