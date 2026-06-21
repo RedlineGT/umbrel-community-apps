@@ -1,0 +1,43 @@
+manifestVersion: 1
+id: wire-pod
+name: Wire Pod
+tagline: Vector robot voice command server
+icon: icon.png
+category: robotics
+version: "1.0.0"
+port: 8080
+description: >-
+  Wire Pod is a free, fully-featured server software for the Anki Vector robot, originally created by kercre123.
+
+  It allows voice commands to work with any Vector 1.0 or 2.0 for no fee, including regular production robots.
+
+  Features:
+  - Full voice command support
+  - Web interface for configuration
+  - Localization and multiple language support
+  - Plugin system for extending functionality
+  - Bluetooth LE support (optional)
+  - Multiple STT service options (Vosk, PicoVoice, etc.)
+
+  Original Project: https://github.com/kercre123/wire-pod (MIT License)
+
+developer: kercre123
+website: https://github.com/kercre123/wire-pod
+submitter: Nahin
+submission: https://github.com/kercre123/wire-pod
+repo: https://github.com/kercre123/wire-pod
+support: https://github.com/kercre123/wire-pod/issues
+gallery:
+  - screenshot1.png
+  - screenshot2.png
+  - screenshot3.png
+
+releaseNotes: >-
+  Initial release of Wire Pod for Umbrel.
+
+  Supports Vector 1.0 and 2.0 robots with full voice command functionality.
+
+dependencies: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""

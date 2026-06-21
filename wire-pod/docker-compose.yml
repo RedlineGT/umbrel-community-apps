@@ -1,0 +1,28 @@
+version: "3.7"
+
+services:
+  app_proxy:
+    environment:
+      APP_HOST: wire-pod_app_1
+      APP_PORT: 8080
+
+  app:
+    build:
+      context: https://github.com/kercre123/wire-pod.git
+      dockerfile: dockerfile
+    user: "1000:1000"
+    restart: unless-stopped
+    ports:
+      - "${APP_WIRE_POD_HTTP_PORT}:80"
+      - "${APP_WIRE_POD_HTTPS_PORT}:443"
+      - "${APP_WIRE_POD_8084_PORT}:8084"
+    volumes:
+      - ${APP_DATA_DIR}/data:/data
+    environment:
+      WIREPOD_DATA_DIR: /data
+      WIREPOD_DEBUG_LOGGING: "true"
+      WIREPOD_STT_SERVICE: "vosk"
+      WIREPOD_STT_LANGUAGE: "en-US"
+      WIREPOD_USE_INBUILT_BLE: "false"
+      # Uncomment and set these for optional features:
+      # WIREPOD_PICOVOICE_APIKEY: ""
