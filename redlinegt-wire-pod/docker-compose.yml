@@ -21,3 +21,9 @@ services:
       WIREPOD_STT_SERVICE: "vosk"
       WIREPOD_STT_LANGUAGE: "en-US"
       WIREPOD_USE_INBUILT_BLE: "false"
+    networks:
+      - default
+
+networks:
+  default:
+    driver: bridge
