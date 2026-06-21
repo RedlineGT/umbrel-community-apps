@@ -5,6 +5,7 @@ services:
     environment:
       APP_HOST: app
       APP_PORT: 8080
+      PROXY_AUTH_ADD: "false"
 
   app:
     image: ghcr.io/redlinegt/wire-pod:1.0.0@sha256:224bc28014f6eb5ccb2e373605f13be4dde9e5cae414f6699e18bb10e49d9259
